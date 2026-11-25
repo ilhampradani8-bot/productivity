@@ -40,7 +40,7 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="./styles.css?v=20261125_07">
+  <link rel="stylesheet" href="./styles.css?v=20261125_08">
 </head>
 <body class="bg-[#0a0e17] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
 
@@ -135,6 +135,28 @@
                   class="w-full bg-transparent border-b-2 border-slate-700 hover:border-slate-500 focus:border-indigo-500 px-1 py-2 text-base md:text-lg font-semibold text-white placeholder-slate-500 focus:outline-none transition-colors">
               </div>
 
+              <!-- 2. Tanggal Jadwal Pelaksanaan (Hari Ini, Besok, Senin Depan, Minggu Depan) -->
+              <div class="bg-[#0a0e17]/80 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-indigo-400 font-mono">📅 TANGGAL JADWAL PELAKSANAAN</span>
+                    <span class="text-[10px] text-slate-400">Pilih hari kerja atau masa pelaksanaan</span>
+                  </div>
+                  <!-- Quick Date Presets -->
+                  <div class="flex items-center gap-1.5 flex-wrap text-[11px] font-mono">
+                    <button type="button" onclick="window.app.setTaskDatePreset('today')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer">Hari Ini</button>
+                    <button type="button" onclick="window.app.setTaskDatePreset('tomorrow')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer">Besok</button>
+                    <button type="button" onclick="window.app.setTaskDatePreset('next_monday')" class="px-2.5 py-1 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-800 hover:bg-indigo-900 transition-colors cursor-pointer">Senin Depan</button>
+                    <button type="button" onclick="window.app.setTaskDatePreset('next_week')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer">Minggu Depan</button>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <input type="date" id="task-target-date" onchange="window.app.onTaskDateChange()" class="flex-1 bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
+                  <span id="task-date-day-label" class="text-xs font-semibold text-cyan-300 font-mono px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700">Hari Ini</span>
+                </div>
+              </div>
+
               <!-- 2. Waktu Sesi 1 (Siang / Utama) + Tombol Jam Bulat -->
               <div class="bg-[#0a0e17]/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -208,7 +230,7 @@
               <!-- 4. Visual Jadwal 24 Jam & Real-time Anti-Collision Indicator -->
               <div class="space-y-1.5">
                 <div class="flex items-center justify-between text-[11px] font-mono">
-                  <span class="text-slate-400">Peta Waktu 24 Jam (Hari Ini):</span>
+                  <span id="collision-date-label" class="text-slate-400">Peta Waktu 24 Jam (Hari Ini):</span>
                   <span id="collision-status-badge" class="font-bold text-emerald-400">✅ Slot Waktu Bebas & Aman</span>
                 </div>
 
@@ -247,8 +269,10 @@
                   <div>
                     <label class="block text-[11px] font-medium text-slate-400 mb-1">Frekuensi Perulangan:</label>
                     <select id="task-recurrence" onchange="window.app.handleRecurrenceChange()" class="w-full bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                      <option value="none">Sekali Saja (Hanya Hari Ini)</option>
+                      <option value="none">Sekali Saja (Hanya Tanggal Ini)</option>
                       <option value="daily" selected>Setiap Hari</option>
+                      <option value="weekdays">Hari Kerja (Senin - Jumat)</option>
+                      <option value="weekly_day" id="task-recurrence-weekly-label">Setiap Minggu di Hari Tersebut</option>
                       <option value="yearly">Setiap Tahun (Tanggal & Bulan Sama)</option>
                     </select>
                   </div>
@@ -618,6 +642,6 @@
     </div>
   </footer>
 
-  <script src="./app.js?v=20261125_07"></script>
+  <script src="./app.js?v=20261125_08"></script>
 </body>
 </html>

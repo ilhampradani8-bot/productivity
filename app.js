@@ -348,8 +348,70 @@ class ProductivityApp {
     this.startClock();
     this.bindEvents();
     this.bindClockEvents();
+    this.initTaskDate();
     this.initValidityPreset();
     this.render();
+    this.checkTimeCollision();
+  }
+
+  initTaskDate() {
+    const input = document.getElementById("task-target-date");
+    if (input) {
+      input.value = this.selectedDate || this.getTodayDateString();
+      this.onTaskDateChange();
+    }
+  }
+
+  setTaskDatePreset(preset) {
+    const now = new Date();
+    let d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (preset === "today") {
+      // today
+    } else if (preset === "tomorrow") {
+      d.setDate(d.getDate() + 1);
+    } else if (preset === "next_monday") {
+      const day = d.getDay(); // 0 is Sun, 1 is Mon
+      const diff = (8 - day) % 7 || 7;
+      d.setDate(d.getDate() + diff);
+    } else if (preset === "next_week") {
+      d.setDate(d.getDate() + 7);
+    }
+
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dayStr = String(d.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${dayStr}`;
+
+    const input = document.getElementById("task-target-date");
+    if (input) {
+      input.value = dateStr;
+      this.onTaskDateChange();
+    }
+  }
+
+  onTaskDateChange() {
+    const input = document.getElementById("task-target-date");
+    if (!input || !input.value) return;
+    const dateStr = input.value;
+    const parts = dateStr.split("-");
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+
+    const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    const dayName = days[d.getDay()];
+    const labelText = `${dayName}, ${d.getDate()} ${months[d.getMonth()]}`;
+
+    const badge = document.getElementById("task-date-day-label");
+    if (badge) badge.textContent = labelText;
+
+    const weeklyOpt = document.getElementById("task-recurrence-weekly-label");
+    if (weeklyOpt) weeklyOpt.textContent = `Setiap ${dayName} (Mingguan)`;
+
+    const colLabel = document.getElementById("collision-date-label");
+    if (colLabel) colLabel.textContent = `Peta Waktu 24 Jam (${dayName}, ${dateStr}):`;
+
+    this.handleValidityPresetChange();
     this.checkTimeCollision();
   }
 
@@ -430,6 +492,26 @@ class ProductivityApp {
         return true;
       }
 
+      // Weekdays (Senin - Jumat)
+      if (task.recurrence === "weekdays") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow >= 1 && dow <= 5;
+      }
+
+      // Weekly on specific day (e.g. Setiap Senin / Hari Terpilih)
+      if (task.recurrence === "weekly_day") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const p1 = targetDate.split("-");
+        const p2 = task.date.split("-");
+        const dow1 = new Date(parseInt(p1[0], 10), parseInt(p1[1], 10) - 1, parseInt(p1[2], 10)).getDay();
+        const dow2 = new Date(parseInt(p2[0], 10), parseInt(p2[1], 10) - 1, parseInt(p2[2], 10)).getDay();
+        return dow1 === dow2;
+      }
+
       // Yearly Task
       if (task.recurrence === "yearly") {
         if (targetDate < task.date) return false;
@@ -495,7 +577,9 @@ class ProductivityApp {
     const s2Start = hasS2 ? this.timeToMinutes(s2StartEl.value) : null;
     const s2End = hasS2 ? this.timeToMinutes(s2EndEl.value) : null;
 
-    const occupied = this.getOccupiedIntervals(this.selectedDate, this.editingTaskId);
+    const targetDateInput = document.getElementById("task-target-date");
+    const targetDate = (targetDateInput && targetDateInput.value) || this.selectedDate;
+    const occupied = this.getOccupiedIntervals(targetDate, this.editingTaskId);
     let conflict = null;
 
     // Cek durasi valid Sesi 1
@@ -589,7 +673,9 @@ class ProductivityApp {
 
   // Otomatis memilih slot waktu kosong terdekat yang mencukupi
   pickNextFreeSlot(requestedDurationMinutes = 60) {
-    const occupied = this.getOccupiedIntervals(this.selectedDate, this.editingTaskId);
+    const targetDateInput = document.getElementById("task-target-date");
+    const targetDate = (targetDateInput && targetDateInput.value) || this.selectedDate;
+    const occupied = this.getOccupiedIntervals(targetDate, this.editingTaskId);
     // Cari celah kosong mulai pukul 08:00 (480 menit) hingga 22:00 (1320 menit)
     let pointer = 480;
     let foundStart = null;
@@ -1047,11 +1133,19 @@ class ProductivityApp {
 
     list.innerHTML = tasks.map(task => {
       const isDone = task.isDone;
-      const recurrenceBadge = task.recurrence === "daily" 
-        ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950/70 text-indigo-300 border border-indigo-800/50">🔁 Tiap Hari ${task.validUntil ? 's/d ' + task.validUntil : ''}</span>`
-        : task.recurrence === "yearly"
-          ? `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/70 text-cyan-300 border border-cyan-800/50">🔁 Tiap Tahun</span>`
-          : "";
+      let recurrenceBadge = "";
+      if (task.recurrence === "daily") {
+        recurrenceBadge = `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950/70 text-indigo-300 border border-indigo-800/50">🔁 Tiap Hari ${task.validUntil ? 's/d ' + task.validUntil : ''}</span>`;
+      } else if (task.recurrence === "weekdays") {
+        recurrenceBadge = `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-800/50">🔁 Senin - Jumat (Hari Kerja)</span>`;
+      } else if (task.recurrence === "weekly_day") {
+        const parts = (task.date || this.selectedDate).split("-");
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+        recurrenceBadge = `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950/70 text-blue-300 border border-blue-800/50">🔁 Setiap ${days[d.getDay()]}</span>`;
+      } else if (task.recurrence === "yearly") {
+        recurrenceBadge = `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/70 text-cyan-300 border border-cyan-800/50">🔁 Tiap Tahun</span>`;
+      }
 
       return `
         <div class="flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all ${
@@ -1116,9 +1210,12 @@ class ProductivityApp {
       return;
     }
 
+    const targetDate = formData.date || this.selectedDate;
+
     if (this.editingTaskId) {
       const task = this.data.dailyTasks.find(t => t.id === this.editingTaskId);
       if (task) {
+        task.date = targetDate;
         task.title = formData.title.trim();
         task.timeStart = formData.timeStart || "09:00";
         task.timeEnd = formData.timeEnd || "10:00";
@@ -1138,7 +1235,7 @@ class ProductivityApp {
     } else {
       const newTask = {
         id: "t-" + Date.now(),
-        date: this.selectedDate,
+        date: targetDate,
         timeStart: formData.timeStart || "09:00",
         timeEnd: formData.timeEnd || "10:00",
         hasSecondSession: !!formData.hasSecondSession,
@@ -1154,6 +1251,13 @@ class ProductivityApp {
         deletedDates: []
       };
       this.data.dailyTasks.unshift(newTask);
+
+      // Jika tanggal berbeda dari yang sedang aktif dilihat, otomatis lompat ke tanggal tersebut
+      if (targetDate !== this.selectedDate) {
+        this.selectedDate = targetDate;
+        const dateInput = document.getElementById("date-input");
+        if (dateInput) dateInput.value = targetDate;
+      }
     }
 
     this.saveData();
@@ -1166,6 +1270,12 @@ class ProductivityApp {
     if (!task) return;
 
     this.editingTaskId = id;
+
+    const targetDateEl = document.getElementById("task-target-date");
+    if (targetDateEl) {
+      targetDateEl.value = task.date;
+      this.onTaskDateChange();
+    }
 
     const titleEl = document.getElementById("task-title");
     const s1StartEl = document.getElementById("task-start-time");
@@ -1211,6 +1321,13 @@ class ProductivityApp {
     const cancelBtn = document.getElementById("btn-cancel-edit");
     if (submitTextEl) submitTextEl.textContent = "+ Simpan ke Jadwal";
     if (cancelBtn) cancelBtn.classList.add("hidden");
+    
+    const targetDateEl = document.getElementById("task-target-date");
+    if (targetDateEl) {
+      targetDateEl.value = this.selectedDate;
+      this.onTaskDateChange();
+    }
+
     this.toggleSession2UI();
     this.initValidityPreset();
     this.checkTimeCollision();
@@ -1790,6 +1907,7 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
       googleForm.addEventListener("submit", (e) => {
         e.preventDefault();
 
+        const date = document.getElementById("task-target-date") ? document.getElementById("task-target-date").value : this.selectedDate;
         const title = document.getElementById("task-title") ? document.getElementById("task-title").value : "";
         const timeStart = document.getElementById("task-start-time") ? document.getElementById("task-start-time").value : "09:00";
         const timeEnd = document.getElementById("task-end-time") ? document.getElementById("task-end-time").value : "10:00";
@@ -1803,6 +1921,7 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
         const note = document.getElementById("task-note") ? document.getElementById("task-note").value : "";
 
         this.addTask({
+          date,
           title,
           timeStart,
           timeEnd,
