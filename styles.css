@@ -92,6 +92,18 @@ body {
 }
 
 /* ================= ANALOG CLOCK PICKER STYLES ================= */
+#modal-clock-picker.hidden {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+#modal-clock-picker:not(.hidden) {
+  display: flex !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
 .analog-clock-plate {
   position: relative;
   width: 250px;
