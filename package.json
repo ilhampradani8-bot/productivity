@@ -1,0 +1,14 @@
+{
+  "name": "productivity-secretary",
+  "version": "1.0.0",
+  "description": "Executive Personal Secretary & 5-Year Productivity System - Open Source",
+  "author": "Ilham Pradani",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx serve -l 3080",
+    "deploy": "wrangler pages deploy . --project-name=productivity-ilhampradani"
+  },
+  "devDependencies": {
+    "wrangler": "^4.157.0"
+  }
+}

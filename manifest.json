@@ -1,0 +1,16 @@
+{
+  "name": "Sekretaris Pribadi - Sistem Produktivitas",
+  "short_name": "Sekretaris",
+  "description": "Sistem Manajemen Jadwal & Rencana Strategis 5 Tahun",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
