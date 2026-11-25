@@ -1,16 +1,15 @@
 /**
- * Sekretaris Pribadi - Sistem Produktivitas & Roadmap 5 Tahun
- * Core Engine & State Controller
- * Dibuat khusus untuk Ilham Pradani
+ * Executive Productivity & WhatsApp Notification Center
+ * Full-Width & Minimalist Engine
+ * Client-Side Controller
  */
 
-// Initial Seed Data jika LocalStorage kosong
 const DEFAULT_SYSTEM_DATA = {
   profile: {
     name: "Ilham Pradani",
     role: "Founder & Tech Architect",
-    secretaryName: "Aura (Sekertaris Eksekutif)",
-    themeMode: "dark"
+    secretaryName: "Aura Executive Desk",
+    targetPhone: "6289691905347" // Nomor WhatsApp default
   },
   fiveYearPlan: [
     {
@@ -41,7 +40,7 @@ const DEFAULT_SYSTEM_DATA = {
           progress: 100,
           steps: [
             { id: "s104", title: "Riset arsitektur ensemble ML (LightGBM + XGBoost + CatBoost)", done: true, priority: "high", note: "Pengujian baseline selesai" },
-            { id: "s105", title: "Integrasi telemetri sinyal ke bot WhatsApp mijdigital", done: true, priority: "high", note: "Notifikasi real-time terhubung" },
+            { id: "s105", title: "Integrasi telemetri sinyal ke bot WhatsApp", done: true, priority: "high", note: "Notifikasi real-time terhubung" },
             { id: "s106", title: "Protokol keamanan disk NVMe (SSD Preservation)", done: true, priority: "medium", note: "Ramdisk & native execution dikonfigurasi" }
           ]
         },
@@ -63,8 +62,8 @@ const DEFAULT_SYSTEM_DATA = {
           status: "in_progress",
           progress: 75,
           steps: [
-            { id: "s109", title: "Peluncuran dashboard Sekretaris Pribadi productivity.ilhampradani.me", done: true, priority: "high", note: "Aplikasi live & terintegrasi Cloudflare Pages" },
-            { id: "s110", title: "Audit komprehensif performa sistem & database", done: false, priority: "high", note: "Penyelarasan log & resource monitoring" },
+            { id: "s109", title: "Peluncuran dashboard Sekretaris Pribadi productivity.ilhampradani.me", done: true, priority: "high", note: "Aplikasi live & terintegrasi Cloudflare Tunnel" },
+            { id: "s110", title: "Integrasi gateway notifikasi WhatsApp 24/7", done: true, priority: "high", note: "Panggilan pesan bot langsung" },
             { id: "s111", title: "Finalisasi rencana strategis tahun 2027", done: false, priority: "medium", note: "Penyusunan target kuartal 2027" }
           ]
         }
@@ -85,9 +84,8 @@ const DEFAULT_SYSTEM_DATA = {
           status: "pending",
           progress: 25,
           steps: [
-            { id: "s201", title: "Rilis platform API terkelola untuk klien eksternal", done: false, priority: "high", note: "Sistem billing & rate-limiting otomatis" },
-            { id: "s202", title: "Peningkatan pipeline retraining otomatis model AI mingguan", done: true, priority: "high", note: "Automated backtest verification" },
-            { id: "s203", title: "Perekrutan & delegasi teknis operasional harian", done: false, priority: "medium", note: "Standar SOP operasional" }
+            { id: "s201", title: "Rilis platform API terkelola untuk klien eksternal", done: false, priority: "high", note: "Sistem billing otomatis" },
+            { id: "s202", title: "Retraining otomatis model AI mingguan", done: true, priority: "high", note: "Backtest verification" }
           ]
         },
         {
@@ -97,28 +95,7 @@ const DEFAULT_SYSTEM_DATA = {
           status: "pending",
           progress: 0,
           steps: [
-            { id: "s204", title: "Rilis aplikasi mobile native untuk dashboard eksekutif", done: false, priority: "medium", note: "Notifikasi push langsung ke perangkat" },
-            { id: "s205", title: "Optimasi latensi inferensi AI sub-10 milidetik", done: false, priority: "high", note: "Quantization & C++ accelerated runtime" }
-          ]
-        },
-        {
-          id: "y2-q3",
-          quarter: "Q3 2027",
-          focus: "Penetrasi Pasar B2B & Kemitraan Strategis",
-          status: "pending",
-          progress: 0,
-          steps: [
-            { id: "s206", title: "Ekspansi jaringan korporat dan vendor resmi", done: false, priority: "medium", note: "Kolaborasi institusi" }
-          ]
-        },
-        {
-          id: "y2-q4",
-          quarter: "Q4 2027",
-          focus: "Review Kapabilitas Finansial & Persiapan Diversifikasi",
-          status: "pending",
-          progress: 0,
-          steps: [
-            { id: "s207", title: "Audit laba bersih & alokasi aset reinvestasi jangka panjang", done: false, priority: "high", note: "Stabilitas cashflow mandiri" }
+            { id: "s203", title: "Rilis aplikasi mobile dashboard eksekutif", done: false, priority: "medium", note: "Notifikasi push langsung" }
           ]
         }
       ]
@@ -133,23 +110,12 @@ const DEFAULT_SYSTEM_DATA = {
       quarters: [
         {
           id: "y3-q1",
-          quarter: "Q1-Q2 2028",
-          focus: "Pengembangan Solusi AI Enterprise Khusus",
+          quarter: "Sepanjang 2028",
+          focus: "Solusi AI Enterprise & Pembentukan Holding Unit Digital",
           status: "pending",
           progress: 0,
           steps: [
-            { id: "s301", title: "Peluncuran suite automasi proses bisnis cerdas", done: false, priority: "high", note: "Target segmen manufaktur & ritel" },
-            { id: "s302", title: "Paten & sertifikasi kepatuhan data ISO/IEC", done: false, priority: "medium", note: "Standar keamanan data tingkat tinggi" }
-          ]
-        },
-        {
-          id: "y3-q2",
-          quarter: "Q3-Q4 2028",
-          focus: "Ekspansi Regional & Pembentukan Holding Digital",
-          status: "pending",
-          progress: 0,
-          steps: [
-            { id: "s303", title: "Strukturisasi holding dan unit bisnis otonom", done: false, priority: "high", note: "Manajemen delegasi penuh" }
+            { id: "s301", title: "Peluncuran suite automasi proses bisnis cerdas", done: false, priority: "high", note: "Segmen korporat" }
           ]
         }
       ]
@@ -158,29 +124,18 @@ const DEFAULT_SYSTEM_DATA = {
       id: "y4-2029",
       year: 2029,
       title: "Tahun 4: Skala Regional & Kepemimpinan Pasar",
-      theme: "Pengaruh Regional & Kemapanan Sistem",
-      targetRevenue: "Portofolio Multi-Sektor Berkelanjutan",
+      theme: "Pengaruh Regional & Ekosistem Terdistribusi",
+      targetRevenue: "Portofolio Multi-Sektor",
       overallProgress: 0,
       quarters: [
         {
           id: "y4-q1",
-          quarter: "Semester 1 2029",
-          focus: "Ekspansi Pasar Asia Tenggara & Infrastruktur Terdistribusi Global",
+          quarter: "Sepanjang 2029",
+          focus: "Deployment Node Edge Global & Laboratorium Riset Mandiri",
           status: "pending",
           progress: 0,
           steps: [
-            { id: "s401", title: "Deployment node edge global multi-region", done: false, priority: "high", note: "Konektivitas sub-5ms Asia Tenggara" },
-            { id: "s402", title: "Investasi pada talenta riset kecerdasan buatan terapan", done: false, priority: "medium", note: "Laboratorium R&D mandiri" }
-          ]
-        },
-        {
-          id: "y4-q2",
-          quarter: "Semester 2 2029",
-          focus: "Konsolidasi Nilai Valuasi & Filantropi Pendidikan",
-          status: "pending",
-          progress: 0,
-          steps: [
-            { id: "s403", title: "Program beasiswa & inkubator talenta digital muda", done: false, priority: "medium", note: "Kontribusi sosial berkelanjutan" }
+            { id: "s401", title: "Deployment node edge global multi-region sub-5ms", done: false, priority: "high", note: "Jaringan regional" }
           ]
         }
       ]
@@ -190,18 +145,17 @@ const DEFAULT_SYSTEM_DATA = {
       year: 2030,
       title: "Tahun 5: Kebebasan Finansial Penuh, Warisan Ekosistem & Legacy",
       theme: "Keberlanjutan & Kebebasan Waktu Eksekutif",
-      targetRevenue: "Aset Mandiri Berkelanjutan & Self-Running Organisasi",
+      targetRevenue: "Aset Mandiri Berkelanjutan",
       overallProgress: 0,
       quarters: [
         {
           id: "y5-q1",
           quarter: "Sepanjang 2030",
-          focus: "Otonomi Penuh Sistem, Suksesi & Fokus Inovasi Masa Depan",
+          focus: "Sistem Operasional Berjalan 100% Otonom & Fokus Riset Masa Depan",
           status: "pending",
           progress: 0,
           steps: [
-            { id: "s501", title: "Sistem operasional berjalan 100% tanpa campur tangan harian", done: false, priority: "high", note: "Sistem otonom mandiri" },
-            { id: "s502", title: "Fokus pada riset terobosan sains, teknologi frontier & keluarga", done: false, priority: "high", note: "Pencapaian visi kehidupan seimbang" }
+            { id: "s501", title: "Operasional mandiri tanpa intervensi harian", done: false, priority: "high", note: "Sistem otonom mandiri" }
           ]
         }
       ]
@@ -209,24 +163,23 @@ const DEFAULT_SYSTEM_DATA = {
   ],
   monthlyPlan: {
     year: 2026,
-    month: 11, // November (1-12)
     monthName: "November 2026",
     theme: "Sprint Penguatan Ekosistem & Efisiensi Sistem",
     milestones: [
-      { id: "m1", title: "Peluncuran & Deployment Sistem Produktivitas Eksekutif", targetDate: "2026-11-26", done: true, priority: "high" },
+      { id: "m1", title: "Deployment Sistem Produktivitas Eksekutif Full-Width & Gateway WA", targetDate: "2026-11-26", done: true, priority: "high" },
       { id: "m2", title: "Audit Stabilitas Tunnel Cloudflare & Serverless Logger Edge", targetDate: "2026-11-28", done: true, priority: "high" },
       { id: "m3", title: "Uji Evaluasi Metrik AI Trade & Konsistensi Sinyal", targetDate: "2026-11-29", done: false, priority: "medium" },
-      { id: "m4", title: "Review Finansial Akhir Bulan & Perencanaan Alokasi Q1 2027", targetDate: "2026-11-30", done: false, priority: "high" }
+      { id: "m4", title: "Review Finansial Akhir Bulan & Alokasi Q1 2027", targetDate: "2026-11-30", done: false, priority: "high" }
     ]
   },
   weeklyPlan: {
     weekTitle: "Minggu 48 (23 - 29 November 2026)",
-    sprintGoal: "Menyelesaikan otomasi sistem jadwal terpadu, verifikasi konektivitas Cloudflare, dan evaluasi hasil training model",
+    sprintGoal: "Menyelesaikan otomasi sistem jadwal terpadu, verifikasi gateway WhatsApp, dan evaluasi hasil training model",
     days: [
       { code: "mon", label: "Senin", date: "2026-11-23", focus: "Perencanaan Sprint Mingguan & Review Task UTM" },
       { code: "tue", label: "Selasa", date: "2026-11-24", focus: "Konfigurasi Cloudflare Tunnel vps-utm & Port Ingress" },
-      { code: "wed", label: "Rabu", date: "2026-11-25", focus: "Eksekusi Sistem Jadwal Produktivitas Eksekutif" },
-      { code: "thu", label: "Kamis", date: "2026-11-26", focus: "Integrasi Domain productivity.ilhampradani.me & Testing" },
+      { code: "wed", label: "Rabu", date: "2026-11-25", focus: "Eksekusi Sistem Jadwal Produktivitas Eksekutif & WhatsApp Gateway" },
+      { code: "thu", label: "Kamis", date: "2026-11-26", focus: "Integrasi Domain productivity.ilhampradani.me & Testing WA" },
       { code: "fri", label: "Jumat", date: "2026-11-27", focus: "Audit Kode, Dokumentasi Open Source & Backup Data" },
       { code: "sat", label: "Sabtu", date: "2026-11-28", focus: "Review Mingguan, Self-Care & Olahraga Rutin" },
       { code: "sun", label: "Minggu", date: "2026-11-29", focus: "Refleksi Strategis & Penyusunan Prioritas Minggu 49" }
@@ -259,22 +212,22 @@ const DEFAULT_SYSTEM_DATA = {
       id: "t-3",
       date: "2026-11-25",
       time: "11:00",
-      title: "Rancang & Bangun Arsitektur Web Sekretaris Produktivitas",
+      title: "Rancang & Bangun Arsitektur Web Produktivitas Full-Width",
       category: "development",
       priority: "high",
       status: "done",
-      note: "Engine harian, mingguan, bulanan & roadmap 5 tahun",
+      note: "Desain minimalis fluid & integrasi notifikasi WA",
       linked5Y: "Y1 - Q4"
     },
     {
       id: "t-4",
       date: "2026-11-25",
       time: "14:30",
-      title: "Konfigurasi Cloudflare Pages & Domain productivity.ilhampradani.me",
+      title: "Konfigurasi Gateway WhatsApp Notification & Port Ingress 3080",
       category: "devops",
       priority: "high",
-      status: "in_progress",
-      note: "Deploy produksi & verifikasi SSL HTTPS global",
+      status: "done",
+      note: "Hubungkan API bot WhatsApp port 3055 ke dashboard",
       linked5Y: "Y1 - Q4"
     },
     {
@@ -296,22 +249,22 @@ const DEFAULT_SYSTEM_DATA = {
       category: "routine",
       priority: "medium",
       status: "todo",
-      note: "Update status checklist & persiapan esok hari",
+      note: "Update status checklist & kirim ringkasan ke WA",
       linked5Y: "Habit"
     }
   ]
 };
 
-// Global App State
-class SecretaryApp {
+class ProductivityApp {
   constructor() {
-    this.storageKey = "sekretaris_produktivitas_data_v1";
+    this.storageKey = "sekretaris_produktivitas_fw_v2";
     this.data = this.loadData();
     this.activeTab = "daily"; // 'daily', 'weekly', 'monthly', 'roadmap', 'analytics'
     this.selectedDate = this.getTodayDateString();
     this.selectedCategory = "all";
     this.selectedPriority = "all";
     this.searchQuery = "";
+    this.waBotOnline = false;
     this.isSpeaking = false;
     this.speechSynth = window.speechSynthesis || null;
 
@@ -334,7 +287,7 @@ class SecretaryApp {
         return { ...DEFAULT_SYSTEM_DATA, ...parsed };
       }
     } catch (e) {
-      console.warn("Gagal membaca LocalStorage, menggunakan seed data bawaan", e);
+      console.warn("Using default data", e);
     }
     return JSON.parse(JSON.stringify(DEFAULT_SYSTEM_DATA));
   }
@@ -342,26 +295,29 @@ class SecretaryApp {
   saveData() {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.data));
-      this.updateSecretaryBriefing();
+      this.updateSidebarBriefing();
     } catch (e) {
-      console.error("Gagal menyimpan data ke LocalStorage", e);
+      console.error("Gagal simpan data", e);
     }
   }
 
   init() {
     this.bindEvents();
-    this.setupKeyboardShortcuts();
     this.startClock();
+    this.checkWABotStatus();
     this.render();
+
+    // Cek status WA bot secara berkala
+    setInterval(() => this.checkWABotStatus(), 15000);
   }
 
   startClock() {
-    const clockEl = document.getElementById("executive-clock");
-    const dateEl = document.getElementById("executive-date");
+    const clockEl = document.getElementById("header-clock");
+    const dateEl = document.getElementById("header-date");
     const update = () => {
       const now = new Date();
       const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      const dateStr = now.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+      const dateStr = now.toLocaleDateString("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
       if (clockEl) clockEl.textContent = `${timeStr} WIB`;
       if (dateEl) dateEl.textContent = dateStr;
     };
@@ -369,194 +325,124 @@ class SecretaryApp {
     setInterval(update, 1000);
   }
 
+  async checkWABotStatus() {
+    const badgeEl = document.getElementById("wa-bot-badge");
+    const badgeTextEl = document.getElementById("wa-bot-badge-text");
+    try {
+      const res = await fetch("/api/wa-status", { signal: AbortSignal.timeout(3000) });
+      const data = await res.json();
+      this.waBotOnline = data.online && data.botData?.status === "Terhubung";
+      
+      if (this.waBotOnline) {
+        if (badgeEl) {
+          badgeEl.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-800/80 text-emerald-300 text-xs font-mono";
+        }
+        if (badgeTextEl) badgeTextEl.textContent = "WA Bot Aktif (6289691905347)";
+      } else {
+        if (badgeEl) {
+          badgeEl.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/70 border border-amber-800/80 text-amber-300 text-xs font-mono";
+        }
+        if (badgeTextEl) badgeTextEl.textContent = "WA Mode Web Direct";
+      }
+    } catch (e) {
+      this.waBotOnline = false;
+      if (badgeEl) {
+        badgeEl.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono";
+      }
+      if (badgeTextEl) badgeTextEl.textContent = "WA Mode Web Direct";
+    }
+  }
+
   switchTab(tabName) {
     this.activeTab = tabName;
-    document.querySelectorAll(".tab-btn").forEach(btn => {
+    document.querySelectorAll(".tab-pill").forEach(btn => {
       if (btn.dataset.tab === tabName) {
-        btn.classList.add("bg-indigo-600", "text-white", "shadow-lg");
-        btn.classList.remove("text-slate-400", "hover:text-white");
+        btn.classList.add("bg-indigo-600", "text-white");
+        btn.classList.remove("text-slate-400", "hover:text-slate-200");
       } else {
-        btn.classList.remove("bg-indigo-600", "text-white", "shadow-lg");
-        btn.classList.add("text-slate-400", "hover:text-white");
+        btn.classList.remove("bg-indigo-600", "text-white");
+        btn.classList.add("text-slate-400", "hover:text-slate-200");
       }
     });
 
-    document.querySelectorAll(".view-panel").forEach(panel => {
-      panel.classList.add("hidden");
-    });
-    const activePanel = document.getElementById(`panel-${tabName}`);
-    if (activePanel) {
-      activePanel.classList.remove("hidden");
-    }
+    document.querySelectorAll(".view-section").forEach(sec => sec.classList.add("hidden"));
+    const activeSec = document.getElementById(`view-${tabName}`);
+    if (activeSec) activeSec.classList.remove("hidden");
 
     this.render();
   }
 
-  getSecretaryAnalysis() {
+  getMetrics() {
     const today = this.selectedDate;
-    const tasksToday = this.data.dailyTasks.filter(t => t.date === today);
-    const total = tasksToday.length;
-    const done = tasksToday.filter(t => t.status === "done").length;
-    const pendingHigh = tasksToday.filter(t => t.status !== "done" && t.priority === "high").length;
+    const tasks = this.data.dailyTasks.filter(t => t.date === today);
+    const total = tasks.length;
+    const done = tasks.filter(t => t.status === "done").length;
+    const high = tasks.filter(t => t.status !== "done" && t.priority === "high").length;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-    // Menghitung status rencana 5 tahun
-    let total5YSteps = 0;
-    let done5YSteps = 0;
+    let total5Y = 0;
+    let done5Y = 0;
     this.data.fiveYearPlan.forEach(y => {
       y.quarters.forEach(q => {
         q.steps.forEach(s => {
-          total5YSteps++;
-          if (s.done) done5YSteps++;
+          total5Y++;
+          if (s.done) done5Y++;
         });
       });
     });
-    const pct5Y = total5YSteps > 0 ? Math.round((done5YSteps / total5YSteps) * 100) : 0;
+    const pct5Y = total5Y > 0 ? Math.round((done5Y / total5Y) * 100) : 0;
+
+    return { total, done, high, pct, pct5Y };
+  }
+
+  updateSidebarBriefing() {
+    const m = this.getMetrics();
+    const pctEl = document.getElementById("stat-daily-pct");
+    const highEl = document.getElementById("stat-daily-high");
+    const pct5YEl = document.getElementById("stat-5y-pct");
+    const greetEl = document.getElementById("sidebar-greeting");
+    const descEl = document.getElementById("sidebar-desc");
+
+    if (pctEl) pctEl.textContent = `${m.pct}%`;
+    if (highEl) highEl.textContent = `${m.high}`;
+    if (pct5YEl) pct5YEl.textContent = `${m.pct5Y}%`;
 
     const hour = new Date().getHours();
-    let greeting = "Selamat Malam";
-    if (hour >= 4 && hour < 11) greeting = "Selamat Pagi";
-    else if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
-    else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
+    let greet = "Selamat Malam";
+    if (hour >= 4 && hour < 11) greet = "Selamat Pagi";
+    else if (hour >= 11 && hour < 15) greet = "Selamat Siang";
+    else if (hour >= 15 && hour < 18) greet = "Selamat Sore";
 
-    let message = "";
-    if (total === 0) {
-      message = `Hari ini belum ada agenda terdaftar. Ini saat yang tepat untuk merencanakan target harian Anda.`;
-    } else if (pct === 100) {
-      message = `Luar biasa Pak Ilham! Seluruh ${total} agenda hari ini telah berhasil diselesaikan dengan sempurna.`;
-    } else if (pendingHigh > 0) {
-      message = `Ada ${pendingHigh} agenda prioritas tinggi yang memerlukan atensi utama Anda. Progress harian saat ini ${pct}%.`;
-    } else {
-      message = `Progress berjalan mulus (${pct}% selesai). Tetap jaga momentum dan ritme kerja terukur.`;
-    }
-
-    return {
-      greeting,
-      total,
-      done,
-      pending: total - done,
-      pendingHigh,
-      pct,
-      pct5Y,
-      message,
-      executiveName: this.data.profile.name
-    };
-  }
-
-  updateSecretaryBriefing() {
-    const analysis = this.getSecretaryAnalysis();
-    const greetEl = document.getElementById("briefing-greeting");
-    const msgEl = document.getElementById("briefing-message");
-    const statPctEl = document.getElementById("briefing-stat-pct");
-    const statPendingHighEl = document.getElementById("briefing-stat-high");
-    const stat5YEl = document.getElementById("briefing-stat-5y");
-
-    if (greetEl) greetEl.textContent = `${analysis.greeting}, ${analysis.executiveName}!`;
-    if (msgEl) msgEl.textContent = analysis.message;
-    if (statPctEl) statPctEl.textContent = `${analysis.pct}%`;
-    if (statPendingHighEl) statPendingHighEl.textContent = `${analysis.pendingHigh}`;
-    if (stat5YEl) stat5YEl.textContent = `${analysis.pct5Y}%`;
-  }
-
-  speakBriefing() {
-    if (!this.speechSynth) {
-      alert("Fitur pembacaan suara tidak didukung pada browser ini.");
-      return;
-    }
-
-    if (this.isSpeaking) {
-      this.speechSynth.cancel();
-      this.isSpeaking = false;
-      this.updateVoiceButtonState(false);
-      return;
-    }
-
-    const analysis = this.getSecretaryAnalysis();
-    const tasksToday = this.data.dailyTasks.filter(t => t.date === this.selectedDate);
-    let taskSummary = "";
-    if (tasksToday.length > 0) {
-      const topTasks = tasksToday.filter(t => t.status !== "done").slice(0, 3).map(t => `${t.time ? 'pukul ' + t.time : ''}: ${t.title}`).join(". ");
-      if (topTasks) {
-        taskSummary = `Agenda yang perlu Anda selesaikan selanjutnya antara lain: ${topTasks}.`;
+    if (greetEl) greetEl.textContent = `${greet}, Pak ${this.data.profile.name}!`;
+    if (descEl) {
+      if (m.total === 0) {
+        descEl.textContent = "Belum ada agenda tercatat untuk tanggal ini. Mulai dengan menambah tugas baru.";
+      } else if (m.high > 0) {
+        descEl.textContent = `Ada ${m.high} tugas prioritas tinggi yang memerlukan atensi utama Anda hari ini.`;
+      } else if (m.pct === 100) {
+        descEl.textContent = `Semua ${m.total} agenda hari ini telah selesai sempurna. Kerja bagus!`;
+      } else {
+        descEl.textContent = `Progress harian berjalan lancar (${m.pct}% selesai).`;
       }
-    }
-
-    const fullText = `${analysis.greeting} Pak ${analysis.executiveName}. Saya Aura, sekertaris pribadi Anda. ${analysis.message}. Target rencana jangka panjang 5 tahun Anda saat ini tercapai ${analysis.pct5Y} persen. ${taskSummary} Tetap semangat dan fokus mengeksekusi rencana hari ini!`;
-
-    const utterance = new SpeechSynthesisUtterance(fullText);
-    utterance.lang = "id-ID";
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    // Cari suara bahasa Indonesia jika ada
-    const voices = this.speechSynth.getVoices();
-    const idVoice = voices.find(v => v.lang.includes("id") || v.lang.includes("ID"));
-    if (idVoice) utterance.voice = idVoice;
-
-    utterance.onstart = () => {
-      this.isSpeaking = true;
-      this.updateVoiceButtonState(true);
-    };
-
-    utterance.onend = () => {
-      this.isSpeaking = false;
-      this.updateVoiceButtonState(false);
-    };
-
-    utterance.onerror = () => {
-      this.isSpeaking = false;
-      this.updateVoiceButtonState(false);
-    };
-
-    this.speechSynth.speak(utterance);
-  }
-
-  updateVoiceButtonState(speaking) {
-    const btn = document.getElementById("btn-voice-briefing");
-    if (!btn) return;
-    if (speaking) {
-      btn.innerHTML = `
-        <span class="relative flex h-3 w-3 mr-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
-        </span>
-        Hentikan Suara
-      `;
-      btn.classList.add("bg-rose-600/30", "border-rose-500", "text-rose-200");
-    } else {
-      btn.innerHTML = `
-        <svg class="w-4 h-4 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-        </svg>
-        Dengarkan Suara Sekertaris
-      `;
-      btn.classList.remove("bg-rose-600/30", "border-rose-500", "text-rose-200");
     }
   }
 
   render() {
-    this.updateSecretaryBriefing();
-    if (this.activeTab === "daily") {
-      this.renderDailyView();
-    } else if (this.activeTab === "weekly") {
-      this.renderWeeklyView();
-    } else if (this.activeTab === "monthly") {
-      this.renderMonthlyView();
-    } else if (this.activeTab === "roadmap") {
-      this.renderRoadmapView();
-    } else if (this.activeTab === "analytics") {
-      this.renderAnalyticsView();
-    }
+    this.updateSidebarBriefing();
+    if (this.activeTab === "daily") this.renderDailyView();
+    else if (this.activeTab === "weekly") this.renderWeeklyView();
+    else if (this.activeTab === "monthly") this.renderMonthlyView();
+    else if (this.activeTab === "roadmap") this.renderRoadmapView();
+    else if (this.activeTab === "analytics") this.renderAnalyticsView();
   }
 
   // ===================== DAILY VIEW =====================
   renderDailyView() {
-    const listContainer = document.getElementById("daily-task-list");
-    if (!listContainer) return;
+    const list = document.getElementById("daily-task-container");
+    if (!list) return;
 
     let tasks = this.data.dailyTasks.filter(t => t.date === this.selectedDate);
 
-    // Apply filters
     if (this.selectedCategory !== "all") {
       tasks = tasks.filter(t => t.category === this.selectedCategory);
     }
@@ -568,69 +454,62 @@ class SecretaryApp {
       tasks = tasks.filter(t => t.title.toLowerCase().includes(q) || (t.note && t.note.toLowerCase().includes(q)));
     }
 
-    // Sort: high priority first, then time
+    // Sort: priority high first, then time
     tasks.sort((a, b) => {
-      const pOrder = { high: 1, medium: 2, low: 3 };
-      const diffP = (pOrder[a.priority] || 2) - (pOrder[b.priority] || 2);
-      if (diffP !== 0) return diffP;
+      const p = { high: 1, medium: 2, low: 3 };
+      const diff = (p[a.priority] || 2) - (p[b.priority] || 2);
+      if (diff !== 0) return diff;
       return (a.time || "99:99").localeCompare(b.time || "99:99");
     });
 
     if (tasks.length === 0) {
-      listContainer.innerHTML = `
-        <div class="text-center py-12 px-4 bg-slate-900/40 rounded-2xl border border-dashed border-slate-800">
-          <svg class="w-12 h-12 mx-auto text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <p class="text-slate-400 font-medium">Tidak ada agenda pada filter ini.</p>
-          <p class="text-xs text-slate-500 mt-1">Gunakan formulir tambah cepat di atas untuk menambahkan tugas baru.</p>
+      list.innerHTML = `
+        <div class="p-8 text-center bg-slate-900/40 rounded-xl border border-dashed border-slate-800">
+          <p class="text-sm text-slate-400">Tidak ada agenda pada tanggal ini.</p>
+          <p class="text-xs text-slate-600 mt-1">Gunakan form di atas untuk menambah agenda cepat.</p>
         </div>
       `;
       return;
     }
 
-    listContainer.innerHTML = tasks.map(task => {
+    list.innerHTML = tasks.map(task => {
       const isDone = task.status === "done";
-      const priorityClass = task.priority === "high" 
-        ? "bg-rose-500/15 text-rose-300 border-rose-500/30" 
+      const priorityLabel = task.priority === "high" ? "TINGGI" : task.priority === "medium" ? "SEDANG" : "RENDAH";
+      const priorityColor = task.priority === "high" 
+        ? "text-rose-400 bg-rose-950/50 border-rose-800/40" 
         : task.priority === "medium" 
-          ? "bg-amber-500/15 text-amber-300 border-amber-500/30" 
-          : "bg-slate-700/50 text-slate-300 border-slate-600/30";
-
-      const categoryBadge = this.getCategoryBadge(task.category);
+          ? "text-amber-400 bg-amber-950/50 border-amber-800/40" 
+          : "text-slate-400 bg-slate-800/50 border-slate-700/40";
 
       return `
-        <div class="group flex items-start justify-between gap-3 p-4 rounded-xl border transition-all duration-150 ${
-          isDone 
-            ? "bg-slate-950/60 border-slate-800/60 opacity-60" 
-            : "bg-slate-900/80 hover:bg-slate-850 border-slate-800 hover:border-slate-700 shadow-sm"
+        <div class="flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all ${
+          isDone ? "bg-slate-950/40 border-slate-900 opacity-60" : "bg-slate-900/70 hover:bg-slate-900 border-slate-800/80"
         }">
-          <div class="flex items-start gap-3 flex-1 min-w-0">
-            <button onclick="app.toggleTaskStatus('${task.id}')" class="mt-0.5 flex-shrink-0 w-6 h-6 rounded-lg border flex items-center justify-center transition-colors ${
-              isDone 
-                ? "bg-emerald-600 border-emerald-500 text-white" 
-                : "border-slate-700 hover:border-indigo-500 bg-slate-800/80 text-transparent"
-            }">
-              <svg class="w-4 h-4 fill-current stroke-current" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-            </button>
+          <div class="flex items-center gap-3 flex-1 min-w-0">
+            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="app.toggleTask('${task.id}')" class="custom-checkbox flex-shrink-0">
+            
             <div class="flex-1 min-w-0">
-              <div class="flex flex-wrap items-center gap-2 mb-1">
-                ${task.time ? `<span class="text-xs font-mono px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800/40">${task.time} WIB</span>` : ''}
-                <span class="text-xs px-2 py-0.5 rounded border ${priorityClass} uppercase tracking-wider font-semibold text-[10px]">
-                  ${task.priority}
-                </span>
-                ${categoryBadge}
-                ${task.linked5Y ? `<span class="text-[10px] px-2 py-0.5 rounded bg-purple-950/70 text-purple-300 border border-purple-800/40 font-mono">🎯 5Y: ${task.linked5Y}</span>` : ''}
+              <div class="flex items-center gap-2 flex-wrap mb-1">
+                ${task.time ? `<span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-indigo-300 font-semibold">${task.time}</span>` : ''}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded border ${priorityColor} font-mono">${priorityLabel}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800/80 text-slate-300 border border-slate-700/60">${this.getCategoryLabel(task.category)}</span>
+                ${task.linked5Y ? `<span class="text-[10px] px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-800/40 font-mono">🎯 5Y: ${task.linked5Y}</span>` : ''}
               </div>
-              <p class="text-sm md:text-base font-medium ${isDone ? 'line-through text-slate-400' : 'text-slate-100'} break-words">
+              <p class="text-sm font-medium ${isDone ? 'line-through text-slate-500' : 'text-slate-100'} break-words">
                 ${this.escapeHtml(task.title)}
               </p>
-              ${task.note ? `<p class="text-xs text-slate-400 mt-1 break-words">${this.escapeHtml(task.note)}</p>` : ''}
+              ${task.note ? `<p class="text-xs text-slate-400 mt-0.5 break-words">${this.escapeHtml(task.note)}</p>` : ''}
             </div>
           </div>
-          <div class="flex items-center gap-1 opacity-80 group-hover:opacity-100 flex-shrink-0">
+
+          <!-- Action buttons: Kirim WA & Hapus -->
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button onclick="app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="px-2.5 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900/90 text-emerald-300 border border-emerald-800/80 text-xs font-medium flex items-center gap-1 transition-colors">
+              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
+              </svg>
+              <span class="hidden sm:inline">Kirim</span> WA
+            </button>
             <button onclick="app.deleteTask('${task.id}')" title="Hapus Tugas" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -642,73 +521,58 @@ class SecretaryApp {
     }).join("");
   }
 
-  getCategoryBadge(category) {
-    const cats = {
-      routine: { label: "Rutin Eksekutif", bg: "bg-blue-950/60 text-blue-300 border-blue-800/40" },
-      workstation: { label: "Infrastruktur UTM", bg: "bg-cyan-950/60 text-cyan-300 border-cyan-800/40" },
-      development: { label: "Coding & AI", bg: "bg-emerald-950/60 text-emerald-300 border-emerald-800/40" },
-      devops: { label: "DevOps & Cloud", bg: "bg-indigo-950/60 text-indigo-300 border-indigo-800/40" },
-      learning: { label: "Belajar & Riset", bg: "bg-violet-950/60 text-violet-300 border-violet-800/40" },
-      business: { label: "Bisnis & Revenue", bg: "bg-amber-950/60 text-amber-300 border-amber-800/40" },
-      health: { label: "Kesehatan Fisik", bg: "bg-teal-950/60 text-teal-300 border-teal-800/40" }
+  getCategoryLabel(c) {
+    const map = {
+      routine: "Rutin",
+      workstation: "UTM Hub",
+      development: "Coding & AI",
+      devops: "DevOps",
+      business: "Bisnis",
+      learning: "Belajar",
+      health: "Kesehatan"
     };
-    const c = cats[category] || { label: category || "Umum", bg: "bg-slate-800 text-slate-300 border-slate-700" };
-    return `<span class="text-[10px] px-2 py-0.5 rounded border ${c.bg}">${c.label}</span>`;
+    return map[c] || c || "Umum";
   }
 
   // ===================== WEEKLY VIEW =====================
   renderWeeklyView() {
-    const container = document.getElementById("weekly-grid");
-    const weekTitleEl = document.getElementById("weekly-title");
-    const sprintGoalEl = document.getElementById("weekly-sprint-goal");
+    const grid = document.getElementById("weekly-grid-container");
+    if (!grid) return;
 
-    if (weekTitleEl) weekTitleEl.textContent = this.data.weeklyPlan.weekTitle;
-    if (sprintGoalEl) sprintGoalEl.textContent = this.data.weeklyPlan.sprintGoal;
-    if (!container) return;
-
-    container.innerHTML = this.data.weeklyPlan.days.map(day => {
+    grid.innerHTML = this.data.weeklyPlan.days.map(day => {
       const isSelected = day.date === this.selectedDate;
-      const dayTasks = this.data.dailyTasks.filter(t => t.date === day.date);
-      const total = dayTasks.length;
-      const done = dayTasks.filter(t => t.status === "done").length;
+      const tasks = this.data.dailyTasks.filter(t => t.date === day.date);
+      const total = tasks.length;
+      const done = tasks.filter(t => t.status === "done").length;
 
       return `
         <div class="rounded-xl border p-4 transition-all ${
-          isSelected 
-            ? "bg-slate-900 border-indigo-500 shadow-md ring-1 ring-indigo-500" 
-            : "bg-slate-900/60 hover:bg-slate-900/90 border-slate-800"
+          isSelected ? "bg-slate-900 border-indigo-500 ring-1 ring-indigo-500" : "bg-slate-900/60 border-slate-800"
         }">
-          <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
             <div>
-              <span class="text-xs font-semibold uppercase tracking-wider ${isSelected ? 'text-indigo-400' : 'text-slate-400'}">${day.label}</span>
-              <p class="text-sm font-bold text-slate-100">${day.date.split("-").slice(1).join("/")}</p>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-400">${day.label}</span>
+              <p class="text-sm font-bold text-white">${day.date.split("-").slice(1).join("/")}</p>
             </div>
             <button onclick="app.selectDateAndJump('${day.date}')" class="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-colors">
-              Buka Hari Ini
+              Pilih
             </button>
           </div>
-
-          <div class="mb-3">
-            <span class="text-[11px] font-medium text-slate-400 block mb-1">Fokus Hari:</span>
-            <p class="text-xs text-indigo-300 font-medium line-clamp-2 bg-indigo-950/40 p-1.5 rounded border border-indigo-900/40">
-              ${this.escapeHtml(day.focus)}
-            </p>
-          </div>
-
-          <div class="space-y-1.5 min-h-[90px]">
-            ${dayTasks.slice(0, 4).map(t => `
-              <div class="flex items-center gap-1.5 text-xs p-1 rounded ${t.status === 'done' ? 'text-slate-500 line-through' : 'text-slate-200'}">
-                <span class="w-1.5 h-1.5 rounded-full ${t.priority === 'high' ? 'bg-rose-500' : 'bg-slate-500'}"></span>
-                <span class="truncate">${this.escapeHtml(t.title)}</span>
+          <p class="text-xs text-indigo-300 font-medium mb-3 p-1.5 rounded bg-indigo-950/30 border border-indigo-900/40 line-clamp-2">
+            ${this.escapeHtml(day.focus)}
+          </p>
+          <div class="space-y-1.5 min-h-[75px]">
+            ${tasks.slice(0, 3).map(t => `
+              <div class="text-xs truncate ${t.status === 'done' ? 'line-through text-slate-500' : 'text-slate-300'}">
+                • ${t.time ? `[${t.time}] ` : ''}${this.escapeHtml(t.title)}
               </div>
             `).join("")}
-            ${total > 4 ? `<p class="text-[10px] text-slate-500 pt-1">+ ${total - 4} agenda lainnya...</p>` : ''}
-            ${total === 0 ? `<p class="text-xs text-slate-600 italic py-2">Belum ada agenda</p>` : ''}
+            ${total > 3 ? `<p class="text-[10px] text-slate-500">+${total - 3} lainnya</p>` : ''}
+            ${total === 0 ? `<p class="text-xs text-slate-600 italic">Kosong</p>` : ''}
           </div>
-
-          <div class="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-            <span>Selesai: ${done}/${total}</span>
-            <span class="font-mono text-indigo-400 font-semibold">${total > 0 ? Math.round((done / total) * 100) : 0}%</span>
+          <div class="mt-3 pt-2 border-t border-slate-800 flex justify-between text-xs text-slate-400 font-mono">
+            <span>${done}/${total} Selesai</span>
+            <span>${total > 0 ? Math.round((done / total) * 100) : 0}%</span>
           </div>
         </div>
       `;
@@ -717,56 +581,32 @@ class SecretaryApp {
 
   selectDateAndJump(dateStr) {
     this.selectedDate = dateStr;
-    const dateInput = document.getElementById("date-selector");
-    if (dateInput) dateInput.value = dateStr;
+    const input = document.getElementById("date-input");
+    if (input) input.value = dateStr;
     this.switchTab("daily");
   }
 
   // ===================== MONTHLY VIEW =====================
   renderMonthlyView() {
-    const monthTitleEl = document.getElementById("monthly-title");
-    const monthThemeEl = document.getElementById("monthly-theme");
-    const milestoneContainer = document.getElementById("monthly-milestones-list");
+    const list = document.getElementById("monthly-list-container");
+    if (!list) return;
 
-    if (monthTitleEl) monthTitleEl.textContent = this.data.monthlyPlan.monthName;
-    if (monthThemeEl) monthThemeEl.textContent = this.data.monthlyPlan.theme;
-
-    if (!milestoneContainer) return;
-
-    milestoneContainer.innerHTML = this.data.monthlyPlan.milestones.map(m => {
-      return `
-        <div class="flex items-start justify-between gap-3 p-4 rounded-xl border ${
-          m.done ? "bg-slate-950/60 border-slate-800/60 opacity-65" : "bg-slate-900 border-slate-800"
-        }">
-          <div class="flex items-start gap-3 flex-1 min-w-0">
-            <button onclick="app.toggleMonthlyMilestone('${m.id}')" class="mt-0.5 flex-shrink-0 w-6 h-6 rounded-lg border flex items-center justify-center transition-colors ${
-              m.done ? "bg-emerald-600 border-emerald-500 text-white" : "border-slate-700 hover:border-indigo-500 bg-slate-800 text-transparent"
-            }">
-              <svg class="w-4 h-4 fill-current stroke-current" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-              </svg>
-            </button>
-            <div>
-              <div class="flex items-center gap-2 mb-1">
-                <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">Target: ${m.targetDate}</span>
-                <span class="text-[10px] px-2 py-0.5 rounded font-semibold uppercase ${
-                  m.priority === 'high' ? 'bg-rose-950 text-rose-300 border border-rose-800' : 'bg-slate-800 text-slate-300'
-                }">${m.priority}</span>
-              </div>
-              <p class="text-sm md:text-base font-semibold ${m.done ? 'line-through text-slate-400' : 'text-slate-100'}">
-                ${this.escapeHtml(m.title)}
-              </p>
-            </div>
+    list.innerHTML = this.data.monthlyPlan.milestones.map(m => `
+      <div class="flex items-center justify-between gap-3 p-4 rounded-xl border ${
+        m.done ? 'bg-slate-950/40 border-slate-900 opacity-60' : 'bg-slate-900/70 border-slate-800'
+      }">
+        <div class="flex items-center gap-3 flex-1 min-w-0">
+          <input type="checkbox" ${m.done ? 'checked' : ''} onchange="app.toggleMonthlyMilestone('${m.id}')" class="custom-checkbox flex-shrink-0">
+          <div>
+            <span class="text-xs font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-800">Target: ${m.targetDate}</span>
+            <p class="text-sm font-semibold text-slate-100 mt-1 ${m.done ? 'line-through text-slate-500' : ''}">${this.escapeHtml(m.title)}</p>
           </div>
-          <button onclick="app.pushMilestoneToDaily('${m.id}')" title="Kirim ke Agenda Hari Ini" class="text-xs px-2.5 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-800/60 transition-colors flex items-center gap-1">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            Jadikan Tugas
-          </button>
         </div>
-      `;
-    }).join("");
+        <button onclick="app.pushMilestoneToDaily('${m.id}')" class="px-2.5 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-800/80 text-xs font-medium transition-colors">
+          Jadikan Tugas
+        </button>
+      </div>
+    `).join("");
   }
 
   toggleMonthlyMilestone(id) {
@@ -795,102 +635,71 @@ class SecretaryApp {
     });
 
     this.saveData();
-    alert(`Berhasil menambahkan "${item.title}" ke Agenda Harian (${this.selectedDate})!`);
+    alert(`Milestone "${item.title}" berhasil ditambahkan ke Agenda Harian!`);
     this.render();
   }
 
   // ===================== ROADMAP 5 TAHUN =====================
   renderRoadmapView() {
-    const container = document.getElementById("roadmap-container");
+    const container = document.getElementById("roadmap-5y-container");
     if (!container) return;
 
-    container.innerHTML = this.data.fiveYearPlan.map(yearPlan => {
-      // Hitung progress tahunan dinamis
-      let totalSteps = 0;
-      let doneSteps = 0;
-      yearPlan.quarters.forEach(q => {
+    container.innerHTML = this.data.fiveYearPlan.map(year => {
+      let total = 0;
+      let done = 0;
+      year.quarters.forEach(q => {
         q.steps.forEach(s => {
-          totalSteps++;
-          if (s.done) doneSteps++;
+          total++;
+          if (s.done) done++;
         });
       });
-      const calcProgress = totalSteps > 0 ? Math.round((doneSteps / totalSteps) * 100) : yearPlan.overallProgress;
+      const pct = total > 0 ? Math.round((done / total) * 100) : year.overallProgress;
 
       return `
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6 shadow-md">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 mb-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-800">
             <div>
-              <div class="flex items-center gap-3">
-                <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400 font-mono">
-                  ${yearPlan.year}
-                </span>
-                <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800/60 font-semibold uppercase">
-                  ${yearPlan.theme}
-                </span>
+              <div class="flex items-center gap-2">
+                <span class="text-2xl font-black text-indigo-400 font-mono">${year.year}</span>
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800 font-medium">${year.theme}</span>
               </div>
-              <h3 class="text-lg font-bold text-slate-100 mt-1">${this.escapeHtml(yearPlan.title)}</h3>
-              <p class="text-xs text-slate-400 mt-0.5">🎯 Target Finansial / Capaian: <span class="text-emerald-400 font-semibold">${yearPlan.targetRevenue}</span></p>
+              <h3 class="text-base font-bold text-white mt-1">${this.escapeHtml(year.title)}</h3>
             </div>
-            <div class="flex items-center gap-3 min-w-[200px]">
-              <div class="flex-1">
-                <div class="flex justify-between text-xs text-slate-400 mb-1">
-                  <span>Capaian Tahun</span>
-                  <span class="font-bold text-indigo-300 font-mono">${calcProgress}%</span>
-                </div>
-                <div class="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden">
-                  <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-2.5 rounded-full transition-all duration-300" style="width: ${calcProgress}%"></div>
-                </div>
+            <div class="min-w-[180px]">
+              <div class="flex justify-between text-xs text-slate-400 mb-1 font-mono">
+                <span>Capaian</span>
+                <span class="text-indigo-300 font-bold">${pct}%</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-2 rounded-full" style="width: ${pct}%"></div>
               </div>
             </div>
           </div>
 
-          <!-- Kuartal / Breakdown Rinci -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            ${yearPlan.quarters.map(q => {
-              let qTotal = q.steps.length;
-              let qDone = q.steps.filter(s => s.done).length;
-              let qPct = qTotal > 0 ? Math.round((qDone / qTotal) * 100) : 0;
-
-              return `
-                <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold text-cyan-400 font-mono">${q.quarter}</span>
-                    <span class="text-[10px] px-2 py-0.5 rounded font-mono ${
-                      qPct === 100 ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-slate-800 text-slate-400'
-                    }">${qPct}% Selesai</span>
-                  </div>
-                  <h4 class="text-xs font-semibold text-slate-200 mb-3">${this.escapeHtml(q.focus)}</h4>
-
-                  <!-- Langkah kerja terperinci -->
-                  <div class="space-y-2">
-                    ${q.steps.map(step => `
-                      <div class="group flex items-start justify-between gap-2 text-xs p-2 rounded bg-slate-900/90 border border-slate-800/80 hover:border-slate-700">
-                        <div class="flex items-start gap-2 flex-1 min-w-0">
-                          <button onclick="app.toggle5YStep('${yearPlan.id}', '${q.id}', '${step.id}')" class="mt-0.5 flex-shrink-0 w-4 h-4 rounded border flex items-center justify-center ${
-                            step.done ? 'bg-emerald-600 border-emerald-500 text-white' : 'border-slate-600 bg-slate-800 text-transparent'
-                          }">
-                            <svg class="w-3 h-3 fill-current" viewBox="0 0 20 20">
-                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                          </button>
-                          <div class="flex-1 min-w-0">
-                            <p class="${step.done ? 'line-through text-slate-500' : 'text-slate-200 font-medium'} break-words">
-                              ${this.escapeHtml(step.title)}
-                            </p>
-                            ${step.note ? `<p class="text-[10px] text-slate-400 mt-0.5">${this.escapeHtml(step.note)}</p>` : ''}
-                          </div>
-                        </div>
-                        <button onclick="app.push5YStepToDaily('${yearPlan.year}', '${q.quarter}', '${step.id}')" title="Jadikan Agenda Harian" class="opacity-0 group-hover:opacity-100 p-1 text-indigo-400 hover:text-white hover:bg-indigo-600 rounded transition-all">
-                          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                          </svg>
-                        </button>
-                      </div>
-                    `).join("")}
-                  </div>
+            ${year.quarters.map(q => `
+              <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
+                <div class="flex justify-between items-center mb-1.5">
+                  <span class="text-xs font-bold text-cyan-400 font-mono">${q.quarter}</span>
+                  <span class="text-[10px] text-slate-400 font-mono">${q.steps.filter(s => s.done).length}/${q.steps.length} Selesai</span>
                 </div>
-              `;
-            }).join("")}
+                <h4 class="text-xs font-semibold text-slate-200 mb-2.5">${this.escapeHtml(q.focus)}</h4>
+                
+                <div class="space-y-1.5">
+                  ${q.steps.map(step => `
+                    <div class="flex items-center justify-between gap-2 p-1.5 rounded bg-slate-900 border border-slate-800 text-xs">
+                      <div class="flex items-center gap-2 flex-1 min-w-0">
+                        <input type="checkbox" ${step.done ? 'checked' : ''} onchange="app.toggle5YStep('${year.id}', '${q.id}', '${step.id}')" class="custom-checkbox flex-shrink-0">
+                        <span class="${step.done ? 'line-through text-slate-500' : 'text-slate-300'} truncate">${this.escapeHtml(step.title)}</span>
+                      </div>
+                      <button onclick="app.push5YStepToDaily('${year.year}', '${q.quarter}', '${step.id}')" title="Jadikan Agenda Harian" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-indigo-600 transition-colors">
+                        + Hari Ini
+                      </button>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            `).join("")}
           </div>
         </div>
       `;
@@ -898,90 +707,150 @@ class SecretaryApp {
   }
 
   toggle5YStep(yearId, quarterId, stepId) {
-    const yearPlan = this.data.fiveYearPlan.find(y => y.id === yearId);
-    if (!yearPlan) return;
-    const quarter = yearPlan.quarters.find(q => q.id === quarterId);
-    if (!quarter) return;
-    const step = quarter.steps.find(s => s.id === stepId);
-    if (!step) return;
+    const y = this.data.fiveYearPlan.find(item => item.id === yearId);
+    if (!y) return;
+    const q = y.quarters.find(item => item.id === quarterId);
+    if (!q) return;
+    const s = q.steps.find(item => item.id === stepId);
+    if (!s) return;
 
-    step.done = !step.done;
+    s.done = !s.done;
     this.saveData();
     this.render();
   }
 
   push5YStepToDaily(year, quarter, stepId) {
-    let targetStep = null;
+    let target = null;
     this.data.fiveYearPlan.forEach(y => {
       y.quarters.forEach(q => {
         q.steps.forEach(s => {
-          if (s.id === stepId) targetStep = s;
+          if (s.id === stepId) target = s;
         });
       });
     });
 
-    if (!targetStep) return;
+    if (!target) return;
 
     this.data.dailyTasks.unshift({
       id: "t-" + Date.now(),
       date: this.selectedDate,
       time: "08:30",
-      title: `[5Y ${year} ${quarter}] ${targetStep.title}`,
+      title: `[5Y ${year} ${quarter}] ${target.title}`,
       category: "development",
-      priority: targetStep.priority || "high",
+      priority: target.priority || "high",
       status: "todo",
-      note: targetStep.note || "Eksekusi dari roadmap 5 tahun",
+      note: target.note || "Eksekusi dari roadmap 5 tahun",
       linked5Y: `${year} ${quarter}`
     });
 
     this.saveData();
-    alert(`Langkah 5 Tahun "${targetStep.title}" berhasil ditambahkan ke Agenda Harian (${this.selectedDate})!`);
+    alert(`Langkah 5 Tahun "${target.title}" berhasil ditambahkan ke Agenda Harian!`);
     this.render();
   }
 
-  // ===================== ANALYTICS VIEW =====================
-  renderAnalyticsView() {
-    const totalDaily = this.data.dailyTasks.length;
-    const doneDaily = this.data.dailyTasks.filter(t => t.status === "done").length;
-    const scorePct = totalDaily > 0 ? Math.round((doneDaily / totalDaily) * 100) : 0;
+  // ===================== WHATSAPP NOTIFICATION ENGINE =====================
+  getTargetPhone() {
+    const phoneInput = document.getElementById("input-target-phone");
+    if (phoneInput && phoneInput.value.trim()) {
+      let clean = phoneInput.value.replace(/[^0-9]/g, '');
+      if (clean.startsWith('0')) clean = '62' + clean.slice(1);
+      this.data.profile.targetPhone = clean;
+      this.saveData();
+      return clean;
+    }
+    return this.data.profile.targetPhone || "6289691905347";
+  }
 
-    let total5Y = 0;
-    let done5Y = 0;
-    this.data.fiveYearPlan.forEach(y => {
-      y.quarters.forEach(q => {
-        q.steps.forEach(s => {
-          total5Y++;
-          if (s.done) done5Y++;
-        });
+  async sendDailyBriefingToWA() {
+    const phone = this.getTargetPhone();
+    const tasks = this.data.dailyTasks.filter(t => t.date === this.selectedDate);
+    const m = this.getMetrics();
+
+    let taskLines = "";
+    if (tasks.length === 0) {
+      taskLines = "_Belum ada agenda tercatat._\n";
+    } else {
+      taskLines = tasks.map((t, idx) => {
+        const status = t.status === "done" ? "✅" : "⏳";
+        const time = t.time ? `[${t.time}] ` : "";
+        const pri = t.priority === "high" ? " *[TINGGI]*" : "";
+        return `${status} ${idx + 1}. ${time}${t.title}${pri}`;
+      }).join("\n");
+    }
+
+    const message = 
+`📋 *BRIEFING PRODUKTIVITAS EKSEKUTIF*
+👤 *Untuk:* Pak ${this.data.profile.name}
+📅 *Tanggal:* ${this.selectedDate}
+
+⚡ *RINGKASAN STATUS:*
+• Total Tugas: ${m.total}
+• Selesai: ${m.done} (${m.pct}%)
+• Prioritas Kritis: ${m.high}
+• Progress Roadmap 5 Tahun: ${m.pct5Y}%
+
+📌 *DAFTAR AGENDA KERJA:*
+${taskLines}
+
+🎯 *FOKUS STRATEGIS 5Y:*
+Infrastruktur & Automasi Ekosistem Mandiri
+
+💡 _"Tetap fokus eksekusi target prioritas tinggi dan jaga momentum!"_
+🤖 *Aura Executive Secretary*`;
+
+    await this.dispatchWAMessage(phone, message, "Briefing Harian");
+  }
+
+  async sendTaskToWA(taskId) {
+    const phone = this.getTargetPhone();
+    const task = this.data.dailyTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const message = 
+`🔔 *PENGINGAT AGENDA EKSEKUTIF*
+📌 *Tugas:* ${task.title}
+⏰ *Waktu:* ${task.time ? task.time + ' WIB' : 'Hari Ini'}
+🏷️ *Prioritas:* ${task.priority.toUpperCase()} | *Kategori:* ${this.getCategoryLabel(task.category)}
+${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}${task.linked5Y ? `🎯 *Roadmap 5Y:* ${task.linked5Y}\n` : ''}
+🤖 *Aura Executive Desk*`;
+
+    await this.dispatchWAMessage(phone, message, `Pengingat: ${task.title}`);
+  }
+
+  async dispatchWAMessage(phone, message, label) {
+    const btn = document.getElementById("btn-send-wa-briefing");
+    if (btn) btn.disabled = true;
+
+    try {
+      // 1. Coba kirim via Local Bot API (port 3055)
+      const res = await fetch("/api/send-wa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, message })
       });
-    });
-    const score5Y = total5Y > 0 ? Math.round((done5Y / total5Y) * 100) : 0;
+      const data = await res.json();
 
-    const elDaily = document.getElementById("analytics-daily-score");
-    const el5Y = document.getElementById("analytics-5y-score");
-    const elSummary = document.getElementById("analytics-secretary-opinion");
-
-    if (elDaily) elDaily.textContent = `${scorePct}%`;
-    if (el5Y) el5Y.textContent = `${score5Y}%`;
-
-    if (elSummary) {
-      let opinion = "";
-      if (scorePct >= 80) {
-        opinion = "Efisiensi eksekusi harian Anda berada pada level 'Executive Mastery'. Anda menyelesaikan sebagian besar prioritas utama tepat waktu.";
-      } else if (scorePct >= 50) {
-        opinion = "Performa cukup stabil, namun beberapa agenda prioritas menengah tertunda. Direkomendasikan membatasi maksimal 3 target utama per hari.";
+      if (data.success) {
+        alert(`✅ ${label} berhasil dikirim ke WhatsApp (${phone}) via Bot Server!`);
       } else {
-        opinion = "Tingkat penyelesaian tugas memerlukan penyesuaian fokus. Cobalah menggunakan teknik time-blocking 25 menit (Pomodoro).";
+        throw new Error(data.error || "Gagal mengirim via bot");
       }
-      elSummary.textContent = opinion;
+    } catch (err) {
+      console.warn("Fallback to Web WhatsApp:", err);
+      // 2. Fallback: Buka WhatsApp Web / Apps langsung dengan teks prefilled
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, "_blank");
+      alert(`⚠️ Bot lokal offline/terkendala. Pesan dibuka langsung via WhatsApp Web!`);
+    } finally {
+      if (btn) btn.disabled = false;
     }
   }
 
-  // ===================== TASK ACTIONS =====================
+  // ===================== CRUD ACTIONS =====================
   addTask(title, time, priority, category, note) {
     if (!title.trim()) return;
 
-    const newTask = {
+    this.data.dailyTasks.unshift({
       id: "t-" + Date.now(),
       date: this.selectedDate,
       time: time || "",
@@ -991,41 +860,65 @@ class SecretaryApp {
       status: "todo",
       note: note ? note.trim() : "",
       linked5Y: ""
-    };
+    });
 
-    this.data.dailyTasks.unshift(newTask);
     this.saveData();
     this.render();
   }
 
-  toggleTaskStatus(id) {
-    const task = this.data.dailyTasks.find(t => t.id === id);
-    if (task) {
-      task.status = task.status === "done" ? "todo" : "done";
+  toggleTask(id) {
+    const t = this.data.dailyTasks.find(item => item.id === id);
+    if (t) {
+      t.status = t.status === "done" ? "todo" : "done";
       this.saveData();
       this.render();
     }
   }
 
   deleteTask(id) {
-    if (confirm("Hapus agenda ini dari jadwal?")) {
-      this.data.dailyTasks = this.data.dailyTasks.filter(t => t.id !== id);
+    if (confirm("Hapus agenda ini?")) {
+      this.data.dailyTasks = this.data.dailyTasks.filter(item => item.id !== id);
       this.saveData();
       this.render();
     }
   }
 
-  // ===================== BACKUP & RESTORE =====================
+  // Voice speech synthesis
+  speakBriefing() {
+    if (!this.speechSynth) {
+      alert("Browser tidak mendukung Speech Synthesis");
+      return;
+    }
+
+    if (this.isSpeaking) {
+      this.speechSynth.cancel();
+      this.isSpeaking = false;
+      return;
+    }
+
+    const m = this.getMetrics();
+    const tasks = this.data.dailyTasks.filter(t => t.date === this.selectedDate);
+    const top = tasks.filter(t => t.status !== "done").slice(0, 3).map(t => t.title).join(". ");
+
+    const text = `Halo Pak ${this.data.profile.name}. Hari ini terdapat ${m.total} agenda, dengan ${m.high} tugas prioritas utama. Capaian roadmap lima tahun Anda berada pada ${m.pct5Y} persen. ${top ? 'Fokus berikutnya: ' + top : ''}`;
+
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = "id-ID";
+    utt.onend = () => { this.isSpeaking = false; };
+    utt.onerror = () => { this.isSpeaking = false; };
+    this.isSpeaking = true;
+    this.speechSynth.speak(utt);
+  }
+
+  // Export & Import
   exportJSON() {
-    const jsonStr = JSON.stringify(this.data, null, 2);
-    const blob = new Blob([jsonStr], { type: "application/json" });
+    const str = JSON.stringify(this.data, null, 2);
+    const blob = new Blob([str], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `Sekretaris_Produktivitas_${this.selectedDate}.json`;
-    document.body.appendChild(a);
+    a.download = `Produktivitas_${this.selectedDate}.json`;
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
   }
 
@@ -1034,41 +927,27 @@ class SecretaryApp {
     reader.onload = (e) => {
       try {
         const parsed = JSON.parse(e.target.result);
-        if (parsed && (parsed.dailyTasks || parsed.fiveYearPlan)) {
+        if (parsed.dailyTasks || parsed.fiveYearPlan) {
           this.data = { ...DEFAULT_SYSTEM_DATA, ...parsed };
           this.saveData();
           this.render();
-          alert("Data produktivitas berhasil dipulihkan!");
-        } else {
-          alert("Format file JSON tidak valid.");
+          alert("Data berhasil dipulihkan!");
         }
       } catch (err) {
-        alert("Gagal membaca file: " + err.message);
+        alert("Gagal membaca file JSON: " + err.message);
       }
     };
     reader.readAsText(file);
   }
 
-  resetToDefault() {
-    if (confirm("Kembalikan data ke template awal? Semua data kustom akan direset.")) {
-      this.data = JSON.parse(JSON.stringify(DEFAULT_SYSTEM_DATA));
-      this.saveData();
-      this.render();
-      alert("Sistem berhasil direset ke konfigurasi awal.");
-    }
-  }
-
-  // ===================== EVENT BINDING =====================
   bindEvents() {
-    // Tab switching
-    document.querySelectorAll(".tab-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        this.switchTab(btn.dataset.tab);
-      });
+    // Tab pill clicks
+    document.querySelectorAll(".tab-pill").forEach(pill => {
+      pill.addEventListener("click", () => this.switchTab(pill.dataset.tab));
     });
 
     // Date selector
-    const dateInput = document.getElementById("date-selector");
+    const dateInput = document.getElementById("date-input");
     if (dateInput) {
       dateInput.value = this.selectedDate;
       dateInput.addEventListener("change", (e) => {
@@ -1078,12 +957,20 @@ class SecretaryApp {
     }
 
     // Quick Date navigation
-    const prevDayBtn = document.getElementById("btn-prev-day");
-    const nextDayBtn = document.getElementById("btn-next-day");
-    const todayBtn = document.getElementById("btn-today");
+    const btnToday = document.getElementById("btn-nav-today");
+    const btnPrev = document.getElementById("btn-nav-prev");
+    const btnNext = document.getElementById("btn-nav-next");
 
-    if (prevDayBtn) {
-      prevDayBtn.addEventListener("click", () => {
+    if (btnToday) {
+      btnToday.addEventListener("click", () => {
+        this.selectedDate = this.getTodayDateString();
+        if (dateInput) dateInput.value = this.selectedDate;
+        this.render();
+      });
+    }
+
+    if (btnPrev) {
+      btnPrev.addEventListener("click", () => {
         const d = new Date(this.selectedDate);
         d.setDate(d.getDate() - 1);
         this.selectedDate = d.toISOString().split("T")[0];
@@ -1092,8 +979,8 @@ class SecretaryApp {
       });
     }
 
-    if (nextDayBtn) {
-      nextDayBtn.addEventListener("click", () => {
+    if (btnNext) {
+      btnNext.addEventListener("click", () => {
         const d = new Date(this.selectedDate);
         d.setDate(d.getDate() + 1);
         this.selectedDate = d.toISOString().split("T")[0];
@@ -1102,111 +989,74 @@ class SecretaryApp {
       });
     }
 
-    if (todayBtn) {
-      todayBtn.addEventListener("click", () => {
-        this.selectedDate = this.getTodayDateString();
-        if (dateInput) dateInput.value = this.selectedDate;
-        this.render();
-      });
-    }
-
     // Filters
-    const catFilter = document.getElementById("filter-category");
     const priFilter = document.getElementById("filter-priority");
-    const searchInput = document.getElementById("search-task");
+    const catFilter = document.getElementById("filter-category");
+    const searchInput = document.getElementById("search-input");
 
-    if (catFilter) {
-      catFilter.addEventListener("change", (e) => {
-        this.selectedCategory = e.target.value;
-        this.renderDailyView();
-      });
-    }
+    if (priFilter) priFilter.addEventListener("change", (e) => {
+      this.selectedPriority = e.target.value;
+      this.renderDailyView();
+    });
 
-    if (priFilter) {
-      priFilter.addEventListener("change", (e) => {
-        this.selectedPriority = e.target.value;
-        this.renderDailyView();
-      });
-    }
+    if (catFilter) catFilter.addEventListener("change", (e) => {
+      this.selectedCategory = e.target.value;
+      this.renderDailyView();
+    });
 
-    if (searchInput) {
-      searchInput.addEventListener("input", (e) => {
-        this.searchQuery = e.target.value;
-        this.renderDailyView();
-      });
-    }
+    if (searchInput) searchInput.addEventListener("input", (e) => {
+      this.searchQuery = e.target.value;
+      this.renderDailyView();
+    });
 
-    // Add task form
-    const addForm = document.getElementById("quick-add-form");
-    if (addForm) {
-      addForm.addEventListener("submit", (e) => {
+    // Quick add task form
+    const form = document.getElementById("quick-add-form");
+    if (form) {
+      form.addEventListener("submit", (e) => {
         e.preventDefault();
-        const title = document.getElementById("input-task-title").value;
-        const time = document.getElementById("input-task-time").value;
-        const priority = document.getElementById("input-task-priority").value;
-        const category = document.getElementById("input-task-category").value;
-        const note = document.getElementById("input-task-note") ? document.getElementById("input-task-note").value : "";
+        const title = document.getElementById("task-title").value;
+        const time = document.getElementById("task-time").value;
+        const pri = document.getElementById("task-priority").value;
+        const cat = document.getElementById("task-category").value;
+        const note = document.getElementById("task-note") ? document.getElementById("task-note").value : "";
 
-        this.addTask(title, time, priority, category, note);
-        addForm.reset();
-        document.getElementById("input-task-title").focus();
+        this.addTask(title, time, pri, cat, note);
+        form.reset();
+        document.getElementById("task-title").focus();
       });
     }
 
-    // Voice briefing button
-    const voiceBtn = document.getElementById("btn-voice-briefing");
-    if (voiceBtn) {
-      voiceBtn.addEventListener("click", () => {
-        this.speakBriefing();
+    // WhatsApp Notification Events
+    const btnSendWABriefing = document.getElementById("btn-send-wa-briefing");
+    if (btnSendWABriefing) {
+      btnSendWABriefing.addEventListener("click", () => this.sendDailyBriefingToWA());
+    }
+
+    const phoneInput = document.getElementById("input-target-phone");
+    if (phoneInput) {
+      phoneInput.value = this.data.profile.targetPhone || "6289691905347";
+      phoneInput.addEventListener("change", (e) => {
+        this.data.profile.targetPhone = e.target.value.replace(/[^0-9]/g, '');
+        this.saveData();
       });
     }
 
-    // Export / Import
-    const btnExport = document.getElementById("btn-export-json");
-    if (btnExport) {
-      btnExport.addEventListener("click", () => this.exportJSON());
+    // Voice button
+    const btnVoice = document.getElementById("btn-voice-briefing");
+    if (btnVoice) {
+      btnVoice.addEventListener("click", () => this.speakBriefing());
     }
 
-    const fileImport = document.getElementById("file-import-json");
+    // Backup & Restore
+    const btnExport = document.getElementById("btn-export-backup");
+    if (btnExport) btnExport.addEventListener("click", () => this.exportJSON());
+
+    const fileImport = document.getElementById("file-import-backup");
     if (fileImport) {
       fileImport.addEventListener("change", (e) => {
-        if (e.target.files && e.target.files[0]) {
-          this.importJSON(e.target.files[0]);
-        }
+        if (e.target.files && e.target.files[0]) this.importJSON(e.target.files[0]);
       });
     }
-
-    const btnReset = document.getElementById("btn-reset-data");
-    if (btnReset) {
-      btnReset.addEventListener("click", () => this.resetToDefault());
-    }
-  }
-
-  setupKeyboardShortcuts() {
-    window.addEventListener("keydown", (e) => {
-      // Ignore if user is inside an input/textarea
-      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
-        return;
-      }
-
-      if (e.key === "n" || e.key === "N") {
-        e.preventDefault();
-        const input = document.getElementById("input-task-title");
-        if (input) input.focus();
-      } else if (e.key === "t" || e.key === "T") {
-        this.switchTab("daily");
-      } else if (e.key === "w" || e.key === "W") {
-        this.switchTab("weekly");
-      } else if (e.key === "m" || e.key === "M") {
-        this.switchTab("monthly");
-      } else if (e.key === "5") {
-        this.switchTab("roadmap");
-      } else if (e.key === "/") {
-        e.preventDefault();
-        const searchInput = document.getElementById("search-task");
-        if (searchInput) searchInput.focus();
-      }
-    });
   }
 
   escapeHtml(str) {
@@ -1221,14 +1071,6 @@ class SecretaryApp {
   }
 }
 
-// Inisialisasi saat DOM siap
 document.addEventListener("DOMContentLoaded", () => {
-  window.app = new SecretaryApp();
-
-  // Daftarkan Service Worker untuk offline PWA jika didukung
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(err => {
-      console.log('SW registration error:', err);
-    });
-  }
+  window.app = new ProductivityApp();
 });

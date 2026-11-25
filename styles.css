@@ -1,16 +1,16 @@
 :root {
-  --bg-primary: #090d16;
-  --bg-secondary: #0f172a;
-  --bg-card: #141e33;
-  --bg-hover: #1e293b;
-  --border-color: #27354f;
+  --bg-main: #0a0e17;
+  --bg-surface: #0f1523;
+  --bg-card: #131b2e;
+  --bg-card-hover: #19243c;
+  --border-subtle: #1e293b;
+  --border-active: #3b82f6;
   --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --accent-primary: #4f46e5;
-  --accent-glow: rgba(79, 70, 229, 0.25);
+  --text-muted: #8b9bb4;
+  --accent-wa: #25d366;
+  --accent-wa-hover: #128c7e;
+  --accent-indigo: #6366f1;
   --accent-cyan: #06b6d4;
-  --accent-green: #10b981;
-  --accent-amber: #f59e0b;
   --accent-rose: #f43f5e;
 }
 
@@ -22,50 +22,71 @@
 }
 
 body {
-  background-color: var(--bg-primary);
+  background-color: var(--bg-main);
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   min-height: 100vh;
   line-height: 1.5;
+  overflow-x: hidden;
 }
 
-/* Custom Scrollbar */
+/* Fullwidth Fluid Grid */
+.fullwidth-container {
+  width: 100%;
+  max-width: 100%;
+  padding-left: clamp(1rem, 2vw, 2.5rem);
+  padding-right: clamp(1rem, 2vw, 2.5rem);
+}
+
+/* Minimalist Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--border-subtle);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
-/* Animations */
-@keyframes pulseSubtle {
+/* Smooth status badge pulses */
+@keyframes onlinePulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
+  50% { opacity: 0.7; transform: scale(1.15); }
 }
 
-.secretary-pulse {
-  animation: pulseSubtle 3s infinite ease-in-out;
+.wa-pulse {
+  animation: onlinePulse 2s infinite ease-in-out;
 }
 
-/* Print styles for Laporan Jadwal Sekretaris */
-@media print {
-  body {
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-  header, nav, .no-print, button {
-    display: none !important;
-  }
-  .print-area {
-    display: block !important;
-    width: 100% !important;
-  }
+/* Minimalist Checkbox */
+.custom-checkbox {
+  appearance: none;
+  background-color: transparent;
+  border: 1.5px solid #334155;
+  border-radius: 6px;
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  display: inline-grid;
+  place-content: center;
+  transition: all 0.15s ease-in-out;
+}
+
+.custom-checkbox:checked {
+  background-color: #10b981;
+  border-color: #10b981;
+}
+
+.custom-checkbox:checked::before {
+  content: "";
+  width: 0.65rem;
+  height: 0.65rem;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  background-color: white;
 }
