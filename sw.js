@@ -1,44 +1,14 @@
-const CACHE_NAME = 'sekretaris-v1';
-const ASSETS = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './manifest.json',
-  './icon.svg'
-];
-
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
-  self.skipWaiting();
-});
+// Self-destroying service worker to clear any old cache
+self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then((res) => {
-      return (
-        res ||
-        fetch(e.request)
-          .then((netRes) => {
-            return caches.open(CACHE_NAME).then((cache) => {
-              cache.put(e.request, netRes.clone());
-              return netRes;
-            });
-          })
-          .catch(() => res)
-      );
-    })
-  );
+  // Always fetch fresh from network
+  e.respondWith(fetch(e.request));
 });

@@ -3,11 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Executive Productivity & WhatsApp Center</title>
-  <meta name="description" content="Sistem Jadwal Eksekutif Full-Width & Gateway Notifikasi WhatsApp">
+  <title>Executive Productivity & Notification Rules</title>
+  <meta name="description" content="Sistem Jadwal Eksekutif Full-Width & Aturan Notifikasi WhatsApp">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
-  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#0a0e17">
+
+  <script>
+    // Bersihkan service worker lama agar browser selalu memuat script terbaru
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(r => r.unregister());
+      });
+      if ('caches' in window) {
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      }
+    }
+  </script>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -22,23 +33,22 @@
               surface: '#0f1523',
               card: '#131b2e',
               border: '#1e293b',
-              accent: '#6366f1',
-              wa: '#25d366'
+              accent: '#6366f1'
             }
           }
         }
       }
     }
   </script>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=20261125_05">
 </head>
 <body class="bg-[#0a0e17] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
 
-  <!-- ================= TOP FULLWIDTH HEADER ================= -->
-  <header class="w-full border-b border-slate-800/80 bg-[#0f1523]/80 backdrop-blur sticky top-0 z-40 px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+  <!-- ================= TOP HEADER BAR ================= -->
+  <header class="w-full border-b border-slate-800/80 bg-[#0f1523]/90 backdrop-blur sticky top-0 z-40 px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
     
     <!-- Brand -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2.5">
       <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-xs text-white">
         A
       </div>
@@ -48,7 +58,7 @@
       </div>
     </div>
 
-    <!-- Live Navigation Pills -->
+    <!-- Navigation Tab Pills -->
     <nav class="hidden md:flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
       <button data-tab="daily" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all">
         Agenda Harian
@@ -62,15 +72,21 @@
       <button data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all">
         Roadmap 5 Tahun
       </button>
+      <button data-tab="notifications" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-all flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
+        </svg>
+        Aturan Notifikasi
+      </button>
     </nav>
 
-    <!-- Header Right Info: WA Status & Clock -->
+    <!-- Header Status & Clock -->
     <div class="flex items-center gap-3">
       <!-- WA Bot Status -->
-      <div id="wa-bot-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono">
+      <button onclick="window.app.switchTab('notifications')" id="wa-bot-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono hover:border-emerald-500 transition-colors">
         <span class="w-2 h-2 rounded-full bg-emerald-400 wa-pulse"></span>
-        <span id="wa-bot-badge-text" class="text-[11px] font-medium">Memeriksa Bot WA...</span>
-      </div>
+        <span id="wa-bot-badge-text" class="text-[11px] font-medium">WA Bot Aktif</span>
+      </button>
 
       <!-- Live Clock -->
       <div class="hidden sm:flex flex-col text-right">
@@ -80,29 +96,30 @@
     </div>
   </header>
 
-  <!-- Mobile Tab Pills Bar -->
+  <!-- Mobile Tab Navigation Bar -->
   <div class="md:hidden flex items-center gap-1 bg-[#0f1523] border-b border-slate-800 p-2 overflow-x-auto">
     <button data-tab="daily" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white whitespace-nowrap">Harian</button>
     <button data-tab="weekly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 whitespace-nowrap">1 Minggu</button>
     <button data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 whitespace-nowrap">1 Bulan</button>
     <button data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 whitespace-nowrap">5 Tahun</button>
+    <button data-tab="notifications" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 whitespace-nowrap">Aturan WA</button>
   </div>
 
-  <!-- ================= MAIN FULLWIDTH WORKSPACE ================= -->
+  <!-- ================= MAIN FULLWIDTH CONTAINER ================= -->
   <main class="flex-1 w-full px-4 sm:px-6 lg:px-8 py-5">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- ================= VIEW 1: AGENDA HARIAN ================= -->
+    <div id="view-daily" class="view-section">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      <!-- ================= LEFT COLUMN: PRIMARY WORKSPACE (72%) ================= -->
-      <section class="lg:col-span-8 xl:col-span-9 space-y-5">
-        
-        <!-- ================= VIEW 1: AGENDA HARIAN ================= -->
-        <div id="view-daily" class="view-section space-y-4">
+        <!-- Kolom Kiri: Form & Daftar Agenda (75%) -->
+        <div class="lg:col-span-8 xl:col-span-9 space-y-4">
           
           <!-- Quick Add Bar -->
           <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-3.5 shadow-sm">
             <form id="quick-add-form" class="space-y-2.5">
               <div class="flex flex-col sm:flex-row gap-2.5">
-                <input type="text" id="task-title" required placeholder="Tambah agenda baru... (Contoh: Meeting evaluasi AI Trade)" class="flex-1 bg-[#0a0e17] border border-slate-700/80 rounded-lg px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                <input type="text" id="task-title" required placeholder="Tambah agenda baru... (Contoh: Evaluasi performa server)" class="flex-1 bg-[#0a0e17] border border-slate-700/80 rounded-lg px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
                 
                 <div class="flex items-center gap-2">
                   <input type="time" id="task-time" class="bg-[#0a0e17] border border-slate-700/80 rounded-lg px-2.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
@@ -123,7 +140,7 @@
                     <option value="health">Kesehatan</option>
                   </select>
 
-                  <button type="submit" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors flex-shrink-0 flex items-center gap-1">
+                  <button type="submit" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition-colors flex-shrink-0 flex items-center gap-1 cursor-pointer">
                     <span>+ Tambah</span>
                   </button>
                 </div>
@@ -132,21 +149,19 @@
             </form>
           </div>
 
-          <!-- Minimalist Control Bar (Date & Filter) -->
+          <!-- Date & Filter Bar -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0f1523]/60 border border-slate-800/80 rounded-xl px-4 py-2.5 text-xs">
-            <!-- Navigasi Tanggal -->
             <div class="flex items-center gap-2">
-              <button id="btn-nav-prev" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">
+              <button id="btn-nav-prev" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
               </button>
               <input type="date" id="date-input" class="bg-[#0a0e17] border border-slate-700 rounded px-2.5 py-1 text-slate-200 font-mono text-xs focus:outline-none">
-              <button id="btn-nav-next" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">
+              <button id="btn-nav-next" class="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
-              <button id="btn-nav-today" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-400 font-medium">Hari Ini</button>
+              <button id="btn-nav-today" class="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-400 font-medium cursor-pointer">Hari Ini</button>
             </div>
 
-            <!-- Filter & Search -->
             <div class="flex items-center gap-2 flex-wrap">
               <input type="text" id="search-input" placeholder="Cari agenda..." class="bg-[#0a0e17] border border-slate-800 rounded px-2.5 py-1 text-xs text-slate-300 focus:outline-none w-32 sm:w-48">
               
@@ -170,151 +185,239 @@
             </div>
           </div>
 
-          <!-- Container Task List Harian -->
+          <!-- List Agenda Harian -->
           <div id="daily-task-container" class="space-y-2">
             <!-- Rendered by app.js -->
           </div>
         </div>
 
-        <!-- ================= VIEW 2: 1 MINGGU ================= -->
-        <div id="view-weekly" class="view-section hidden space-y-4">
-          <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-indigo-400">Sprint Mingguan (7 Hari)</h2>
-            <p class="text-xs text-slate-400 mt-1">Pantau seluruh beban kerja dan pembagian fokus hari Senin hingga Minggu.</p>
-          </div>
-          <div id="weekly-grid-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
-            <!-- Rendered by app.js -->
-          </div>
-        </div>
+        <!-- Kolom Kanan: Ringkasan Eksekutif (25%) -->
+        <div class="lg:col-span-4 xl:col-span-3 space-y-4">
+          
+          <!-- Briefing Sekertaris & Suara -->
+          <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+              <span class="text-xs font-bold uppercase tracking-wider font-mono text-indigo-400">Briefing Sekertaris</span>
+              <button id="btn-voice-briefing" class="text-[11px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 hover:bg-indigo-900 transition-colors flex items-center gap-1 cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                Dengarkan
+              </button>
+            </div>
+            
+            <div>
+              <h4 id="sidebar-greeting" class="text-sm font-bold text-white">Selamat Datang, Pak Ilham!</h4>
+              <p id="sidebar-desc" class="text-xs text-slate-300 mt-1 leading-relaxed">
+                Memuat analisis jadwal...
+              </p>
+            </div>
 
-        <!-- ================= VIEW 3: 1 BULAN ================= -->
-        <div id="view-monthly" class="view-section hidden space-y-4">
-          <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-cyan-400">Milestone Bulanan</h2>
-            <p class="text-xs text-slate-400 mt-1">Daftar target besar, checkpoint strategis, dan evaluasi bulan berjalan.</p>
-          </div>
-          <div id="monthly-list-container" class="space-y-2.5">
-            <!-- Rendered by app.js -->
-          </div>
-        </div>
-
-        <!-- ================= VIEW 4: ROADMAP 5 TAHUN ================= -->
-        <div id="view-roadmap" class="view-section hidden space-y-4">
-          <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
-            <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-emerald-400">Masterplan Strategis 5 Tahun (2026 - 2030)</h2>
-            <p class="text-xs text-slate-400 mt-1">Peta jalan lengkap per tahun dan kuartal yang dapat langsung diturunkan ke jadwal harian.</p>
-          </div>
-          <div id="roadmap-5y-container" class="space-y-4">
-            <!-- Rendered by app.js -->
-          </div>
-        </div>
-
-      </section>
-
-      <!-- ================= RIGHT COLUMN: EXECUTIVE DESK & WA GATEWAY (28%) ================= -->
-      <aside class="lg:col-span-4 xl:col-span-3 space-y-4">
-        
-        <!-- PUSAT NOTIFIKASI WHATSAPP -->
-        <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-3.5 shadow-lg">
-          <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
-            <div class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-md bg-emerald-600 flex items-center justify-center text-white">
-                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-                  <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
-                </svg>
+            <!-- Metrik Ringkas -->
+            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 text-center font-mono">
+              <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
+                <span class="text-[10px] text-slate-400 block">Selesai</span>
+                <span id="stat-daily-pct" class="text-base font-bold text-emerald-400">0%</span>
               </div>
-              <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Notifikasi WhatsApp</h3>
-            </div>
-            <span class="text-[10px] text-emerald-400 font-mono">24/7 Gateway</span>
-          </div>
-
-          <!-- Target Phone Input -->
-          <div>
-            <label class="block text-[11px] font-medium text-slate-400 mb-1">Nomor WhatsApp Tujuan:</label>
-            <div class="relative">
-              <input type="text" id="input-target-phone" value="6289691905347" placeholder="628..." class="w-full bg-[#0a0e17] border border-slate-700/80 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-emerald-500">
-              <span class="absolute right-2.5 top-2 text-[10px] text-slate-500">Auto-Save</span>
+              <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
+                <span class="text-[10px] text-slate-400 block">Kritis</span>
+                <span id="stat-daily-high" class="text-base font-bold text-rose-400">0</span>
+              </div>
+              <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
+                <span class="text-[10px] text-slate-400 block">5Y Plan</span>
+                <span id="stat-5y-pct" class="text-base font-bold text-indigo-400">0%</span>
+              </div>
             </div>
           </div>
 
-          <!-- Big Action Button: Kirim Briefing Hari Ini ke WA -->
-          <button id="btn-send-wa-briefing" class="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
-            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-              <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
-            </svg>
-            <span>Kirim Briefing Hari Ini ke WA</span>
-          </button>
-          
-          <p class="text-[10px] text-slate-500 leading-relaxed text-center">
-            Pesan dikirim via bot Baileys di UTM (<span class="font-mono text-emerald-400">Port 3055</span>) atau otomatis via WhatsApp Web.
-          </p>
-        </div>
-
-        <!-- SEKERTARIS BRIEFING & SUARA -->
-        <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-3">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-            <span class="text-xs font-bold uppercase tracking-wider font-mono text-indigo-400">Briefing Sekertaris</span>
-            <button id="btn-voice-briefing" class="text-[11px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 hover:bg-indigo-900 transition-colors flex items-center gap-1">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
-              Dengarkan
+          <!-- Pintasan Cepat WhatsApp -->
+          <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-2.5 text-xs">
+            <span class="text-xs font-bold uppercase tracking-wider font-mono text-emerald-400 block pb-1 border-b border-slate-800">Pintasan Notifikasi</span>
+            <button onclick="window.app.sendDailyBriefingToWA()" class="w-full py-2 px-3 bg-emerald-600/90 hover:bg-emerald-600 text-white font-medium text-xs rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
+              </svg>
+              <span>Kirim Briefing Hari Ini ke WA</span>
+            </button>
+            <button onclick="window.app.switchTab('notifications')" class="w-full py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs rounded-xl transition-colors text-center cursor-pointer">
+              Atur Jadwal & Nomor Notifikasi ➔
             </button>
           </div>
-          
-          <div>
-            <h4 id="sidebar-greeting" class="text-sm font-bold text-white">Selamat Datang, Pak Ilham!</h4>
-            <p id="sidebar-desc" class="text-xs text-slate-300 mt-1 leading-relaxed">
-              Memuat analisis jadwal hari ini...
-            </p>
+
+          <!-- Cadangan Data -->
+          <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
+            <span class="text-xs font-bold uppercase tracking-wider font-mono text-slate-400 block pb-1 border-b border-slate-800">Cadangan Data</span>
+            <div class="flex items-center gap-2">
+              <button id="btn-export-backup" class="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors text-center cursor-pointer">
+                Ekspor JSON
+              </button>
+              <label class="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors text-center cursor-pointer">
+                Impor JSON
+                <input type="file" id="file-import-backup" accept=".json" class="hidden">
+              </label>
+            </div>
           </div>
 
-          <!-- Mini Metrics -->
-          <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 text-center font-mono">
-            <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
-              <span class="text-[10px] text-slate-400 block">Selesai</span>
-              <span id="stat-daily-pct" class="text-base font-bold text-emerald-400">0%</span>
-            </div>
-            <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
-              <span class="text-[10px] text-slate-400 block">Kritis</span>
-              <span id="stat-daily-high" class="text-base font-bold text-rose-400">0</span>
-            </div>
-            <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
-              <span class="text-[10px] text-slate-400 block">Roadmap 5Y</span>
-              <span id="stat-5y-pct" class="text-base font-bold text-indigo-400">0%</span>
-            </div>
-          </div>
         </div>
 
-        <!-- BACKUP & RESTORE -->
-        <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-2.5 text-xs">
-          <span class="text-xs font-bold uppercase tracking-wider font-mono text-slate-400 block pb-1 border-b border-slate-800">Penyimpanan & Cadangan</span>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 2: 1 MINGGU ================= -->
+    <div id="view-weekly" class="view-section hidden space-y-4">
+      <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-indigo-400">Sprint Mingguan (7 Hari)</h2>
+        <p class="text-xs text-slate-400 mt-1">Pantau ritme kerja Senin hingga Minggu secara menyeluruh.</p>
+      </div>
+      <div id="weekly-grid-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- ================= VIEW 3: 1 BULAN ================= -->
+    <div id="view-monthly" class="view-section hidden space-y-4">
+      <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-cyan-400">Milestone Bulanan</h2>
+        <p class="text-xs text-slate-400 mt-1">Daftar target besar, checkpoint strategis, dan evaluasi bulanan.</p>
+      </div>
+      <div id="monthly-list-container" class="space-y-2.5">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- ================= VIEW 4: ROADMAP 5 TAHUN ================= -->
+    <div id="view-roadmap" class="view-section hidden space-y-4">
+      <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-emerald-400">Masterplan Strategis 5 Tahun (2026 - 2030)</h2>
+        <p class="text-xs text-slate-400 mt-1">Peta jalan lengkap per tahun dan kuartal yang dapat langsung diturunkan ke jadwal harian.</p>
+      </div>
+      <div id="roadmap-5y-container" class="space-y-4">
+        <!-- Rendered by app.js -->
+      </div>
+    </div>
+
+    <!-- ================= VIEW 5: DEDICATED ATURAN NOTIFIKASI ================= -->
+    <div id="view-notifications" class="view-section hidden space-y-6">
+      
+      <!-- Banner Halaman Khusus Notifikasi -->
+      <div class="bg-gradient-to-r from-emerald-950/40 via-[#0f1523] to-[#0f1523] border border-slate-800 rounded-2xl p-5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white">Pusat Konfigurasi & Aturan Notifikasi WhatsApp</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Atur jadwal pengiriman briefing rutin, nomor tujuan, dan pengingat jadwal eksekutif.</p>
+            </div>
+          </div>
           <div class="flex items-center gap-2">
-            <button id="btn-export-backup" class="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors text-center">
-              Ekspor JSON
+            <button onclick="window.app.sendTestNotification()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Tes Kirim WA Sekarang
             </button>
-            <label class="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors text-center cursor-pointer">
-              Impor JSON
-              <input type="file" id="file-import-backup" accept=".json" class="hidden">
-            </label>
+            <button onclick="window.app.sendDailyBriefingToWA()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
+              Kirim Briefing Hari Ini
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid Pengaturan Notifikasi -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Kartu 1: Gateway & Nomor Tujuan -->
+        <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-5 space-y-4">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase text-emerald-400">
+            <span>01.</span> Pengaturan Gateway & Nomor
+          </h3>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Nomor WhatsApp Penerima:</label>
+            <input type="text" id="notif-target-phone" class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white font-mono focus:outline-none focus:border-emerald-500" placeholder="6289691905347">
+            <span class="text-[11px] text-slate-500 mt-1 block">Format nomor diawali kode negara 62 (contoh: 6289691905347).</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-[#0a0e17] border border-slate-800 space-y-1.5 text-xs font-mono">
+            <div class="flex justify-between text-slate-400">
+              <span>Status Bot Baileys UTM:</span>
+              <span class="text-emerald-400 font-bold">Terhubung (Port 3055)</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Jalur Pengiriman:</span>
+              <span class="text-slate-200">Local Daemon & Webhook</span>
+            </div>
+            <div class="flex justify-between text-slate-400">
+              <span>Mode Fallback:</span>
+              <span class="text-cyan-400">WhatsApp Web Auto-Open</span>
+            </div>
           </div>
         </div>
 
-      </aside>
+        <!-- Kartu 2: Aturan Jadwal Otomatis -->
+        <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-5 space-y-4">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase text-indigo-400">
+            <span>02.</span> Jadwal Notifikasi Rutin
+          </h3>
+
+          <!-- Aturan 1: Briefing Pagi -->
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[#0a0e17] border border-slate-800">
+            <div>
+              <span class="text-xs font-bold text-slate-200 block">Briefing Pagi Hari</span>
+              <span class="text-[11px] text-slate-400">Rekap seluruh agenda dan prioritas harian.</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="time" id="notif-morning-time" value="07:00" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 font-mono">
+              <input type="checkbox" id="notif-morning-enabled" checked class="custom-checkbox">
+            </div>
+          </div>
+
+          <!-- Aturan 2: Evaluasi Malam -->
+          <div class="flex items-center justify-between p-3 rounded-xl bg-[#0a0e17] border border-slate-800">
+            <div>
+              <span class="text-xs font-bold text-slate-200 block">Evaluasi & Rekap Malam</span>
+              <span class="text-[11px] text-slate-400">Laporan capaian tugas dan evaluasi produktivitas.</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <input type="time" id="notif-evening-time" value="21:00" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 font-mono">
+              <input type="checkbox" id="notif-evening-enabled" checked class="custom-checkbox">
+            </div>
+          </div>
+
+          <!-- Tombol Simpan -->
+          <button onclick="window.app.saveNotificationSettings()" class="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer text-center">
+            Simpan Seluruh Aturan Notifikasi
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Kartu 3: Riwayat Log Pengiriman Notifikasi -->
+      <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-5 space-y-3">
+        <h3 class="text-sm font-bold text-white font-mono uppercase text-slate-300">
+          Riwayat Pengiriman Notifikasi Terakhir
+        </h3>
+        <div id="notif-log-container" class="space-y-2">
+          <!-- Rendered by app.js -->
+        </div>
+      </div>
 
     </div>
+
   </main>
 
   <!-- ================= MINIMALIST FOOTER ================= -->
   <footer class="w-full border-t border-slate-800/80 bg-[#0a0e17] py-3 text-xs text-slate-500 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
     <div class="flex items-center gap-2">
-      <span>© 2026 Ilham Pradani • Sistem Produktivitas Eksekutif Full-Width</span>
+      <span>© 2026 Ilham Pradani • Executive Productivity & Notification Rules</span>
       <span class="text-slate-700">|</span>
       <span class="font-mono text-indigo-400">productivity.ilhampradani.me</span>
     </div>
     <div class="text-[11px] text-slate-600 font-mono">
-      Gateway Port 3080 • WhatsApp Bot 3055
+      Gateway Port 3080 • Baileys Port 3055
     </div>
   </footer>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=20261125_05"></script>
 </body>
 </html>

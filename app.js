@@ -1,15 +1,40 @@
 /**
- * Executive Productivity & WhatsApp Notification Center
+ * Executive Productivity & Notification Rules System
  * Full-Width & Minimalist Engine
- * Client-Side Controller
  */
 
 const DEFAULT_SYSTEM_DATA = {
   profile: {
     name: "Ilham Pradani",
     role: "Founder & Tech Architect",
-    secretaryName: "Aura Executive Desk",
-    targetPhone: "6289691905347" // Nomor WhatsApp default
+    secretaryName: "Aura Executive Desk"
+  },
+  notifications: {
+    enabled: true,
+    targetPhone: "6289691905347",
+    morningBriefing: {
+      enabled: true,
+      time: "07:00",
+      includePriorities: true,
+      include5YProgress: true
+    },
+    eveningRecap: {
+      enabled: true,
+      time: "21:00",
+      includeIncomplete: true
+    },
+    taskReminders: {
+      enabled: true,
+      leadTimeMinutes: 15
+    },
+    weeklyReport: {
+      enabled: true,
+      day: "Sunday",
+      time: "20:00"
+    },
+    logs: [
+      { id: "log-1", time: "2026-11-25 23:18:20", type: "Test Gateway", status: "Terkirim", phone: "6289691905347" }
+    ]
   },
   fiveYearPlan: [
     {
@@ -257,9 +282,9 @@ const DEFAULT_SYSTEM_DATA = {
 
 class ProductivityApp {
   constructor() {
-    this.storageKey = "sekretaris_produktivitas_fw_v2";
+    this.storageKey = "sekretaris_produktivitas_fw_v3";
     this.data = this.loadData();
-    this.activeTab = "daily"; // 'daily', 'weekly', 'monthly', 'roadmap', 'analytics'
+    this.activeTab = "daily"; // 'daily', 'weekly', 'monthly', 'roadmap', 'notifications'
     this.selectedDate = this.getTodayDateString();
     this.selectedCategory = "all";
     this.selectedPriority = "all";
@@ -302,12 +327,11 @@ class ProductivityApp {
   }
 
   init() {
-    this.bindEvents();
     this.startClock();
     this.checkWABotStatus();
     this.render();
+    this.bindEvents();
 
-    // Cek status WA bot secara berkala
     setInterval(() => this.checkWABotStatus(), 15000);
   }
 
@@ -337,19 +361,19 @@ class ProductivityApp {
         if (badgeEl) {
           badgeEl.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/70 border border-emerald-800/80 text-emerald-300 text-xs font-mono";
         }
-        if (badgeTextEl) badgeTextEl.textContent = "WA Bot Aktif (6289691905347)";
+        if (badgeTextEl) badgeTextEl.textContent = "WA Bot Aktif";
       } else {
         if (badgeEl) {
-          badgeEl.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-950/70 border border-amber-800/80 text-amber-300 text-xs font-mono";
+          badgeEl.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono";
         }
-        if (badgeTextEl) badgeTextEl.textContent = "WA Mode Web Direct";
+        if (badgeTextEl) badgeTextEl.textContent = "WA Bot Siaga";
       }
     } catch (e) {
       this.waBotOnline = false;
       if (badgeEl) {
         badgeEl.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono";
       }
-      if (badgeTextEl) badgeTextEl.textContent = "WA Mode Web Direct";
+      if (badgeTextEl) badgeTextEl.textContent = "WA Bot Siaga";
     }
   }
 
@@ -416,7 +440,7 @@ class ProductivityApp {
     if (greetEl) greetEl.textContent = `${greet}, Pak ${this.data.profile.name}!`;
     if (descEl) {
       if (m.total === 0) {
-        descEl.textContent = "Belum ada agenda tercatat untuk tanggal ini. Mulai dengan menambah tugas baru.";
+        descEl.textContent = "Belum ada agenda tercatat untuk tanggal ini. Tambahkan tugas baru di bawah.";
       } else if (m.high > 0) {
         descEl.textContent = `Ada ${m.high} tugas prioritas tinggi yang memerlukan atensi utama Anda hari ini.`;
       } else if (m.pct === 100) {
@@ -433,7 +457,7 @@ class ProductivityApp {
     else if (this.activeTab === "weekly") this.renderWeeklyView();
     else if (this.activeTab === "monthly") this.renderMonthlyView();
     else if (this.activeTab === "roadmap") this.renderRoadmapView();
-    else if (this.activeTab === "analytics") this.renderAnalyticsView();
+    else if (this.activeTab === "notifications") this.renderNotificationsView();
   }
 
   // ===================== DAILY VIEW =====================
@@ -486,7 +510,7 @@ class ProductivityApp {
           isDone ? "bg-slate-950/40 border-slate-900 opacity-60" : "bg-slate-900/70 hover:bg-slate-900 border-slate-800/80"
         }">
           <div class="flex items-center gap-3 flex-1 min-w-0">
-            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="app.toggleTask('${task.id}')" class="custom-checkbox flex-shrink-0">
+            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="window.app.toggleTask('${task.id}')" class="custom-checkbox flex-shrink-0">
             
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap mb-1">
@@ -502,15 +526,14 @@ class ProductivityApp {
             </div>
           </div>
 
-          <!-- Action buttons: Kirim WA & Hapus -->
+          <!-- Actions -->
           <div class="flex items-center gap-1.5 flex-shrink-0">
-            <button onclick="app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="px-2.5 py-1.5 rounded-lg bg-emerald-950/80 hover:bg-emerald-900/90 text-emerald-300 border border-emerald-800/80 text-xs font-medium flex items-center gap-1 transition-colors">
-              <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+            <button onclick="window.app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40 rounded-lg transition-colors">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
                 <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
               </svg>
-              <span class="hidden sm:inline">Kirim</span> WA
             </button>
-            <button onclick="app.deleteTask('${task.id}')" title="Hapus Tugas" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors">
+            <button onclick="window.app.deleteTask('${task.id}')" title="Hapus Tugas" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -554,7 +577,7 @@ class ProductivityApp {
               <span class="text-xs font-bold uppercase tracking-wider text-slate-400">${day.label}</span>
               <p class="text-sm font-bold text-white">${day.date.split("-").slice(1).join("/")}</p>
             </div>
-            <button onclick="app.selectDateAndJump('${day.date}')" class="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-colors">
+            <button onclick="window.app.selectDateAndJump('${day.date}')" class="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-colors">
               Pilih
             </button>
           </div>
@@ -596,13 +619,13 @@ class ProductivityApp {
         m.done ? 'bg-slate-950/40 border-slate-900 opacity-60' : 'bg-slate-900/70 border-slate-800'
       }">
         <div class="flex items-center gap-3 flex-1 min-w-0">
-          <input type="checkbox" ${m.done ? 'checked' : ''} onchange="app.toggleMonthlyMilestone('${m.id}')" class="custom-checkbox flex-shrink-0">
+          <input type="checkbox" ${m.done ? 'checked' : ''} onchange="window.app.toggleMonthlyMilestone('${m.id}')" class="custom-checkbox flex-shrink-0">
           <div>
             <span class="text-xs font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-800">Target: ${m.targetDate}</span>
             <p class="text-sm font-semibold text-slate-100 mt-1 ${m.done ? 'line-through text-slate-500' : ''}">${this.escapeHtml(m.title)}</p>
           </div>
         </div>
-        <button onclick="app.pushMilestoneToDaily('${m.id}')" class="px-2.5 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-800/80 text-xs font-medium transition-colors">
+        <button onclick="window.app.pushMilestoneToDaily('${m.id}')" class="px-2.5 py-1.5 rounded-lg bg-indigo-950/80 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-800/80 text-xs font-medium transition-colors">
           Jadikan Tugas
         </button>
       </div>
@@ -689,10 +712,10 @@ class ProductivityApp {
                   ${q.steps.map(step => `
                     <div class="flex items-center justify-between gap-2 p-1.5 rounded bg-slate-900 border border-slate-800 text-xs">
                       <div class="flex items-center gap-2 flex-1 min-w-0">
-                        <input type="checkbox" ${step.done ? 'checked' : ''} onchange="app.toggle5YStep('${year.id}', '${q.id}', '${step.id}')" class="custom-checkbox flex-shrink-0">
+                        <input type="checkbox" ${step.done ? 'checked' : ''} onchange="window.app.toggle5YStep('${year.id}', '${q.id}', '${step.id}')" class="custom-checkbox flex-shrink-0">
                         <span class="${step.done ? 'line-through text-slate-500' : 'text-slate-300'} truncate">${this.escapeHtml(step.title)}</span>
                       </div>
-                      <button onclick="app.push5YStepToDaily('${year.year}', '${q.quarter}', '${step.id}')" title="Jadikan Agenda Harian" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-indigo-600 transition-colors">
+                      <button onclick="window.app.push5YStepToDaily('${year.year}', '${q.quarter}', '${step.id}')" title="Jadikan Agenda Harian" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-indigo-600 transition-colors">
                         + Hari Ini
                       </button>
                     </div>
@@ -748,21 +771,72 @@ class ProductivityApp {
     this.render();
   }
 
-  // ===================== WHATSAPP NOTIFICATION ENGINE =====================
-  getTargetPhone() {
-    const phoneInput = document.getElementById("input-target-phone");
-    if (phoneInput && phoneInput.value.trim()) {
-      let clean = phoneInput.value.replace(/[^0-9]/g, '');
-      if (clean.startsWith('0')) clean = '62' + clean.slice(1);
-      this.data.profile.targetPhone = clean;
-      this.saveData();
-      return clean;
+  // ===================== NOTIFICATIONS DEDICATED VIEW =====================
+  renderNotificationsView() {
+    const notif = this.data.notifications || DEFAULT_SYSTEM_DATA.notifications;
+    const phoneEl = document.getElementById("notif-target-phone");
+    const morningTimeEl = document.getElementById("notif-morning-time");
+    const morningCheckEl = document.getElementById("notif-morning-enabled");
+    const eveningTimeEl = document.getElementById("notif-evening-time");
+    const eveningCheckEl = document.getElementById("notif-evening-enabled");
+    const logListEl = document.getElementById("notif-log-container");
+
+    if (phoneEl) phoneEl.value = notif.targetPhone || "6289691905347";
+    if (morningTimeEl) morningTimeEl.value = notif.morningBriefing.time || "07:00";
+    if (morningCheckEl) morningCheckEl.checked = !!notif.morningBriefing.enabled;
+    if (eveningTimeEl) eveningTimeEl.value = notif.eveningRecap.time || "21:00";
+    if (eveningCheckEl) eveningCheckEl.checked = !!notif.eveningRecap.enabled;
+
+    if (logListEl) {
+      const logs = notif.logs || [];
+      if (logs.length === 0) {
+        logListEl.innerHTML = `<p class="text-xs text-slate-500 italic">Belum ada riwayat notifikasi.</p>`;
+      } else {
+        logListEl.innerHTML = logs.map(l => `
+          <div class="flex items-center justify-between p-2.5 rounded-lg bg-[#0a0e17] border border-slate-800 text-xs font-mono">
+            <div>
+              <span class="text-slate-300 font-semibold">[${l.type}]</span>
+              <span class="text-slate-500 text-[11px] block">${l.time} • ke ${l.phone}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold">${l.status}</span>
+          </div>
+        `).join("");
+      }
     }
-    return this.data.profile.targetPhone || "6289691905347";
+  }
+
+  saveNotificationSettings() {
+    const notif = this.data.notifications;
+    const phoneEl = document.getElementById("notif-target-phone");
+    const morningTimeEl = document.getElementById("notif-morning-time");
+    const morningCheckEl = document.getElementById("notif-morning-enabled");
+    const eveningTimeEl = document.getElementById("notif-evening-time");
+    const eveningCheckEl = document.getElementById("notif-evening-enabled");
+
+    if (phoneEl) notif.targetPhone = phoneEl.value.replace(/[^0-9]/g, '');
+    if (morningTimeEl) notif.morningBriefing.time = morningTimeEl.value;
+    if (morningCheckEl) notif.morningBriefing.enabled = morningCheckEl.checked;
+    if (eveningTimeEl) notif.eveningRecap.time = eveningTimeEl.value;
+    if (eveningCheckEl) notif.eveningRecap.enabled = eveningCheckEl.checked;
+
+    this.saveData();
+    alert("✅ Aturan notifikasi berhasil disimpan!");
+  }
+
+  async sendTestNotification() {
+    const phone = this.data.notifications.targetPhone || "6289691905347";
+    const nowStr = new Date().toLocaleTimeString("id-ID");
+    const message = 
+`🔔 *[UJI COBA NOTIFIKASI SEKERTARIS]*
+Halo Pak ${this.data.profile.name}, sistem notifikasi WhatsApp berhasil terhubung pada pukul ${nowStr} WIB.
+Gateway bot lokal di UTM aktif dan siap mengirimkan jadwal rutin Anda.
+🤖 *Aura Executive Desk*`;
+
+    await this.dispatchWAMessage(phone, message, "Tes Notifikasi");
   }
 
   async sendDailyBriefingToWA() {
-    const phone = this.getTargetPhone();
+    const phone = this.data.notifications.targetPhone || "6289691905347";
     const tasks = this.data.dailyTasks.filter(t => t.date === this.selectedDate);
     const m = this.getMetrics();
 
@@ -802,7 +876,7 @@ Infrastruktur & Automasi Ekosistem Mandiri
   }
 
   async sendTaskToWA(taskId) {
-    const phone = this.getTargetPhone();
+    const phone = this.data.notifications.targetPhone || "6289691905347";
     const task = this.data.dailyTasks.find(t => t.id === taskId);
     if (!task) return;
 
@@ -818,11 +892,7 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}${task.linked5Y ? `🎯 *Roa
   }
 
   async dispatchWAMessage(phone, message, label) {
-    const btn = document.getElementById("btn-send-wa-briefing");
-    if (btn) btn.disabled = true;
-
     try {
-      // 1. Coba kirim via Local Bot API (port 3055)
       const res = await fetch("/api/send-wa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -831,18 +901,29 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}${task.linked5Y ? `🎯 *Roa
       const data = await res.json();
 
       if (data.success) {
+        // Catat ke log
+        const now = new Date();
+        const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${now.toLocaleTimeString('id-ID')}`;
+        this.data.notifications.logs.unshift({
+          id: "log-" + Date.now(),
+          time: timeStr,
+          type: label,
+          status: "Terkirim",
+          phone
+        });
+        if (this.data.notifications.logs.length > 20) this.data.notifications.logs.pop();
+        this.saveData();
+
         alert(`✅ ${label} berhasil dikirim ke WhatsApp (${phone}) via Bot Server!`);
+        if (this.activeTab === "notifications") this.renderNotificationsView();
       } else {
         throw new Error(data.error || "Gagal mengirim via bot");
       }
     } catch (err) {
       console.warn("Fallback to Web WhatsApp:", err);
-      // 2. Fallback: Buka WhatsApp Web / Apps langsung dengan teks prefilled
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       window.open(waUrl, "_blank");
       alert(`⚠️ Bot lokal offline/terkendala. Pesan dibuka langsung via WhatsApp Web!`);
-    } finally {
-      if (btn) btn.disabled = false;
     }
   }
 
@@ -883,7 +964,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}${task.linked5Y ? `🎯 *Roa
     }
   }
 
-  // Voice speech synthesis
   speakBriefing() {
     if (!this.speechSynth) {
       alert("Browser tidak mendukung Speech Synthesis");
@@ -910,7 +990,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}${task.linked5Y ? `🎯 *Roa
     this.speechSynth.speak(utt);
   }
 
-  // Export & Import
   exportJSON() {
     const str = JSON.stringify(this.data, null, 2);
     const blob = new Blob([str], { type: "application/json" });
@@ -941,9 +1020,13 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}${task.linked5Y ? `🎯 *Roa
   }
 
   bindEvents() {
-    // Tab pill clicks
-    document.querySelectorAll(".tab-pill").forEach(pill => {
-      pill.addEventListener("click", () => this.switchTab(pill.dataset.tab));
+    // Delegasi klik tab
+    document.addEventListener("click", (e) => {
+      const pill = e.target.closest(".tab-pill");
+      if (pill && pill.dataset.tab) {
+        e.preventDefault();
+        this.switchTab(pill.dataset.tab);
+      }
     });
 
     // Date selector
@@ -1026,21 +1109,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}${task.linked5Y ? `🎯 *Roa
       });
     }
 
-    // WhatsApp Notification Events
-    const btnSendWABriefing = document.getElementById("btn-send-wa-briefing");
-    if (btnSendWABriefing) {
-      btnSendWABriefing.addEventListener("click", () => this.sendDailyBriefingToWA());
-    }
-
-    const phoneInput = document.getElementById("input-target-phone");
-    if (phoneInput) {
-      phoneInput.value = this.data.profile.targetPhone || "6289691905347";
-      phoneInput.addEventListener("change", (e) => {
-        this.data.profile.targetPhone = e.target.value.replace(/[^0-9]/g, '');
-        this.saveData();
-      });
-    }
-
     // Voice button
     const btnVoice = document.getElementById("btn-voice-briefing");
     if (btnVoice) {
@@ -1071,6 +1139,5 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}${task.linked5Y ? `🎯 *Roa
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  window.app = new ProductivityApp();
-});
+// Inisialisasi global aman
+window.app = new ProductivityApp();

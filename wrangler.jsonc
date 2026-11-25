@@ -1,4 +1,4 @@
-{
+pa{
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "productivity-ilhampradani",
   "compatibility_date": "2026-11-03",
