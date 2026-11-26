@@ -311,6 +311,10 @@ class ProductivityApp {
     this.evaluatingTaskId = null;
     this.evaluatingDate = null;
 
+    // Task Cancellation Modal State
+    this.cancellingTaskId = null;
+    this.cancellingDate = null;
+
     this.init();
   }
 
@@ -725,7 +729,7 @@ class ProductivityApp {
 
   // ===================== MISSED TASK DETECTION & POPUP MODAL =====================
   isTaskMissed(task, dateStr) {
-    if (task.isDone) return false;
+    if (task.isDone || task.isCancelled) return false;
     const today = this.getTodayDateString();
 
     if (dateStr < today) {
@@ -855,6 +859,104 @@ class ProductivityApp {
     }
   }
 
+  // ===================== CANCEL TASK MODAL & REASON HANDLING =====================
+  openCancelTaskModal(taskId, dateStr) {
+    const task = this.data.dailyTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    this.cancellingTaskId = taskId;
+    this.cancellingDate = dateStr;
+
+    const modal = document.getElementById("modal-cancel-task");
+    const titleEl = document.getElementById("cancel-modal-title");
+    const dateEl = document.getElementById("cancel-modal-date");
+    const timeEl = document.getElementById("cancel-modal-time");
+    const textarea = document.getElementById("cancel-task-reason-input");
+
+    if (titleEl) titleEl.textContent = task.title;
+    if (dateEl) dateEl.textContent = `Tanggal: ${dateStr}`;
+    if (timeEl) timeEl.textContent = task.timeStart ? `${task.timeStart} - ${task.timeEnd || 'Selesai'} WIB` : "Hari Ini";
+    if (textarea) {
+      const existing = (task.cancellationReasons && task.cancellationReasons[dateStr]) || task.cancelReason || "";
+      textarea.value = existing;
+    }
+
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+  }
+
+  closeCancelTaskModal() {
+    const modal = document.getElementById("modal-cancel-task");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+    this.cancellingTaskId = null;
+    this.cancellingDate = null;
+  }
+
+  selectCancelReasonPreset(preset) {
+    const textarea = document.getElementById("cancel-task-reason-input");
+    if (textarea) {
+      if (textarea.value.trim()) {
+        textarea.value = `${textarea.value.trim()}. ${preset}`;
+      } else {
+        textarea.value = preset;
+      }
+    }
+  }
+
+  confirmCancelTask() {
+    if (!this.cancellingTaskId) return;
+    const task = this.data.dailyTasks.find(t => t.id === this.cancellingTaskId);
+    if (!task) return;
+
+    const textarea = document.getElementById("cancel-task-reason-input");
+    const reason = textarea && textarea.value.trim() ? textarea.value.trim() : "Dibatalkan oleh pengguna";
+
+    if (task.recurrence && task.recurrence !== "none") {
+      if (!task.cancelledDates) task.cancelledDates = [];
+      if (!task.cancelledDates.includes(this.cancellingDate)) {
+        task.cancelledDates.push(this.cancellingDate);
+      }
+      if (!task.cancellationReasons) task.cancellationReasons = {};
+      task.cancellationReasons[this.cancellingDate] = reason;
+    } else {
+      task.status = "cancelled";
+      task.cancelReason = reason;
+      if (!task.cancellationReasons) task.cancellationReasons = {};
+      task.cancellationReasons[this.cancellingDate] = reason;
+    }
+
+    this.saveData();
+    this.render();
+    this.closeCancelTaskModal();
+    alert(`Agenda "${task.title}" telah ditandai batal dengan alasan: "${reason}".`);
+  }
+
+  restoreCancelledTask(taskId, dateStr) {
+    const task = this.data.dailyTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    if (task.recurrence && task.recurrence !== "none") {
+      if (task.cancelledDates) {
+        task.cancelledDates = task.cancelledDates.filter(d => d !== dateStr);
+      }
+      if (task.cancellationReasons) {
+        delete task.cancellationReasons[dateStr];
+      }
+    } else {
+      task.status = "todo";
+      delete task.cancelReason;
+    }
+
+    this.saveData();
+    this.render();
+    alert(`Agenda "${task.title}" berhasil diaktifkan kembali!`);
+  }
+
   // ===================== WA MISSED TASK ALERT TRIGGER =====================
   async checkMissedTasksAndAlert() {
     if (!this.data.notifications.missedTaskAlert || !this.data.notifications.missedTaskAlert.enabled) return;
@@ -868,15 +970,18 @@ class ProductivityApp {
         this.saveData();
         const phone = this.data.notifications.targetPhone || "6288971071138";
         const message = 
-`🚨 *[PERINGATAN TUGAS TERLEWAT]*
-Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
-📌 *${t.title}*
-⏰ Dijadwalkan: ${t.timeStart} - ${t.timeEnd} WIB
-⚠️ Belum diselesaikan tepat waktu.
-💡 Mohon buka dashboard https://productivity.ilhampradani.me untuk mencatat alasan/kendala.
-🤖 *Aura Executive Desk*`;
+`Halo Pak ${this.data.profile.name}, mohon izin menginfokan ya Pak 🙏
 
-        await this.dispatchWAMessage(phone, message, `Terlewat: ${t.title}`);
+Jadwal Bapak *"${t.title}"* yang dialokasikan pukul *${t.timeStart} - ${t.timeEnd} WIB* sepertinya sudah berakhir.
+
+Silakan dicek dan dicoret ya Pak jadwalnya di dashboard apabila pekerjaannya sudah selesai sebelum rekap jam 12.00 nanti.
+
+Apabila agenda ini berhalangan atau batal, Bapak bisa langsung klik tombol "Batal" dan cantumkan kendalanya di https://productivity.ilhampradani.me ya Pak.
+
+Semoga hari Bapak selalu produktif!
+*Aura Desk*`;
+
+        await this.dispatchWAMessage(phone, message, `Pengingat: ${t.title}`);
         break; // Batasi 1 alert per turn agar tidak spam
       }
     }
@@ -885,15 +990,18 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
   async sendTestMissedTaskWA() {
     const phone = this.data.notifications.targetPhone || "6288971071138";
     const message = 
-`🚨 *[PERINGATAN TUGAS TERLEWAT]*
-Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
-📌 *Uji Coba Peringatan Tugas Terlewat*
-⏰ Dijadwalkan: 09:00 - 10:30 WIB
-⚠️ Belum diselesaikan tepat waktu.
-💡 Mohon buka dashboard https://productivity.ilhampradani.me untuk mencatat alasan/kendala.
-🤖 *Aura Executive Desk*`;
+`Halo Pak ${this.data.profile.name}, mohon izin menginfokan ya Pak 🙏
 
-    await this.dispatchWAMessage(phone, message, "Tes Alert Tugas Terlewat");
+Jadwal Bapak *"Uji Coba Pengingat Agenda"* yang dialokasikan pukul *09:00 - 10:30 WIB* sepertinya sudah berakhir.
+
+Silakan dicek dan dicoret ya Pak jadwalnya di dashboard apabila pekerjaannya sudah selesai sebelum rekap jam 12.00 nanti.
+
+Apabila agenda ini berhalangan atau batal, Bapak bisa langsung klik tombol "Batal" dan cantumkan kendalanya di https://productivity.ilhampradani.me ya Pak.
+
+Semoga hari Bapak selalu lancar!
+*Aura Desk*`;
+
+    await this.dispatchWAMessage(phone, message, "Tes Pengingat Coret Jadwal");
   }
 
   // Mengambil seluruh agenda yang berlaku untuk tanggal tertentu
@@ -933,15 +1041,18 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
       return false;
     }).map(task => {
       let isDone = task.status === "done";
+      let isCancelled = task.status === "cancelled";
       if (task.recurrence && task.recurrence !== "none") {
         isDone = task.completedDates && task.completedDates.includes(targetDate);
+        isCancelled = task.cancelledDates && task.cancelledDates.includes(targetDate);
       }
-      return { ...task, isDone };
+      const cancelReason = (task.cancellationReasons && task.cancellationReasons[targetDate]) || task.cancelReason || "";
+      return { ...task, isDone, isCancelled, cancelReason };
     });
   }
 
   getOccupiedIntervals(targetDate, excludeTaskId = null) {
-    const tasks = this.getTasksForDate(targetDate).filter(t => t.id !== excludeTaskId);
+    const tasks = this.getTasksForDate(targetDate).filter(t => t.id !== excludeTaskId && !t.isCancelled);
     const intervals = [];
 
     tasks.forEach(t => {
@@ -1428,8 +1539,10 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
   // ===================== METRICS & SIDEBAR =====================
   getMetrics() {
     const tasks = this.getTasksForDate(this.selectedDate);
-    const total = tasks.length;
-    const done = tasks.filter(t => t.isDone).length;
+    const activeTasks = tasks.filter(t => !t.isCancelled);
+    const total = activeTasks.length;
+    const done = activeTasks.filter(t => t.isDone).length;
+    const cancelled = tasks.filter(t => t.isCancelled).length;
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
     let total5Y = 0;
@@ -1444,7 +1557,7 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
     });
     const pct5Y = total5Y > 0 ? Math.round((done5Y / total5Y) * 100) : 0;
 
-    return { total, done, pct, pct5Y };
+    return { total, done, cancelled, pct, pct5Y };
   }
 
   updateSidebarBriefing() {
@@ -1572,6 +1685,17 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
         recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 border border-cyan-200">${ICONS.repeat} <span>Tiap Tahun</span></span>`;
       }
 
+      // Cancellation badge
+      let cancelBadgeHtml = "";
+      if (task.isCancelled) {
+        cancelBadgeHtml = `
+          <span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200">
+            <svg class="w-3 h-3 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <span class="truncate max-w-[200px]">Batal: ${this.escapeHtml(task.cancelReason || 'Dibatalkan')}</span>
+          </span>
+        `;
+      }
+
       // Missed Task Badge or Reason
       let missedBadgeHtml = "";
       if (isMissed) {
@@ -1594,11 +1718,21 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
 
       return `
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all ${
-          isDone ? "bg-slate-50/70 border-slate-200 opacity-60" : "bg-white hover:bg-slate-50/50 border-slate-200 shadow-sm"
+          task.isCancelled
+            ? "bg-rose-50/20 border-rose-200/60 opacity-75"
+            : isDone 
+              ? "bg-slate-50/70 border-slate-200 opacity-60" 
+              : "bg-white hover:bg-slate-50/50 border-slate-200 shadow-sm"
         }">
           <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
-            <!-- Checkbox -->
-            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="custom-checkbox flex-shrink-0 mt-1 sm:mt-0">
+            ${task.isCancelled ? `
+              <div class="w-5 h-5 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-600 flex-shrink-0 mt-1 sm:mt-0" title="Agenda ini dibatalkan">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+              </div>
+            ` : `
+              <!-- Checkbox -->
+              <input type="checkbox" ${isDone ? 'checked' : ''} onchange="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="custom-checkbox flex-shrink-0 mt-1 sm:mt-0">
+            `}
             
             <!-- PROMINENT TIME PILLAR -->
             <div class="task-time-pillar flex-shrink-0 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 min-w-[130px] shadow-sm">
@@ -1621,10 +1755,11 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap mb-1">
                 ${recurrenceBadge}
+                ${cancelBadgeHtml}
                 ${missedBadgeHtml}
               </div>
 
-              <h4 class="text-sm font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-900'} break-words">
+              <h4 class="text-sm font-bold ${task.isCancelled ? 'line-through text-slate-400' : isDone ? 'line-through text-slate-400' : 'text-slate-900'} break-words">
                 ${this.escapeHtml(task.title)}
               </h4>
               
@@ -1632,17 +1767,48 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
             </div>
           </div>
 
-          <!-- Actions -->
-          <div class="flex items-center gap-1 flex-shrink-0 self-end sm:self-center">
-            <button onclick="window.app.editTask('${task.id}')" title="Edit Agenda Ini" class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-indigo-200">
-              ${ICONS.edit}
-            </button>
-            <button onclick="window.app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="p-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-emerald-200">
-              ${ICONS.wa}
-            </button>
-            <button onclick="window.app.deleteTask('${task.id}', '${this.selectedDate}')" title="Hapus Tugas" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-rose-200">
-              ${ICONS.trash}
-            </button>
+          <!-- Actions: Tombol Selesai, Batal, & Utilitas -->
+          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap flex-shrink-0 self-end sm:self-center">
+            
+            <!-- TOMBOL SELESAI -->
+            ${task.isCancelled ? '' : isDone ? `
+              <button onclick="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-semibold transition-all cursor-pointer shadow-sm" title="Klik untuk membatalkan status selesai">
+                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                <span>Selesai ✓</span>
+              </button>
+            ` : `
+              <button onclick="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                <span>Selesai</span>
+              </button>
+            `}
+
+            <!-- TOMBOL BATAL -->
+            ${task.isCancelled ? `
+              <button onclick="window.app.restoreCancelledTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-300 transition-all cursor-pointer" title="Aktifkan kembali agenda ini">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>Pulihkan</span>
+              </button>
+            ` : `
+              <button onclick="window.app.openCancelTaskModal('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold transition-all cursor-pointer" title="Batalkan agenda ini">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <span>Batal</span>
+              </button>
+            `}
+
+            <!-- Mini Utilitas: Edit, WA, Hapus -->
+            <div class="flex items-center gap-0.5 border-l border-slate-200 pl-1.5">
+              <button onclick="window.app.editTask('${task.id}')" title="Edit Agenda Ini" class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer">
+                ${ICONS.edit}
+              </button>
+              <button onclick="window.app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer">
+                ${ICONS.wa}
+              </button>
+              <button onclick="window.app.deleteTask('${task.id}', '${this.selectedDate}')" title="Hapus Tugas" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer">
+                ${ICONS.trash}
+              </button>
+            </div>
+
           </div>
         </div>
       `;
@@ -2208,10 +2374,15 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
     const phone = this.data.notifications.targetPhone || "6288971071138";
     const nowStr = new Date().toLocaleTimeString("id-ID");
     const message = 
-`*[NOTIFIKASI AURA DESK]*
-Halo Pak ${this.data.profile.name}, uji coba notifikasi berhasil terhubung pada pukul ${nowStr} WIB.
-Asisten siap mengirimkan jadwal rutin Anda.
-*Aura Executive Desk*`;
+`Halo Pak ${this.data.profile.name}, salam hangat! 👋
+
+Notifikasi asisten pribadi Bapak berhasil terhubung lancar pada pukul ${nowStr} WIB.
+Mulai saat ini, pengingat jadwal kerja, briefing pagi, dan rekap malam akan kami sampaikan langsung ke nomor WhatsApp ini ya Pak.
+
+Asisten siap membantu Bapak menjaga produktivitas setiap hari.
+
+Salam hormat,
+*Aura Desk*`;
 
     await this.dispatchWAMessage(phone, message, "Tes Notifikasi");
   }
@@ -2223,36 +2394,58 @@ Asisten siap mengirimkan jadwal rutin Anda.
 
     let taskLines = "";
     if (tasks.length === 0) {
-      taskLines = "_Belum ada agenda tercatat._\n";
+      taskLines = "_Belum ada agenda yang tercatat untuk hari ini Pak._\n";
     } else {
       taskLines = tasks.map((t, idx) => {
-        const status = t.isDone ? "[SELESAI]" : "[TODO]";
-        const time1 = t.timeStart ? `[${t.timeStart} - ${t.timeEnd}] ` : "";
-        const time2 = t.hasSecondSession && t.session2Start ? ` [Malam: ${t.session2Start} - ${t.session2End}]` : "";
-        return `${status} ${idx + 1}. ${time1}${t.title}${time2}`;
+        const status = t.isCancelled ? "[BATAL]" : t.isDone ? "[SELESAI]" : "[TODO]";
+        const time1 = t.timeStart ? `(${t.timeStart} - ${t.timeEnd}) ` : "";
+        const time2 = t.hasSecondSession && t.session2Start ? ` & (${t.session2Start} - ${t.session2End})` : "";
+        const note = t.note ? ` - _${t.note}_` : "";
+        return `${idx + 1}. ${status} ${time1}${t.title}${time2}${note}`;
       }).join("\n");
     }
 
     const message = 
-`*BRIEFING PRODUKTIVITAS EKSEKUTIF*
-*Untuk:* Pak ${this.data.profile.name}
-*Tanggal:* ${this.selectedDate}
+`Selamat pagi Pak ${this.data.profile.name}, semoga hari ini menyenangkan dan penuh berkah! ✨
 
-*RINGKASAN STATUS 24 JAM:*
-• Total Agenda: ${m.total}
-• Selesai: ${m.done} (${m.pct}%)
-• Progress Roadmap 5 Tahun: ${m.pct5Y}%
+Berikut rangkuman jadwal agenda kerja Bapak untuk hari ini (${this.selectedDate}):
 
-*DAFTAR AGENDA KERJA (BEBAS BENTROK):*
 ${taskLines}
 
-*FOKUS STRATEGIS 5Y:*
-Infrastruktur & Automasi Ekosistem Mandiri
+Alhamdulillah seluruh waktu sudah teralokasi rapi dan bebas bentrok Pak (${m.total} agenda).
+Asisten siap mendampingi dan mengingatkan setiap sesi kerja Bapak. Tetap semangat ya Pak Ilham!
 
-_"Waktu teralokasi bersih tanpa tabrakan. Tetap fokus dan jaga momentum!"_
-*Aura Executive Secretary*`;
+Salam hormat,
+*Aura Desk*`;
 
-    await this.dispatchWAMessage(phone, message, "Briefing Harian");
+    await this.dispatchWAMessage(phone, message, "Briefing Pagi");
+  }
+
+  async sendEveningRecapToWA() {
+    const phone = this.data.notifications.targetPhone || "6288971071138";
+    const tasks = this.getTasksForDate(this.selectedDate);
+    const m = this.getMetrics();
+
+    const pendingTasks = tasks.filter(t => !t.isDone && !t.isCancelled);
+    let pendingLines = "";
+    if (pendingTasks.length > 0) {
+      pendingLines = "\n*Agenda yang belum sempat dicoret:*\n" + pendingTasks.map((t, idx) => `• ${t.timeStart ? `[${t.timeStart}] ` : ''}${t.title}`).join("\n") + "\n";
+    }
+
+    const message = 
+`Selamat malam Pak ${this.data.profile.name}, mohon izin menyampaikan rekap jadwal hari ini ya Pak 🙏
+
+Dari total ${m.total} agenda yang direncanakan:
+✅ Berhasil diselesaikan: *${m.done} agenda* (${m.pct}%)
+${m.cancelled > 0 ? `🚫 Dibatalkan: *${m.cancelled} agenda*\n` : ''}${m.total - m.done > 0 ? `⏳ Belum dicoret: *${m.total - m.done} agenda*` : `🌟 Luar biasa Pak, seluruh agenda hari ini tuntas terselesaikan 100%!`}
+${pendingLines}
+${m.total - m.done > 0 ? `Bagi agenda yang sudah terlaksana, jangan lupa dicek dan dicoret sebelum jam 12.00 malam ya Pak agar rekap harian Bapak tercatat sempurna.\n` : ''}
+Selamat beristirahat dengan tenang Pak Ilham, sampai jumpa di jadwal esok hari!
+
+Salam hormat,
+*Aura Desk*`;
+
+    await this.dispatchWAMessage(phone, message, "Rekap Malam");
   }
 
   async sendTaskToWA(taskId) {
@@ -2261,15 +2454,19 @@ _"Waktu teralokasi bersih tanpa tabrakan. Tetap fokus dan jaga momentum!"_
     if (!task) return;
 
     const time1 = task.timeStart ? `${task.timeStart} - ${task.timeEnd} WIB` : 'Hari Ini';
-    const time2 = task.hasSecondSession && task.session2Start ? `\n*Sesi Malam:* ${task.session2Start} - ${task.session2End} WIB` : '';
-    const recStr = task.recurrence === 'daily' ? `\n*Perulangan:* Setiap Hari ${task.validUntil ? '(s/d ' + task.validUntil + ')' : ''}` : '';
+    const time2 = task.hasSecondSession && task.session2Start ? ` dan sesi malam (${task.session2Start} - ${task.session2End} WIB)` : '';
 
     const message = 
-`*PENGINGAT AGENDA EKSEKUTIF*
-*Tugas:* ${task.title}
-*Waktu Utama:* ${time1}${time2}${recStr}
-${task.note ? `*Catatan:* ${task.note}\n` : ''}
-*Aura Executive Desk*`;
+`Halo Pak ${this.data.profile.name}, mohon izin mengingatkan jadwal ya Pak 🙏
+
+📌 Agenda: *${task.title}*
+⏰ Waktu: *${time1}*${time2}
+${task.note ? `📝 Catatan dari Bapak: "${task.note}"\n` : ''}
+Jangan sampai terlewat ya Pak. Semoga urusan dan kegiatannya berjalan lancar!
+Jika sudah selesai nanti, silakan dicoret di dashboard web ya Pak.
+
+Salam hangat,
+*Aura Desk*`;
 
     await this.dispatchWAMessage(phone, message, `Pengingat: ${task.title}`);
   }
