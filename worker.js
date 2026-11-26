@@ -274,7 +274,7 @@ Salam hormat,
       const clientMsg = 
 `Halo Bpk/Ibu ${reqData.client_name}, salam hangat 🙏
 
-Permohonan pertemuan Anda dengan Dr. Ilham Pradani telah *DISETUJUI* dan terjadwal secara resmi:
+Permohonan pertemuan Anda dengan Ilham Pradani, S.H. telah *DISETUJUI* dan terjadwal secara resmi:
 
 📌 *Topik:* ${reqData.category}
 📅 *Tanggal:* ${reqData.meeting_date}
