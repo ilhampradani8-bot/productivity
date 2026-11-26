@@ -34,8 +34,8 @@ body {
 .fullwidth-container {
   width: 100%;
   max-width: 100%;
-  padding-left: clamp(1rem, 2vw, 2.5rem);
-  padding-right: clamp(1rem, 2vw, 2.5rem);
+  padding-left: clamp(0.75rem, 2vw, 2.5rem);
+  padding-right: clamp(0.75rem, 2vw, 2.5rem);
 }
 
 /* Minimalist Scrollbar */
@@ -95,23 +95,26 @@ body {
   background-color: white;
 }
 
-/* ================= ANALOG CLOCK PICKER STYLES ================= */
-#modal-clock-picker.hidden {
+/* ================= MODAL BACKDROP & DISPLAY ================= */
+#modal-clock-picker.hidden,
+#modal-missed-reason.hidden {
   display: none !important;
   pointer-events: none !important;
   visibility: hidden !important;
 }
 
-#modal-clock-picker:not(.hidden) {
+#modal-clock-picker:not(.hidden),
+#modal-missed-reason:not(.hidden) {
   display: flex !important;
   pointer-events: auto !important;
   visibility: visible !important;
 }
 
+/* ================= ANALOG CLOCK PICKER STYLES ================= */
 .analog-clock-plate {
   position: relative;
-  width: 250px;
-  height: 250px;
+  width: 240px;
+  height: 240px;
   border-radius: 50%;
   background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
   border: 2px solid #cbd5e1;
@@ -143,7 +146,7 @@ body {
   bottom: 50%;
   left: 50%;
   width: 2.5px;
-  height: 90px;
+  height: 85px;
   background: linear-gradient(to top, #4f46e5, #6366f1);
   transform-origin: bottom center;
   z-index: 8;
@@ -170,11 +173,11 @@ body {
 
 .clock-dial-number {
   position: absolute;
-  width: 30px;
-  height: 30px;
-  line-height: 30px;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   color: #334155;
   border-radius: 50%;
@@ -258,4 +261,83 @@ body {
   border-radius: 12px;
   padding: 8px 12px;
   text-align: center;
+}
+
+/* ================= TITLE AUTOCOMPLETE RECOMMENDATIONS ================= */
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.autocomplete-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.1s ease;
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.active {
+  background-color: #f1f5f9;
+}
+
+/* ================= MISSED TASK BADGE & EVALUATION ================= */
+.badge-missed-alert {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ================= MOBILE RESPONSIVENESS OPTIMIZATIONS ================= */
+@media (max-width: 640px) {
+  /* Input tap-target & font scaling prevents auto-zoom on mobile browsers */
+  input[type="text"],
+  input[type="time"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 14px !important;
+  }
+
+  .task-time-pillar {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 6px 10px;
+    margin-bottom: 4px;
+  }
+
+  .analog-clock-plate {
+    width: 210px;
+    height: 210px;
+  }
+
+  .clock-hand-line {
+    height: 72px;
+  }
 }

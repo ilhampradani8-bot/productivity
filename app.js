@@ -1,17 +1,18 @@
 /**
  * Executive Productivity & Notification Rules System
- * Google-Style Minimalist Architecture - Classic White Edition
+ * Google-Style Minimalist Architecture - Classic White Edition v2
  * Features:
+ * - Smart Title Autocomplete & Recommendations
+ * - Mandatory Missed Task Reason & Evaluation Popup Modal
+ * - WhatsApp Missed Task Notification Alert ("Anda melewatkan tugas!")
+ * - Tab Riwayat & Evaluasi Kendala (with 1-click "Jadwalkan Lagi Hari Ini")
  * - Chronological Auto-Sorting for Daily View
  * - Prominent High-Contrast Time Pillar on Task Cards
  * - 100% SVG Icons (Zero Unicode Emojis in UI)
  * - Clickable 24-Hour Time Map (Direct Set Start/End Time Snapped to 15m)
  * - Anti-Collision / Anti-Overlap validation ("Waktu Kosong")
  * - Interactive Radial Analog Clock Picker with smooth drag and Siang/Malam switch
- * - Support for 2 Time Sessions per day (Sesi Siang & Sesi Malam)
- * - Expiration & Recurrence rules (Daily, Weekdays, Weekly, Yearly, 1M, 1Y, 3Y, until completed)
- * - Zero Priorities, Zero Categories (Streamlined Executive Focus)
- * - WhatsApp Baileys Bot Gateway integration
+ * - Mobile-first responsive optimization
  */
 
 const ICONS = {
@@ -21,11 +22,12 @@ const ICONS = {
   calendar: `<svg class="w-3.5 h-3.5 text-indigo-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`,
   repeat: `<svg class="w-3 h-3 text-indigo-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`,
   checkCircle: `<svg class="w-4 h-4 text-emerald-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
-  alertTriangle: `<svg class="w-4 h-4 text-rose-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
+  alertTriangle: `<svg class="w-3.5 h-3.5 text-rose-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
   save: `<svg class="w-4 h-4 text-white inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>`,
   edit: `<svg class="w-4 h-4 text-indigo-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>`,
   trash: `<svg class="w-4 h-4 text-slate-400 hover:text-rose-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`,
-  wa: `<svg class="w-4 h-4 fill-current text-emerald-600 inline-block flex-shrink-0" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>`
+  wa: `<svg class="w-4 h-4 fill-current text-emerald-600 inline-block flex-shrink-0" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>`,
+  plus: `<svg class="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`
 };
 
 const DEFAULT_SYSTEM_DATA = {
@@ -44,6 +46,9 @@ const DEFAULT_SYSTEM_DATA = {
     eveningRecap: {
       enabled: true,
       time: "21:00"
+    },
+    missedTaskAlert: {
+      enabled: true
     },
     logs: [
       { id: "log-1", time: "2026-11-26 08:00:00", type: "Gateway Connected", status: "Terkirim", phone: "6289691905347" }
@@ -191,19 +196,6 @@ const DEFAULT_SYSTEM_DATA = {
       { id: "m4", title: "Review Finansial Akhir Bulan & Alokasi Q1 2027", targetDate: "2026-11-30", done: false }
     ]
   },
-  weeklyPlan: {
-    weekTitle: "Minggu 48 (23 - 29 November 2026)",
-    sprintGoal: "Menyelesaikan otomasi sistem jadwal 24 jam bebas bentrok, visual jam bulat putar, dan notifikasi WA",
-    days: [
-      { code: "mon", label: "Senin", date: "2026-11-23", focus: "Perencanaan Sprint Mingguan & Review Task UTM" },
-      { code: "tue", label: "Selasa", date: "2026-11-24", focus: "Konfigurasi Cloudflare Tunnel vps-utm & Port Ingress" },
-      { code: "wed", label: "Rabu", date: "2026-11-25", focus: "Eksekusi Sistem Jadwal Produktivitas Eksekutif & WhatsApp Gateway" },
-      { code: "thu", label: "Kamis", date: "2026-11-26", focus: "Integrasi Domain productivity.ilhampradani.me & Testing WA" },
-      { code: "fri", label: "Jumat", date: "2026-11-27", focus: "Audit Kode, Dokumentasi Open Source & Backup Data" },
-      { code: "sat", label: "Sabtu", date: "2026-11-28", focus: "Review Mingguan, Self-Care & Olahraga Rutin" },
-      { code: "sun", label: "Minggu", date: "2026-11-29", focus: "Refleksi Strategis & Penyusunan Prioritas Minggu 49" }
-    ]
-  },
   dailyTasks: [
     {
       id: "t-1",
@@ -295,11 +287,13 @@ const DEFAULT_SYSTEM_DATA = {
 
 class ProductivityApp {
   constructor() {
-    this.storageKey = "sekretaris_produktivitas_fw_v5";
+    this.storageKey = "sekretaris_produktivitas_fw_v6";
     this.data = this.loadData();
     this.activeTab = "daily";
     this.selectedDate = this.getTodayDateString();
     this.searchQuery = "";
+    this.historyFilter = "all";
+    this.historySearch = "";
     this.waBotOnline = false;
     this.isSpeaking = false;
     this.speechSynth = window.speechSynthesis || null;
@@ -308,10 +302,14 @@ class ProductivityApp {
     this.clockTargetInputId = null;
     this.clockHour = 9;
     this.clockMinute = 0;
-    this.clockUnit = "hour"; // 'hour' or 'minute'
-    this.clockPeriod = "day"; // 'day' (Siang: 12-23) or 'night' (Malam: 00-11)
+    this.clockUnit = "hour";
+    this.clockPeriod = "day";
     this.isClockDragging = false;
     this.editingTaskId = null;
+
+    // Missed Task Reason Evaluation State
+    this.evaluatingTaskId = null;
+    this.evaluatingDate = null;
 
     this.init();
   }
@@ -343,6 +341,9 @@ class ProductivityApp {
             if (!t.deletedDates) t.deletedDates = [];
             return t;
           });
+          if (!parsed.notifications.missedTaskAlert) {
+            parsed.notifications.missedTaskAlert = { enabled: true };
+          }
           return { ...DEFAULT_SYSTEM_DATA, ...parsed };
         }
       }
@@ -364,10 +365,12 @@ class ProductivityApp {
     this.startClock();
     this.bindEvents();
     this.bindClockEvents();
+    this.bindAutocompleteEvents();
     this.initTaskDate();
     this.initValidityPreset();
     this.render();
     this.checkTimeCollision();
+    this.checkMissedTasksAndAlert();
   }
 
   initTaskDate() {
@@ -387,7 +390,7 @@ class ProductivityApp {
     } else if (preset === "tomorrow") {
       d.setDate(d.getDate() + 1);
     } else if (preset === "next_monday") {
-      const day = d.getDay(); // 0 is Sun, 1 is Mon
+      const day = d.getDay();
       const diff = (8 - day) % 7 || 7;
       d.setDate(d.getDate() + diff);
     } else if (preset === "next_week") {
@@ -513,11 +516,9 @@ class ProductivityApp {
     const ratio = Math.max(0, Math.min(1, x / rect.width));
     const rawMins = ratio * 1440;
     
-    // Snap ke kelipatan 15 menit terdekat
     let snappedStart = Math.round(rawMins / 15) * 15;
     if (snappedStart >= 1440) snappedStart = 1425;
     
-    // Durasi default 60 menit atau sampai batas 23:59
     let snappedEnd = Math.min(1439, snappedStart + 60);
     if (snappedEnd <= snappedStart) snappedEnd = 1439;
 
@@ -530,7 +531,6 @@ class ProductivityApp {
     const hasS2 = toggleS2 && toggleS2.checked;
     const s1End = s1EndEl ? this.timeToMinutes(s1EndEl.value) : 600;
 
-    // Jika Sesi 2 dicentang dan klik dilakukan di waktu malam setelah Sesi 1, isi Sesi 2
     if (hasS2 && snappedStart >= s1End && s2StartEl && s2EndEl) {
       s2StartEl.value = this.minutesToTime(snappedStart);
       s2EndEl.value = this.minutesToTime(snappedEnd);
@@ -542,25 +542,310 @@ class ProductivityApp {
     this.checkTimeCollision();
   }
 
+  // ===================== TITLE AUTOCOMPLETE RECOMMENDATIONS =====================
+  bindAutocompleteEvents() {
+    const input = document.getElementById("task-title");
+    const dropdown = document.getElementById("title-autocomplete-dropdown");
+    if (!input || !dropdown) return;
+
+    input.addEventListener("input", () => {
+      const q = input.value.trim().toLowerCase();
+      if (q.length < 1) {
+        dropdown.classList.add("hidden");
+        return;
+      }
+
+      // Kumpulkan rekomendasi dari agenda lama, 5Y steps, dan milestones
+      const pool = [];
+      const seen = new Set();
+
+      this.data.dailyTasks.forEach(t => {
+        if (!seen.has(t.title.toLowerCase())) {
+          seen.add(t.title.toLowerCase());
+          pool.push({
+            title: t.title,
+            timeStart: t.timeStart,
+            timeEnd: t.timeEnd,
+            note: t.note,
+            recurrence: t.recurrence,
+            source: "Agenda Sebelumnya"
+          });
+        }
+      });
+
+      this.data.fiveYearPlan.forEach(y => {
+        y.quarters.forEach(qtr => {
+          qtr.steps.forEach(s => {
+            if (!seen.has(s.title.toLowerCase())) {
+              seen.add(s.title.toLowerCase());
+              pool.push({
+                title: s.title,
+                timeStart: "08:30",
+                timeEnd: "10:00",
+                note: s.note,
+                recurrence: "none",
+                source: "Roadmap 5Y"
+              });
+            }
+          });
+        });
+      });
+
+      this.data.monthlyPlan.milestones.forEach(m => {
+        if (!seen.has(m.title.toLowerCase())) {
+          seen.add(m.title.toLowerCase());
+          pool.push({
+            title: m.title,
+            timeStart: "09:00",
+            timeEnd: "10:30",
+            note: `Milestone bulanan: ${m.targetDate}`,
+            recurrence: "none",
+            source: "Milestone Bulanan"
+          });
+        }
+      });
+
+      const matches = pool.filter(item => item.title.toLowerCase().includes(q)).slice(0, 5);
+
+      if (matches.length === 0) {
+        dropdown.classList.add("hidden");
+        return;
+      }
+
+      dropdown.innerHTML = matches.map(item => `
+        <div class="autocomplete-item" onclick="window.app.applyRecommendation('${encodeURIComponent(JSON.stringify(item))}')">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-slate-900 truncate">${this.escapeHtml(item.title)}</p>
+            <p class="text-[10px] text-slate-500 truncate">${item.note ? this.escapeHtml(item.note) : item.source}</p>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0 text-[10px] font-mono">
+            <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold border border-indigo-200">
+              ${item.timeStart} - ${item.timeEnd}
+            </span>
+          </div>
+        </div>
+      `).join("");
+
+      dropdown.classList.remove("hidden");
+    });
+
+    // Close on click outside
+    document.addEventListener("click", (e) => {
+      if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add("hidden");
+      }
+    });
+  }
+
+  applyRecommendation(encodedItem) {
+    try {
+      const item = JSON.parse(decodeURIComponent(encodedItem));
+      const titleInput = document.getElementById("task-title");
+      const s1Start = document.getElementById("task-start-time");
+      const s1End = document.getElementById("task-end-time");
+      const noteInput = document.getElementById("task-note");
+      const recSelect = document.getElementById("task-recurrence");
+      const dropdown = document.getElementById("title-autocomplete-dropdown");
+
+      if (titleInput) titleInput.value = item.title;
+      if (s1Start && item.timeStart) s1Start.value = item.timeStart;
+      if (s1End && item.timeEnd) s1End.value = item.timeEnd;
+      if (noteInput && item.note) noteInput.value = item.note;
+      if (recSelect && item.recurrence) recSelect.value = item.recurrence;
+
+      if (dropdown) dropdown.classList.add("hidden");
+      this.checkTimeCollision();
+    } catch (e) {
+      console.error("Gagal menerapkan rekomendasi:", e);
+    }
+  }
+
+  // ===================== MISSED TASK DETECTION & POPUP MODAL =====================
+  isTaskMissed(task, dateStr) {
+    if (task.isDone) return false;
+    const today = this.getTodayDateString();
+
+    if (dateStr < today) {
+      return true;
+    }
+    if (dateStr === today) {
+      const now = new Date();
+      const currentMins = now.getHours() * 60 + now.getMinutes();
+      const taskEndMins = this.timeToMinutes(task.timeEnd || task.timeStart || "23:59");
+      return currentMins > (taskEndMins + 15);
+    }
+    return false;
+  }
+
+  getMissedTasksWithoutReason(dateStr) {
+    const tasks = this.getTasksForDate(dateStr);
+    return tasks.filter(t => this.isTaskMissed(t, dateStr) && !t.missedReason);
+  }
+
+  openMissedReasonModal(taskId, dateStr) {
+    const task = this.data.dailyTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    this.evaluatingTaskId = taskId;
+    this.evaluatingDate = dateStr;
+
+    const modal = document.getElementById("modal-missed-reason");
+    const titleEl = document.getElementById("missed-modal-title");
+    const dateEl = document.getElementById("missed-modal-date");
+    const timeEl = document.getElementById("missed-modal-time");
+    const textarea = document.getElementById("missed-modal-reason-input");
+
+    if (titleEl) titleEl.textContent = task.title;
+    if (dateEl) dateEl.textContent = `Tanggal: ${dateStr}`;
+    if (timeEl) timeEl.textContent = `${task.timeStart} - ${task.timeEnd || 'Selesai'} WIB`;
+    if (textarea) textarea.value = task.missedReason || "";
+
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  closeMissedReasonModal() {
+    const modal = document.getElementById("modal-missed-reason");
+    if (modal) modal.classList.add("hidden");
+    this.evaluatingTaskId = null;
+    this.evaluatingDate = null;
+  }
+
+  setMissedQuickReason(reasonText) {
+    const textarea = document.getElementById("missed-modal-reason-input");
+    if (textarea) {
+      if (textarea.value.trim()) {
+        textarea.value = `${textarea.value.trim()}. ${reasonText}`;
+      } else {
+        textarea.value = reasonText;
+      }
+    }
+  }
+
+  saveMissedReason() {
+    const textarea = document.getElementById("missed-modal-reason-input");
+    const reason = textarea ? textarea.value.trim() : "";
+    if (!reason) {
+      alert("Alasan atau kendala wajib diisi!");
+      return;
+    }
+
+    const task = this.data.dailyTasks.find(t => t.id === this.evaluatingTaskId);
+    if (task) {
+      task.missedReason = reason;
+      task.missedReasonLoggedAt = new Date().toISOString();
+      this.saveData();
+      this.render();
+      alert("Evaluasi kendala berhasil disimpan!");
+    }
+
+    this.closeMissedReasonModal();
+  }
+
+  saveMissedReasonAndReschedule() {
+    const textarea = document.getElementById("missed-modal-reason-input");
+    const reason = textarea ? textarea.value.trim() : "";
+    if (!reason) {
+      alert("Mohon isi alasan/kendala sebelum menjadwalkan ulang!");
+      return;
+    }
+
+    const task = this.data.dailyTasks.find(t => t.id === this.evaluatingTaskId);
+    if (!task) return;
+
+    task.missedReason = `${reason} (Dijadwalkan ulang ke besok)`;
+    task.missedReasonLoggedAt = new Date().toISOString();
+
+    // Hitung tanggal besok
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    const tomorrowStr = d.toISOString().split("T")[0];
+
+    // Tambah task clone ke besok
+    this.data.dailyTasks.unshift({
+      id: "t-" + Date.now(),
+      date: tomorrowStr,
+      timeStart: task.timeStart,
+      timeEnd: task.timeEnd,
+      hasSecondSession: task.hasSecondSession,
+      session2Start: task.session2Start,
+      session2End: task.session2End,
+      title: task.title,
+      note: `Jadwal ulang dari ${this.evaluatingDate}: ${reason}`,
+      recurrence: "none",
+      validityType: "until_completed",
+      validUntil: "",
+      status: "todo",
+      completedDates: [],
+      deletedDates: []
+    });
+
+    this.saveData();
+    this.render();
+    this.closeMissedReasonModal();
+    alert(`Agenda "${task.title}" berhasil dievaluasi dan dijadwalkan ulang ke besok (${tomorrowStr})!`);
+  }
+
+  openFirstUnaddressedMissedTask() {
+    const unaddressed = this.getMissedTasksWithoutReason(this.selectedDate);
+    if (unaddressed.length > 0) {
+      this.openMissedReasonModal(unaddressed[0].id, this.selectedDate);
+    }
+  }
+
+  // ===================== WA MISSED TASK ALERT TRIGGER =====================
+  async checkMissedTasksAndAlert() {
+    if (!this.data.notifications.missedTaskAlert || !this.data.notifications.missedTaskAlert.enabled) return;
+
+    const today = this.getTodayDateString();
+    const tasks = this.getTasksForDate(today);
+
+    for (const t of tasks) {
+      if (this.isTaskMissed(t, today) && !t.missedAlertSent) {
+        t.missedAlertSent = true;
+        this.saveData();
+        const phone = this.data.notifications.targetPhone || "6289691905347";
+        const message = 
+`🚨 *[PERINGATAN TUGAS TERLEWAT]*
+Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
+📌 *${t.title}*
+⏰ Dijadwalkan: ${t.timeStart} - ${t.timeEnd} WIB
+⚠️ Belum diselesaikan tepat waktu.
+💡 Mohon buka dashboard https://productivity.ilhampradani.me untuk mencatat alasan/kendala.
+🤖 *Aura Executive Desk*`;
+
+        await this.dispatchWAMessage(phone, message, `Terlewat: ${t.title}`);
+        break; // Batasi 1 alert per turn agar tidak spam
+      }
+    }
+  }
+
+  async sendTestMissedTaskWA() {
+    const phone = this.data.notifications.targetPhone || "6289691905347";
+    const message = 
+`🚨 *[PERINGATAN TUGAS TERLEWAT]*
+Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
+📌 *Uji Coba Peringatan Tugas Terlewat*
+⏰ Dijadwalkan: 09:00 - 10:30 WIB
+⚠️ Belum diselesaikan tepat waktu.
+💡 Mohon buka dashboard https://productivity.ilhampradani.me untuk mencatat alasan/kendala.
+🤖 *Aura Executive Desk*`;
+
+    await this.dispatchWAMessage(phone, message, "Tes Alert Tugas Terlewat");
+  }
+
   // Mengambil seluruh agenda yang berlaku untuk tanggal tertentu
   getTasksForDate(targetDate) {
     return this.data.dailyTasks.filter(task => {
-      // Jika pernah dihapus untuk tanggal ini
       if (task.deletedDates && task.deletedDates.includes(targetDate)) return false;
 
-      // Single Task
       if (!task.recurrence || task.recurrence === "none") {
         return task.date === targetDate;
       }
-
-      // Daily Task
       if (task.recurrence === "daily") {
         if (targetDate < task.date) return false;
         if (task.validUntil && targetDate > task.validUntil) return false;
         return true;
       }
-
-      // Weekdays (Senin - Jumat)
       if (task.recurrence === "weekdays") {
         if (targetDate < task.date) return false;
         if (task.validUntil && targetDate > task.validUntil) return false;
@@ -568,8 +853,6 @@ class ProductivityApp {
         const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
         return dow >= 1 && dow <= 5;
       }
-
-      // Weekly on specific day
       if (task.recurrence === "weekly_day") {
         if (targetDate < task.date) return false;
         if (task.validUntil && targetDate > task.validUntil) return false;
@@ -579,14 +862,11 @@ class ProductivityApp {
         const dow2 = new Date(parseInt(p2[0], 10), parseInt(p2[1], 10) - 1, parseInt(p2[2], 10)).getDay();
         return dow1 === dow2;
       }
-
-      // Yearly Task
       if (task.recurrence === "yearly") {
         if (targetDate < task.date) return false;
         if (task.validUntil && targetDate > task.validUntil) return false;
         return targetDate.slice(5) === task.date.slice(5);
       }
-
       return false;
     }).map(task => {
       let isDone = task.status === "done";
@@ -597,7 +877,6 @@ class ProductivityApp {
     });
   }
 
-  // Mendapatkan slot waktu yang sudah terisi di hari ini
   getOccupiedIntervals(targetDate, excludeTaskId = null) {
     const tasks = this.getTasksForDate(targetDate).filter(t => t.id !== excludeTaskId);
     const intervals = [];
@@ -623,7 +902,6 @@ class ProductivityApp {
     return intervals;
   }
 
-  // Validasi tabrakan waktu 24 jam & render timeline visual
   checkTimeCollision() {
     const s1StartEl = document.getElementById("task-start-time");
     const s1EndEl = document.getElementById("task-end-time");
@@ -649,12 +927,10 @@ class ProductivityApp {
     const occupied = this.getOccupiedIntervals(targetDate, this.editingTaskId);
     let conflict = null;
 
-    // Cek durasi valid Sesi 1
     if (s1End <= s1Start) {
       conflict = { msg: "Jam selesai Sesi 1 harus lebih besar dari jam mulai!" };
     }
 
-    // Cek tabrakan Sesi 1 dengan agenda lain
     if (!conflict) {
       for (const occ of occupied) {
         if (s1Start < occ.end && s1End > occ.start) {
@@ -666,7 +942,6 @@ class ProductivityApp {
       }
     }
 
-    // Cek Sesi 2 jika aktif
     if (!conflict && hasS2) {
       if (s2End <= s2Start) {
         conflict = { msg: "Jam selesai Sesi Malam harus lebih besar dari jam mulai!" };
@@ -684,11 +959,10 @@ class ProductivityApp {
       }
     }
 
-    // Update UI status dengan SVG
     if (conflict) {
       if (badgeEl) {
         badgeEl.innerHTML = `${ICONS.alertTriangle} <span>Ada Bentrok Waktu!</span>`;
-        badgeEl.className = "font-bold text-rose-700 flex items-center gap-1.5";
+        badgeEl.className = "font-bold text-rose-700 flex items-center gap-1.5 flex-shrink-0";
       }
       if (warnBox && warnText) {
         warnBox.classList.remove("hidden");
@@ -697,14 +971,13 @@ class ProductivityApp {
       if (submitBtn) submitBtn.disabled = true;
     } else {
       if (badgeEl) {
-        badgeEl.innerHTML = `${ICONS.checkCircle} <span>Slot Waktu Bebas & Aman (Tidak Menimpa Work)</span>`;
-        badgeEl.className = "font-bold text-emerald-700 flex items-center gap-1.5";
+        badgeEl.innerHTML = `${ICONS.checkCircle} <span>Slot Aman</span>`;
+        badgeEl.className = "font-bold text-emerald-700 flex items-center gap-1.5 flex-shrink-0";
       }
       if (warnBox) warnBox.classList.add("hidden");
       if (submitBtn) submitBtn.disabled = false;
     }
 
-    // Render Visual Timeline Bar 24 Jam
     let html = "";
     occupied.forEach(occ => {
       const left = (occ.start / 1440) * 100;
@@ -735,12 +1008,11 @@ class ProductivityApp {
     barEl.innerHTML = html;
   }
 
-  // Otomatis memilih slot waktu kosong terdekat yang mencukupi
   pickNextFreeSlot(requestedDurationMinutes = 60) {
     const targetDateInput = document.getElementById("task-target-date");
     const targetDate = (targetDateInput && targetDateInput.value) || this.selectedDate;
     const occupied = this.getOccupiedIntervals(targetDate, this.editingTaskId);
-    let pointer = 480; // 08:00
+    let pointer = 480;
     let foundStart = null;
 
     while (pointer + requestedDurationMinutes <= 1380) {
@@ -759,7 +1031,7 @@ class ProductivityApp {
     }
 
     if (foundStart === null) {
-      pointer = 360; // 06:00
+      pointer = 360;
       while (pointer + requestedDurationMinutes <= 1440) {
         let isFree = true;
         for (const occ of occupied) {
@@ -803,10 +1075,10 @@ class ProductivityApp {
     this.clockMinute = parseInt(mStr, 10) || 0;
 
     if (h24 >= 12) {
-      this.clockPeriod = "day"; // Siang
+      this.clockPeriod = "day";
       this.clockHour = h24 === 12 ? 12 : h24 - 12;
     } else {
-      this.clockPeriod = "night"; // Malam
+      this.clockPeriod = "night";
       this.clockHour = h24 === 0 ? 12 : h24;
     }
 
@@ -839,9 +1111,9 @@ class ProductivityApp {
     const container = document.getElementById("clock-numbers-container");
     if (!container) return;
 
-    const radius = 90;
-    const centerX = 125;
-    const centerY = 125;
+    const radius = 80;
+    const centerX = 120;
+    const centerY = 120;
     let html = "";
 
     if (this.clockUnit === "hour") {
@@ -1140,18 +1412,39 @@ class ProductivityApp {
         descEl.textContent = `Progress harian: ${m.done} dari ${m.total} agenda terselesaikan (${m.pct}%).`;
       }
     }
+
+    // Update Missed Tasks in Sidebar
+    const unaddressed = this.getMissedTasksWithoutReason(this.selectedDate);
+    const badge = document.getElementById("sidebar-missed-count-badge");
+    const missedDesc = document.getElementById("sidebar-missed-desc");
+    if (badge) {
+      if (unaddressed.length > 0) {
+        badge.textContent = `${unaddressed.length} Perlu Diisi`;
+        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 animate-pulse";
+      } else {
+        badge.textContent = `0 Terlewat`;
+        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700";
+      }
+    }
+    if (missedDesc) {
+      if (unaddressed.length > 0) {
+        missedDesc.textContent = `${unaddressed.length} agenda belum dicoret/terselesaikan dan wajib dicatat kendalanya.`;
+      } else {
+        missedDesc.textContent = "Semua agenda terlaksana dengan baik atau kendala sudah tercatat.";
+      }
+    }
   }
 
   render() {
     this.updateSidebarBriefing();
     if (this.activeTab === "daily") this.renderDailyView();
-    else if (this.activeTab === "weekly") this.renderWeeklyView();
     else if (this.activeTab === "monthly") this.renderMonthlyView();
     else if (this.activeTab === "roadmap") this.renderRoadmapView();
+    else if (this.activeTab === "history") this.renderHistoryView();
     else if (this.activeTab === "notifications") this.renderNotificationsView();
   }
 
-  // ===================== DAILY VIEW: STRICT CHRONOLOGICAL SORTING & PROMINENT TIME PILLAR =====================
+  // ===================== DAILY VIEW =====================
   renderDailyView() {
     const list = document.getElementById("daily-task-container");
     if (!list) return;
@@ -1173,6 +1466,19 @@ class ProductivityApp {
       return eA - eB;
     });
 
+    // Check Missed Tasks without Reason for Banner
+    const unaddressedMissed = this.getMissedTasksWithoutReason(this.selectedDate);
+    const alertBanner = document.getElementById("missed-tasks-alert-banner");
+    const bannerText = document.getElementById("missed-tasks-banner-text");
+    if (alertBanner && bannerText) {
+      if (unaddressedMissed.length > 0) {
+        alertBanner.classList.remove("hidden");
+        bannerText.textContent = `Terdapat ${unaddressedMissed.length} agenda yang terlewat belum dievaluasi kendalanya!`;
+      } else {
+        alertBanner.classList.add("hidden");
+      }
+    }
+
     if (tasks.length === 0) {
       list.innerHTML = `
         <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm">
@@ -1185,14 +1491,15 @@ class ProductivityApp {
 
     list.innerHTML = tasks.map(task => {
       const isDone = task.isDone;
+      const isMissed = this.isTaskMissed(task, this.selectedDate);
       const dur1 = this.formatDuration(task.timeStart, task.timeEnd);
       const dur2 = task.hasSecondSession ? this.formatDuration(task.session2Start, task.session2End) : "";
 
       let recurrenceBadge = "";
       if (task.recurrence === "daily") {
-        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">${ICONS.repeat} <span>Tiap Hari ${task.validUntil ? 's/d ' + task.validUntil : ''}</span></span>`;
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">${ICONS.repeat} <span>Tiap Hari</span></span>`;
       } else if (task.recurrence === "weekdays") {
-        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">${ICONS.repeat} <span>Senin - Jumat (Hari Kerja)</span></span>`;
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">${ICONS.repeat} <span>Senin - Jumat</span></span>`;
       } else if (task.recurrence === "weekly_day") {
         const parts = (task.date || this.selectedDate).split("-");
         const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
@@ -1202,15 +1509,35 @@ class ProductivityApp {
         recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 border border-cyan-200">${ICONS.repeat} <span>Tiap Tahun</span></span>`;
       }
 
+      // Missed Task Badge or Reason
+      let missedBadgeHtml = "";
+      if (isMissed) {
+        if (task.missedReason) {
+          missedBadgeHtml = `
+            <button type="button" onclick="window.app.openMissedReasonModal('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-300 text-[11px] font-medium cursor-pointer" title="Klik untuk edit evaluasi kendala">
+              ${ICONS.alertTriangle}
+              <span class="truncate max-w-[220px]">Kendala: ${this.escapeHtml(task.missedReason)}</span>
+            </button>
+          `;
+        } else {
+          missedBadgeHtml = `
+            <button type="button" onclick="window.app.openMissedReasonModal('${task.id}', '${this.selectedDate}')" class="badge-missed-alert animate-pulse cursor-pointer">
+              ${ICONS.alertTriangle}
+              <span>Wajib Isi Kendala</span>
+            </button>
+          `;
+        }
+      }
+
       return `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border transition-all ${
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all ${
           isDone ? "bg-slate-50/70 border-slate-200 opacity-60" : "bg-white hover:bg-slate-50/50 border-slate-200 shadow-sm"
         }">
-          <div class="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+          <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
             <!-- Checkbox -->
             <input type="checkbox" ${isDone ? 'checked' : ''} onchange="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="custom-checkbox flex-shrink-0 mt-1 sm:mt-0">
             
-            <!-- PROMINENT TIME PILLAR (BAGIAN JAM LEBIH DIPERJELAS) -->
+            <!-- PROMINENT TIME PILLAR -->
             <div class="task-time-pillar flex-shrink-0 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 min-w-[130px] shadow-sm">
               <div class="flex items-center gap-1.5 text-xs font-bold font-mono text-slate-900">
                 ${ICONS.sun}
@@ -1231,18 +1558,19 @@ class ProductivityApp {
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap mb-1">
                 ${recurrenceBadge}
+                ${missedBadgeHtml}
               </div>
 
               <h4 class="text-sm font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-900'} break-words">
                 ${this.escapeHtml(task.title)}
               </h4>
               
-              ${task.note ? `<p class="text-xs text-slate-600 mt-1 break-words leading-relaxed">${this.escapeHtml(task.note)}</p>` : ''}
+              ${task.note ? `<p class="text-xs text-slate-600 mt-0.5 break-words leading-relaxed">${this.escapeHtml(task.note)}</p>` : ''}
             </div>
           </div>
 
           <!-- Actions -->
-          <div class="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-center">
+          <div class="flex items-center gap-1 flex-shrink-0 self-end sm:self-center">
             <button onclick="window.app.editTask('${task.id}')" title="Edit Agenda Ini" class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-indigo-200">
               ${ICONS.edit}
             </button>
@@ -1256,6 +1584,151 @@ class ProductivityApp {
         </div>
       `;
     }).join("");
+  }
+
+  // ===================== VIEW TAB RIWAYAT & EVALUASI KENDALA (NEW!) =====================
+  setHistoryFilter(filter) {
+    this.historyFilter = filter;
+    ["all", "frequent", "missed", "done"].forEach(f => {
+      const btn = document.getElementById(`btn-hist-${f}`);
+      if (btn) {
+        if (f === filter) {
+          btn.className = "px-3 py-1 rounded-lg bg-indigo-600 text-white font-medium cursor-pointer shadow-sm";
+        } else {
+          btn.className = "px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium cursor-pointer border border-slate-200";
+        }
+      }
+    });
+    this.renderHistoryView();
+  }
+
+  onHistorySearch(e) {
+    this.historySearch = e.target.value.toLowerCase();
+    this.renderHistoryView();
+  }
+
+  renderHistoryView() {
+    const list = document.getElementById("history-list-container");
+    if (!list) return;
+
+    let items = [...this.data.dailyTasks];
+
+    // Filter items based on historyFilter
+    if (this.historyFilter === "frequent") {
+      const counts = {};
+      items.forEach(t => {
+        counts[t.title] = (counts[t.title] || 0) + 1;
+      });
+      items = items.filter(t => counts[t.title] >= 2 || t.recurrence !== 'none');
+    } else if (this.historyFilter === "missed") {
+      items = items.filter(t => t.missedReason || this.isTaskMissed(t, t.date));
+    } else if (this.historyFilter === "done") {
+      items = items.filter(t => t.status === "done" || (t.completedDates && t.completedDates.length > 0));
+    }
+
+    if (this.historySearch.trim()) {
+      const q = this.historySearch;
+      items = items.filter(t => 
+        t.title.toLowerCase().includes(q) || 
+        (t.note && t.note.toLowerCase().includes(q)) ||
+        (t.missedReason && t.missedReason.toLowerCase().includes(q))
+      );
+    }
+
+    // Sort by date descending
+    items.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+
+    if (items.length === 0) {
+      list.innerHTML = `
+        <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm">
+          <p class="text-sm font-medium text-slate-600">Tidak ada riwayat agenda yang cocok dengan filter.</p>
+          <p class="text-xs text-slate-500 mt-1">Seluruh agenda yang dibuat akan otomatis tersimpan dalam riwayat ini.</p>
+        </div>
+      `;
+      return;
+    }
+
+    list.innerHTML = items.map(t => {
+      const isDone = t.status === "done";
+      const isMissed = !isDone && (t.missedReason || this.isTaskMissed(t, t.date));
+
+      return `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-slate-300 transition-all">
+          <div class="flex-1 min-w-0 space-y-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[11px] font-mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md font-semibold">
+                ${t.date} • ${t.timeStart} - ${t.timeEnd}
+              </span>
+              ${isDone ? `
+                <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
+                  ${ICONS.checkCircle} Selesai
+                </span>
+              ` : ''}
+              ${isMissed ? `
+                <span class="text-[11px] font-mono text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
+                  ${ICONS.alertTriangle} Terlewat / Ada Kendala
+                </span>
+              ` : ''}
+            </div>
+
+            <h4 class="text-sm font-bold text-slate-900 break-words">${this.escapeHtml(t.title)}</h4>
+            ${t.note ? `<p class="text-xs text-slate-600 break-words">${this.escapeHtml(t.note)}</p>` : ''}
+            
+            ${t.missedReason ? `
+              <div class="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs mt-1">
+                <span class="font-bold">Kendala yang Tercatat:</span> ${this.escapeHtml(t.missedReason)}
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Quick Action: Jadwalkan Lagi Hari Ini -->
+          <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+            ${isMissed && !t.missedReason ? `
+              <button onclick="window.app.openMissedReasonModal('${t.id}', '${t.date}')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold cursor-pointer">
+                Isi Kendala
+              </button>
+            ` : ''}
+            <button onclick="window.app.duplicateTaskToToday('${t.id}')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-1">
+              ${ICONS.plus}
+              <span>Jadwalkan Lagi Hari Ini</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  duplicateTaskToToday(taskId) {
+    const orig = this.data.dailyTasks.find(t => t.id === taskId);
+    if (!orig) return;
+
+    const today = this.getTodayDateString();
+    const newTask = {
+      id: "t-" + Date.now(),
+      date: today,
+      timeStart: orig.timeStart || "09:00",
+      timeEnd: orig.timeEnd || "10:00",
+      hasSecondSession: orig.hasSecondSession,
+      session2Start: orig.session2Start,
+      session2End: orig.session2End,
+      title: orig.title,
+      note: orig.note,
+      recurrence: orig.recurrence || "none",
+      validityType: orig.validityType || "until_completed",
+      validUntil: orig.validUntil || "",
+      status: "todo",
+      completedDates: [],
+      deletedDates: []
+    };
+
+    this.data.dailyTasks.unshift(newTask);
+    this.selectedDate = today;
+    const dateInput = document.getElementById("date-input");
+    if (dateInput) dateInput.value = today;
+
+    this.saveData();
+    this.switchTab("daily");
+    alert(`Agenda "${orig.title}" berhasil dijadwalkan kembali untuk Hari Ini!`);
   }
 
   // ===================== CRUD ACTIONS =====================
@@ -1414,7 +1887,7 @@ class ProductivityApp {
     if (!task) return;
 
     if (task.recurrence && task.recurrence !== "none") {
-      const choice = confirm(`Agenda "${task.title}" berulang (${task.recurrence === 'daily' ? 'Setiap Hari' : 'Setiap Minggu/Tahun'}).\n\nKlik OK untuk Hapus Hanya Hari Ini (${targetDate}).\nKlik CANCEL untuk opsi hapus permanen.`);
+      const choice = confirm(`Agenda "${task.title}" berulang.\n\nKlik OK untuk Hapus Hanya Hari Ini (${targetDate}).\nKlik CANCEL untuk opsi hapus permanen.`);
       if (choice) {
         if (!task.deletedDates) task.deletedDates = [];
         if (!task.deletedDates.includes(targetDate)) task.deletedDates.push(targetDate);
@@ -1440,58 +1913,7 @@ class ProductivityApp {
     }
   }
 
-  // ===================== WEEKLY, MONTHLY, ROADMAP VIEWS =====================
-  renderWeeklyView() {
-    const grid = document.getElementById("weekly-grid-container");
-    if (!grid) return;
-
-    grid.innerHTML = this.data.weeklyPlan.days.map(day => {
-      const isSelected = day.date === this.selectedDate;
-      const tasks = this.getTasksForDate(day.date);
-      const total = tasks.length;
-      const done = tasks.filter(t => t.isDone).length;
-
-      return `
-        <div class="rounded-2xl border p-4 transition-all ${
-          isSelected ? "bg-indigo-50/60 border-indigo-500 ring-1 ring-indigo-500 shadow-sm" : "bg-white border-slate-200 shadow-sm"
-        }">
-          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
-            <div>
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">${day.label}</span>
-              <p class="text-sm font-bold text-slate-900 font-mono">${day.date.split("-").slice(1).join("/")}</p>
-            </div>
-            <button onclick="window.app.selectDateAndJump('${day.date}')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 transition-colors cursor-pointer border border-slate-200">
-              Buka
-            </button>
-          </div>
-          <p class="text-xs text-indigo-700 font-medium mb-3 p-1.5 rounded-lg bg-indigo-50 border border-indigo-100 line-clamp-2">
-            ${this.escapeHtml(day.focus)}
-          </p>
-          <div class="space-y-1.5 min-h-[75px]">
-            ${tasks.slice(0, 3).map(t => `
-              <div class="text-xs truncate ${t.isDone ? 'line-through text-slate-400' : 'text-slate-700'}">
-                • ${t.timeStart ? `[${t.timeStart}] ` : ''}${this.escapeHtml(t.title)}
-              </div>
-            `).join("")}
-            ${total > 3 ? `<p class="text-[10px] text-slate-400 font-mono">+${total - 3} lainnya</p>` : ''}
-            ${total === 0 ? `<p class="text-xs text-slate-400 italic">Slot kosong 24 jam</p>` : ''}
-          </div>
-          <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between text-xs text-slate-600 font-mono">
-            <span>${done}/${total} Selesai</span>
-            <span class="font-bold text-indigo-700">${total > 0 ? Math.round((done / total) * 100) : 0}%</span>
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
-
-  selectDateAndJump(dateStr) {
-    this.selectedDate = dateStr;
-    const dateInput = document.getElementById("date-input");
-    if (dateInput) dateInput.value = dateStr;
-    this.switchTab("daily");
-  }
-
+  // ===================== MONTHLY & ROADMAP VIEWS =====================
   renderMonthlyView() {
     const list = document.getElementById("monthly-list-container");
     if (!list) return;
@@ -1564,7 +1986,7 @@ class ProductivityApp {
       const pct = total > 0 ? Math.round((done / total) * 100) : year.overallProgress;
 
       return `
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-5 shadow-sm">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200">
             <div>
               <div class="flex items-center gap-2">
@@ -1586,7 +2008,7 @@ class ProductivityApp {
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             ${year.quarters.map(q => `
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-3.5">
                 <div class="flex justify-between items-center mb-1.5">
                   <span class="text-xs font-bold text-indigo-700 font-mono">${q.quarter}</span>
                   <span class="text-[10px] text-slate-500 font-mono">${q.steps.filter(s => s.done).length}/${q.steps.length} Selesai</span>
@@ -1670,6 +2092,7 @@ class ProductivityApp {
     const morningCheckEl = document.getElementById("notif-morning-enabled");
     const eveningTimeEl = document.getElementById("notif-evening-time");
     const eveningCheckEl = document.getElementById("notif-evening-enabled");
+    const missedCheckEl = document.getElementById("notif-missed-enabled");
     const logListEl = document.getElementById("notif-log-container");
 
     if (phoneEl) phoneEl.value = notif.targetPhone || "6289691905347";
@@ -1677,6 +2100,7 @@ class ProductivityApp {
     if (morningCheckEl) morningCheckEl.checked = !!notif.morningBriefing.enabled;
     if (eveningTimeEl) eveningTimeEl.value = notif.eveningRecap.time || "21:00";
     if (eveningCheckEl) eveningCheckEl.checked = !!notif.eveningRecap.enabled;
+    if (missedCheckEl) missedCheckEl.checked = notif.missedTaskAlert ? !!notif.missedTaskAlert.enabled : true;
 
     if (logListEl) {
       const logs = notif.logs || [];
@@ -1703,12 +2127,15 @@ class ProductivityApp {
     const morningCheckEl = document.getElementById("notif-morning-enabled");
     const eveningTimeEl = document.getElementById("notif-evening-time");
     const eveningCheckEl = document.getElementById("notif-evening-enabled");
+    const missedCheckEl = document.getElementById("notif-missed-enabled");
 
     if (phoneEl) notif.targetPhone = phoneEl.value.replace(/[^0-9]/g, '');
     if (morningTimeEl) notif.morningBriefing.time = morningTimeEl.value;
     if (morningCheckEl) notif.morningBriefing.enabled = morningCheckEl.checked;
     if (eveningTimeEl) notif.eveningRecap.time = eveningTimeEl.value;
     if (eveningCheckEl) notif.eveningRecap.enabled = eveningCheckEl.checked;
+    if (!notif.missedTaskAlert) notif.missedTaskAlert = {};
+    if (missedCheckEl) notif.missedTaskAlert.enabled = missedCheckEl.checked;
 
     this.saveData();
     alert("Seluruh aturan notifikasi WhatsApp berhasil disimpan!");
