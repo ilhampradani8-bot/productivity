@@ -38,7 +38,7 @@ const DEFAULT_SYSTEM_DATA = {
   },
   notifications: {
     enabled: true,
-    targetPhone: "6289691905347",
+    targetPhone: "6288971071138",
     morningBriefing: {
       enabled: true,
       time: "07:00"
@@ -51,7 +51,7 @@ const DEFAULT_SYSTEM_DATA = {
       enabled: true
     },
     logs: [
-      { id: "log-1", time: "2026-11-26 08:00:00", type: "Gateway Connected", status: "Terkirim", phone: "6289691905347" }
+      { id: "log-1", time: "2026-11-27 00:00:00", type: "Notifikasi Aura Desk", status: "Siap", phone: "6288971071138" }
     ]
   },
   fiveYearPlan: [
@@ -356,8 +356,70 @@ class ProductivityApp {
   saveData() {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+      this.debounceCloudPush();
     } catch (e) {
       console.error("Gagal menyimpan ke localStorage:", e);
+    }
+  }
+
+  debounceCloudPush() {
+    if (this._cloudPushTimer) clearTimeout(this._cloudPushTimer);
+    this._cloudPushTimer = setTimeout(() => {
+      this.pushToCloud();
+    }, 1200);
+  }
+
+  async pushToCloud() {
+    const badge = document.getElementById("cloud-sync-text");
+    try {
+      if (badge) badge.textContent = "Menyimpan...";
+      const res = await fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dailyTasks: this.data.dailyTasks,
+          notifications: this.data.notifications,
+          fiveYearPlan: this.data.fiveYearPlan
+        })
+      });
+      if (res.ok) {
+        if (badge) badge.textContent = "Tersinkron Cloud";
+      } else {
+        if (badge) badge.textContent = "Tersimpan Lokal";
+      }
+    } catch (e) {
+      if (badge) badge.textContent = "Tersimpan Lokal";
+    }
+  }
+
+  async syncWithCloud() {
+    const badge = document.getElementById("cloud-sync-text");
+    try {
+      if (badge) badge.textContent = "Sinkronisasi...";
+      const res = await fetch("/api/sync");
+      if (!res.ok) throw new Error("Cloud sync offline");
+      const json = await res.json();
+      if (json && json.success && json.tasks && json.tasks.length > 0) {
+        const localMap = new Map((this.data.dailyTasks || []).map(t => [t.id, t]));
+        for (const ct of json.tasks) {
+          if (!localMap.has(ct.id)) {
+            this.data.dailyTasks.push(ct);
+          } else {
+            const lt = localMap.get(ct.id);
+            if (ct.updated_at && (!lt.updated_at || ct.updated_at > lt.updated_at)) {
+              Object.assign(lt, ct);
+            }
+          }
+        }
+        if (json.settings && json.settings.notifications) {
+          this.data.notifications = { ...this.data.notifications, ...json.settings.notifications };
+        }
+        localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+        this.render();
+      }
+      if (badge) badge.textContent = "Tersinkron Cloud";
+    } catch (e) {
+      if (badge) badge.textContent = "Tersimpan Lokal";
     }
   }
 
@@ -371,6 +433,7 @@ class ProductivityApp {
     this.render();
     this.checkTimeCollision();
     this.checkMissedTasksAndAlert();
+    this.syncWithCloud();
   }
 
   initTaskDate() {
@@ -803,7 +866,7 @@ class ProductivityApp {
       if (this.isTaskMissed(t, today) && !t.missedAlertSent) {
         t.missedAlertSent = true;
         this.saveData();
-        const phone = this.data.notifications.targetPhone || "6289691905347";
+        const phone = this.data.notifications.targetPhone || "6288971071138";
         const message = 
 `🚨 *[PERINGATAN TUGAS TERLEWAT]*
 Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
@@ -820,7 +883,7 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
   }
 
   async sendTestMissedTaskWA() {
-    const phone = this.data.notifications.targetPhone || "6289691905347";
+    const phone = this.data.notifications.targetPhone || "6288971071138";
     const message = 
 `🚨 *[PERINGATAN TUGAS TERLEWAT]*
 Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
@@ -2095,7 +2158,7 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
     const missedCheckEl = document.getElementById("notif-missed-enabled");
     const logListEl = document.getElementById("notif-log-container");
 
-    if (phoneEl) phoneEl.value = notif.targetPhone || "6289691905347";
+    if (phoneEl) phoneEl.value = notif.targetPhone || "6288971071138";
     if (morningTimeEl) morningTimeEl.value = notif.morningBriefing.time || "07:00";
     if (morningCheckEl) morningCheckEl.checked = !!notif.morningBriefing.enabled;
     if (eveningTimeEl) eveningTimeEl.value = notif.eveningRecap.time || "21:00";
@@ -2142,19 +2205,19 @@ Halo Pak ${this.data.profile.name}, Anda melewatkan tugas!
   }
 
   async sendTestNotification() {
-    const phone = this.data.notifications.targetPhone || "6289691905347";
+    const phone = this.data.notifications.targetPhone || "6288971071138";
     const nowStr = new Date().toLocaleTimeString("id-ID");
     const message = 
-`*[UJI COBA NOTIFIKASI SEKERTARIS]*
-Halo Pak ${this.data.profile.name}, sistem notifikasi WhatsApp berhasil terhubung pada pukul ${nowStr} WIB.
-Gateway bot lokal di UTM aktif dan siap mengirimkan jadwal rutin Anda.
+`*[NOTIFIKASI AURA DESK]*
+Halo Pak ${this.data.profile.name}, uji coba notifikasi berhasil terhubung pada pukul ${nowStr} WIB.
+Asisten siap mengirimkan jadwal rutin Anda.
 *Aura Executive Desk*`;
 
     await this.dispatchWAMessage(phone, message, "Tes Notifikasi");
   }
 
   async sendDailyBriefingToWA() {
-    const phone = this.data.notifications.targetPhone || "6289691905347";
+    const phone = this.data.notifications.targetPhone || "6288971071138";
     const tasks = this.getTasksForDate(this.selectedDate);
     const m = this.getMetrics();
 
@@ -2193,7 +2256,7 @@ _"Waktu teralokasi bersih tanpa tabrakan. Tetap fokus dan jaga momentum!"_
   }
 
   async sendTaskToWA(taskId) {
-    const phone = this.data.notifications.targetPhone || "6289691905347";
+    const phone = this.data.notifications.targetPhone || "6288971071138";
     const task = this.data.dailyTasks.find(t => t.id === taskId);
     if (!task) return;
 
@@ -2212,11 +2275,12 @@ ${task.note ? `*Catatan:* ${task.note}\n` : ''}
   }
 
   async dispatchWAMessage(phone, message, label) {
+    const targetPhone = phone || this.data.notifications?.targetPhone || "6288971071138";
     try {
       const res = await fetch("/api/send-wa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, message })
+        body: JSON.stringify({ phone: targetPhone, message, type: label })
       });
       const data = await res.json();
 
@@ -2228,21 +2292,21 @@ ${task.note ? `*Catatan:* ${task.note}\n` : ''}
           time: timeStr,
           type: label,
           status: "Terkirim",
-          phone
+          phone: targetPhone
         });
         if (this.data.notifications.logs.length > 20) this.data.notifications.logs.pop();
         this.saveData();
 
-        alert(`${label} berhasil dikirim ke WhatsApp (${phone}) via Bot Server!`);
+        alert(`${label} berhasil dikirim ke WhatsApp (${targetPhone})!`);
         if (this.activeTab === "notifications") this.renderNotificationsView();
       } else {
-        throw new Error(data.error || "Gagal mengirim via bot");
+        throw new Error(data.error || "Gagal mengirim notifikasi");
       }
     } catch (err) {
-      console.warn("Fallback to Web WhatsApp:", err);
-      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      console.warn("Direct bot failed, fallback to Web WhatsApp:", err);
+      const waUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
       window.open(waUrl, "_blank");
-      alert(`Bot lokal offline/terkendala. Pesan dibuka langsung via WhatsApp Web.`);
+      alert(`Pesan notifikasi dibuka langsung via WhatsApp.`);
     }
   }
 

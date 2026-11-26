@@ -1,6 +1,17 @@
-pa{
+{
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "productivity-ilhampradani",
+  "main": "worker.js",
   "compatibility_date": "2026-11-03",
-  "pages_build_output_dir": "."
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "productivity-db",
+      "database_id": "b578aca0-067d-4e7f-a5a4-d5ca02b009c5"
+    }
+  ]
 }
