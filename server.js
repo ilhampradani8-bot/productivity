@@ -3,6 +3,7 @@
  * Runs on Port 3080 (WSL2 / UTM Workstation)
  * - Directly bridges to Baileys WhatsApp Bot on UTM (Port 3055)
  * - Continuously polls Cloudflare D1 for queued notifications
+ * - Serves Executive Dashboard & Public Meeting Booking Portal
  * - 0% touch to Baileys auth files; perfectly isolated
  */
 
@@ -52,6 +53,18 @@ const MIME_TYPES = {
   '.jpg': 'image/jpeg',
   '.ico': 'image/x-icon'
 };
+
+function timeToMins(t) {
+  if (!t || !t.includes(":")) return 0;
+  const [h, m] = t.split(":");
+  return parseInt(h, 10) * 60 + parseInt(m, 10);
+}
+
+function minsToTime(m) {
+  const h = String(Math.floor(m / 60)).padStart(2, "0");
+  const min = String(m % 60).padStart(2, "0");
+  return `${h}:${min}`;
+}
 
 async function queryD1(sql) {
   try {
@@ -123,8 +136,11 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
+  const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+  const pathname = parsedUrl.pathname;
+
   // API: Status WhatsApp Bot
-  if (req.url === '/api/wa-status' && req.method === 'GET') {
+  if (pathname === '/api/wa-status' && req.method === 'GET') {
     try {
       const response = await fetch(`${WA_BOT_API}/status`, { signal: AbortSignal.timeout(3000) });
       const data = await response.json();
@@ -137,7 +153,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   // API: Kirim Pesan ke WhatsApp via Bot Lokal Langsung
-  if (req.url === '/api/send-wa' && req.method === 'POST') {
+  if (pathname === '/api/send-wa' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
     req.on('end', async () => {
@@ -162,8 +178,235 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // API PUBLIC: Ketersediaan Waktu Kosong Real-Time
+  if (pathname === '/api/public/available-slots' && req.method === 'GET') {
+    const date = parsedUrl.searchParams.get("date") || new Date().toISOString().split("T")[0];
+    const d1Data = await queryD1("SELECT time_start, time_end, title, recurrence, status, target_date FROM tasks WHERE status != 'cancelled';");
+    const results = d1Data?.result?.[0]?.results || [];
+
+    const occupiedIntervals = [];
+    results.forEach(r => {
+      let applies = false;
+      if (!r.recurrence || r.recurrence === "none") {
+        if (r.target_date === date) applies = true;
+      } else if (r.recurrence === "daily") {
+        applies = true;
+      } else if (r.recurrence === "weekdays") {
+        const parts = date.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        if (dow >= 1 && dow <= 5) applies = true;
+      } else {
+        applies = true;
+      }
+
+      if (applies && r.time_start && r.time_end) {
+        const s = timeToMins(r.time_start);
+        const e = timeToMins(r.time_end);
+        if (e > s) occupiedIntervals.push({ start: s, end: e, title: r.title });
+      }
+    });
+
+    occupiedIntervals.sort((a, b) => a.start - b.start);
+
+    const mergedBusy = [];
+    occupiedIntervals.forEach(curr => {
+      if (mergedBusy.length === 0) {
+        mergedBusy.push({ ...curr });
+      } else {
+        const last = mergedBusy[mergedBusy.length - 1];
+        if (curr.start <= last.end) {
+          last.end = Math.max(last.end, curr.end);
+        } else {
+          mergedBusy.push({ ...curr });
+        }
+      }
+    });
+
+    const workStart = 480; // 08:00
+    const workEnd = 1260;  // 21:00
+    const slots = [];
+    let pointer = workStart;
+
+    mergedBusy.forEach(busy => {
+      if (busy.end <= workStart || busy.start >= workEnd) return;
+
+      const effectiveStart = Math.max(workStart, busy.start);
+      const effectiveEnd = Math.min(workEnd, busy.end);
+
+      if (effectiveStart > pointer) {
+        const diff = effectiveStart - pointer;
+        if (diff >= 45) {
+          slots.push({
+            start: minsToTime(pointer),
+            end: minsToTime(effectiveStart),
+            duration: `${Math.floor(diff / 60)} jam ${diff % 60 ? diff % 60 + ' mnt' : ''}`.trim(),
+            available: true
+          });
+        }
+      }
+
+      slots.push({
+        start: minsToTime(effectiveStart),
+        end: minsToTime(effectiveEnd),
+        duration: "Terisi",
+        available: false
+      });
+
+      pointer = Math.max(pointer, effectiveEnd);
+    });
+
+    if (pointer < workEnd) {
+      const diff = workEnd - pointer;
+      if (diff >= 45) {
+        slots.push({
+          start: minsToTime(pointer),
+          end: minsToTime(workEnd),
+          duration: `${Math.floor(diff / 60)} jam ${diff % 60 ? diff % 60 + ' mnt' : ''}`.trim(),
+          available: true
+        });
+      }
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true, date, slots }));
+  }
+
+  // API PUBLIC: Submit Meeting Request
+  if (pathname === '/api/public/submit-meeting' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const p = JSON.parse(body || '{}');
+        const id = "meet-" + Date.now();
+        const name = (p.name || p.client_name || "Tamu").replace(/'/g, "''");
+        const org = (p.org || p.client_org || "-").replace(/'/g, "''");
+        const phone = (p.phone || p.client_phone || "").replace(/'/g, "''");
+        const category = (p.category || "Konsultasi Umum").replace(/'/g, "''");
+        const date = (p.date || p.meeting_date || "").replace(/'/g, "''");
+        const start = (p.start || p.start_time || "").replace(/'/g, "''");
+        const end = (p.end || p.end_time || "").replace(/'/g, "''");
+        const mode = (p.mode || "virtual").replace(/'/g, "''");
+        const notes = (p.notes || "").replace(/'/g, "''");
+
+        // Simpan ke Cloudflare D1
+        const sql = `INSERT INTO meeting_requests (id, client_name, client_org, client_phone, category, meeting_date, start_time, end_time, mode, notes, status, created_at, updated_at) VALUES ('${id}', '${name}', '${org}', '${phone}', '${category}', '${date}', '${start}', '${end}', '${mode}', '${notes}', 'pending', datetime('now'), datetime('now'));`;
+        await queryD1(sql);
+
+        // Kirim WhatsApp Langsung ke Pak Ilham
+        const waMsg = 
+`Halo Pak Ilham, mohon izin menyampaikan ada permohonan pertemuan baru masuk melalui meet.ilhampradani.me 🙏
+
+👤 *Pemohon:* ${p.name} ${p.org ? `(${p.org})` : ''}
+📱 *WhatsApp Pemohon:* ${p.phone}
+🏷️ *Kategori:* ${p.category}
+📅 *Rencana Jadwal:* ${p.date} (${p.start} - ${p.end} WIB)
+🌐 *Moda:* ${p.mode === 'virtual' ? 'Online / Google Meet' : 'Tatap Muka Langsung'}
+${p.notes ? `📝 *Pokok Masalah:* "${p.notes}"\n` : ''}
+Permohonan telah dicatat di database dan menunggu konfirmasi Bapak di dashboard.
+
+Salam hormat,
+*Aura Desk*`;
+
+        await sendWhatsAppMessage(TARGET_PHONE, waMsg);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true, requestId: id }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // API ADMIN: Meeting Requests List
+  if (pathname === '/api/meeting-requests' && req.method === 'GET') {
+    const d1Data = await queryD1("SELECT * FROM meeting_requests ORDER BY created_at DESC LIMIT 50;");
+    const results = d1Data?.result?.[0]?.results || [];
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true, requests: results }));
+  }
+
+  // API ADMIN: Approve / Decline Meeting Request
+  if (pathname.startsWith('/api/meeting-requests/') && pathname.endsWith('/action') && req.method === 'POST') {
+    const parts = pathname.split('/');
+    const id = parts[3];
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const p = JSON.parse(body || '{}');
+        const action = p.action; // 'approve' or 'decline'
+        const reason = p.reason || '';
+
+        const d1Data = await queryD1(`SELECT * FROM meeting_requests WHERE id = '${id.replace(/'/g, "''")}';`);
+        const reqData = d1Data?.result?.[0]?.results?.[0];
+        if (!reqData) {
+          res.writeHead(404, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ success: false, error: 'Permohonan tidak ditemukan' }));
+        }
+
+        if (action === 'approve') {
+          // 1. Update status
+          await queryD1(`UPDATE meeting_requests SET status = 'approved', updated_at = datetime('now') WHERE id = '${id}';`);
+
+          // 2. Tambahkan ke tabel tasks
+          const taskId = "t-" + Date.now();
+          const taskTitle = `[Pertemuan] ${reqData.client_name} - ${reqData.category}`.replace(/'/g, "''");
+          const noteText = `Moda: ${reqData.mode}. Klien: ${reqData.client_name} (${reqData.client_phone}). Catatan: ${reqData.notes || '-'}`.replace(/'/g, "''");
+          await queryD1(`INSERT INTO tasks (id, title, time_start, time_end, target_date, recurrence, status, note, updated_at) VALUES ('${taskId}', '${taskTitle}', '${reqData.start_time}', '${reqData.end_time}', '${reqData.meeting_date}', 'none', 'todo', '${noteText}', datetime('now'));`);
+
+          // 3. Kirim WhatsApp ke Klien jika ada nomor
+          if (reqData.client_phone) {
+            const clientMsg = 
+`Halo Bpk/Ibu ${reqData.client_name}, salam hangat 🙏
+
+Permohonan pertemuan Anda dengan Dr. Ilham Pradani telah *DISETUJUI* dan terjadwal secara resmi:
+
+📌 *Topik:* ${reqData.category}
+📅 *Tanggal:* ${reqData.meeting_date}
+⏰ *Waktu:* ${reqData.start_time} - ${reqData.end_time} WIB
+🌐 *Moda:* ${reqData.mode === 'virtual' ? 'Online / Google Meet' : 'Tatap Muka Langsung'}
+
+Tautan sesi virtual / detail pertemuan akan kami sampaikan menjelang jadwal acara. Terima kasih.
+
+Salam hormat,
+*Aura Executive Desk*`;
+            await sendWhatsAppMessage(reqData.client_phone, clientMsg);
+          }
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ success: true, status: 'approved' }));
+        } else {
+          await queryD1(`UPDATE meeting_requests SET status = 'declined', updated_at = datetime('now') WHERE id = '${id}';`);
+          
+          if (reqData.client_phone) {
+            const declineMsg = 
+`Halo Bpk/Ibu ${reqData.client_name}, salam hangat 🙏
+
+Mohon maaf, permohonan pertemuan untuk tanggal ${reqData.meeting_date} pukul ${reqData.start_time} - ${reqData.end_time} WIB saat ini belum dapat dipenuhi karena ${reason || 'jadwal padat'}.
+
+Silakan mengajukan kembali pilihan waktu lain melalui portal meet.ilhampradani.me. Terima kasih atas pengertiannya.
+
+Salam hormat,
+*Aura Executive Desk*`;
+            await sendWhatsAppMessage(reqData.client_phone, declineMsg);
+          }
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ success: true, status: 'declined' }));
+        }
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
   // API: Sync dengan Cloudflare D1
-  if (req.url === '/api/sync' && req.method === 'GET') {
+  if (pathname === '/api/sync' && req.method === 'GET') {
     const d1Data = await queryD1("SELECT * FROM tasks ORDER BY time_start ASC; SELECT * FROM settings;");
     if (d1Data && d1Data.success && d1Data.result) {
       const tasks = d1Data.result[0]?.results || [];
@@ -185,9 +428,10 @@ const server = http.createServer(async (req, res) => {
     return res.end(JSON.stringify({ success: false, error: 'D1 sync offline' }));
   }
 
-  // Static File Serving
-  let reqPath = req.url.split('?')[0];
+  // Static File Serving & Subdomain / Path Routing
+  let reqPath = pathname;
   if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
+  if (reqPath === '/meet' || reqPath === '/public' || reqPath === '/jadwal') reqPath = '/meet.html';
 
   const filePath = path.join(PUBLIC_DIR, reqPath);
   const ext = path.extname(filePath).toLowerCase();
@@ -218,4 +462,5 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`[Aura Executive Desk] Gateway aktif di http://0.0.0.0:${PORT}`);
   console.log(`[Target WhatsApp] ${TARGET_PHONE}`);
   console.log(`[Cloudflare D1 Queue Poller] Terhubung ke ${D1_DATABASE_ID}`);
+  console.log(`[Public Meeting Portal] Tersedia di /meet dan /public`);
 });

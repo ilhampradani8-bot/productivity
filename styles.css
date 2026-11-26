@@ -97,14 +97,18 @@ body {
 
 /* ================= MODAL BACKDROP & DISPLAY ================= */
 #modal-clock-picker.hidden,
-#modal-missed-reason.hidden {
+#modal-missed-reason.hidden,
+#modal-add-task.hidden,
+#modal-dashboard-lock.hidden {
   display: none !important;
   pointer-events: none !important;
   visibility: hidden !important;
 }
 
 #modal-clock-picker:not(.hidden),
-#modal-missed-reason:not(.hidden) {
+#modal-missed-reason:not(.hidden),
+#modal-add-task:not(.hidden),
+#modal-dashboard-lock:not(.hidden) {
   display: flex !important;
   pointer-events: auto !important;
   visibility: visible !important;

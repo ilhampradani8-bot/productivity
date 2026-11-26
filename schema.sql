@@ -55,3 +55,24 @@ CREATE TABLE IF NOT EXISTS notification_queue (
 );
 
 CREATE INDEX IF NOT EXISTS idx_notif_status ON notification_queue(status);
+
+-- 5. Tabel Permohonan Pertemuan & Konsultasi Publik (Portal meet.ilhampradani.me)
+CREATE TABLE IF NOT EXISTS meeting_requests (
+  id TEXT PRIMARY KEY,
+  client_name TEXT NOT NULL,
+  client_org TEXT,
+  client_phone TEXT NOT NULL,
+  category TEXT DEFAULT 'Konsultasi Hukum',
+  meeting_date TEXT NOT NULL,
+  start_time TEXT NOT NULL,
+  end_time TEXT NOT NULL,
+  mode TEXT DEFAULT 'Online (Google Meet / WhatsApp Call)',
+  notes TEXT,
+  status TEXT DEFAULT 'pending',
+  created_at TEXT,
+  updated_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_meeting_date ON meeting_requests(meeting_date);
+CREATE INDEX IF NOT EXISTS idx_meeting_status ON meeting_requests(status);
+

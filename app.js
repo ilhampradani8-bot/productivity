@@ -315,6 +315,10 @@ class ProductivityApp {
     this.cancellingTaskId = null;
     this.cancellingDate = null;
 
+    // Meeting Requests State
+    this.meetingRequests = [];
+    this.meetingFilter = "all";
+
     this.init();
   }
 
@@ -428,6 +432,7 @@ class ProductivityApp {
   }
 
   init() {
+    this.checkDashboardAuth();
     this.startClock();
     this.bindEvents();
     this.bindClockEvents();
@@ -438,6 +443,301 @@ class ProductivityApp {
     this.checkTimeCollision();
     this.checkMissedTasksAndAlert();
     this.syncWithCloud();
+    this.fetchMeetingRequests();
+  }
+
+  // ===================== DASHBOARD SECURITY & PIN LOCK =====================
+  checkDashboardAuth() {
+    const isAuth = sessionStorage.getItem("aura_desk_auth") === "true";
+    const modal = document.getElementById("modal-dashboard-lock");
+    if (!modal) return;
+    if (isAuth) {
+      modal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+    } else {
+      modal.classList.remove("hidden");
+      document.body.classList.add("overflow-hidden");
+      const pinInput = document.getElementById("input-dashboard-pin");
+      if (pinInput) setTimeout(() => pinInput.focus(), 150);
+    }
+  }
+
+  submitDashboardAuth(e) {
+    if (e) e.preventDefault();
+    const pinInput = document.getElementById("input-dashboard-pin");
+    const errEl = document.getElementById("dashboard-lock-error");
+    if (!pinInput) return;
+    const val = pinInput.value.trim();
+    if (val === "Dani22334455") {
+      sessionStorage.setItem("aura_desk_auth", "true");
+      const modal = document.getElementById("modal-dashboard-lock");
+      if (modal) modal.classList.add("hidden");
+      document.body.classList.remove("overflow-hidden");
+      if (errEl) errEl.classList.add("hidden");
+      pinInput.value = "";
+      this.showToast("Akses Diterima! Selamat datang di Aura Executive Desk.", "success");
+    } else {
+      if (errEl) {
+        errEl.textContent = "Kode akses salah! Akses ditolak.";
+        errEl.classList.remove("hidden");
+      }
+      pinInput.classList.add("border-rose-500");
+      setTimeout(() => pinInput.classList.remove("border-rose-500"), 1200);
+    }
+  }
+
+  togglePinVisibility() {
+    const pinInput = document.getElementById("input-dashboard-pin");
+    if (!pinInput) return;
+    if (pinInput.type === "password") {
+      pinInput.type = "text";
+    } else {
+      pinInput.type = "password";
+    }
+  }
+
+  lockDashboard() {
+    sessionStorage.removeItem("aura_desk_auth");
+    this.checkDashboardAuth();
+    this.showToast("Dashboard terkunci.", "info");
+  }
+
+  // ===================== ADD TASK POPUP MODAL =====================
+  openAddTaskModal(presetDate = null) {
+    const modal = document.getElementById("modal-add-task");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    document.body.classList.add("overflow-hidden");
+    if (presetDate) {
+      const input = document.getElementById("task-target-date");
+      if (input) {
+        input.value = presetDate;
+        this.onTaskDateChange();
+      }
+    }
+    const titleInput = document.getElementById("task-title");
+    if (titleInput) setTimeout(() => titleInput.focus(), 150);
+    this.checkTimeCollision();
+  }
+
+  closeAddTaskModal() {
+    const modal = document.getElementById("modal-add-task");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    document.body.classList.remove("overflow-hidden");
+    if (this.editingTaskId) {
+      this.cancelEdit();
+    }
+  }
+
+  // ===================== TOAST NOTIFICATION =====================
+  showToast(msg, type = "info") {
+    let container = document.getElementById("aura-toast-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "aura-toast-container";
+      container.className = "fixed bottom-5 right-5 z-[110] flex flex-col gap-2 max-w-sm pointer-events-none";
+      document.body.appendChild(container);
+    }
+    const toast = document.createElement("div");
+    const bgClass = type === "success" 
+      ? "bg-slate-900 text-white border-l-4 border-emerald-500" 
+      : type === "error" 
+      ? "bg-rose-900 text-white border-l-4 border-rose-500" 
+      : "bg-slate-900 text-white border-l-4 border-indigo-500";
+    toast.className = `p-3.5 rounded-xl shadow-xl text-xs font-medium pointer-events-auto flex items-center justify-between gap-3 transform translate-y-2 opacity-0 transition-all duration-300 ${bgClass}`;
+    toast.innerHTML = `<span>${this.escapeHtml(msg)}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.remove("translate-y-2", "opacity-0");
+    }, 10);
+    setTimeout(() => {
+      toast.classList.add("translate-y-2", "opacity-0");
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  // ===================== MEETING & CONSULTATION REQUESTS =====================
+  async fetchMeetingRequests() {
+    try {
+      const res = await fetch("/api/meeting-requests");
+      if (!res.ok) throw new Error("Gagal mengambil data permohonan");
+      const json = await res.json();
+      if (json && json.success) {
+        this.meetingRequests = json.requests || [];
+        this.updateMeetingBadge();
+        if (this.activeTab === "meetings") {
+          this.renderMeetingsView();
+        }
+      }
+    } catch (e) {
+      console.warn("Gagal fetch permohonan meeting:", e);
+    }
+  }
+
+  updateMeetingBadge() {
+    const pendingCount = this.meetingRequests.filter(m => m.status === "pending").length;
+    const navBadge = document.getElementById("nav-meetings-count");
+    const viewBadge = document.getElementById("meetings-pending-count-badge");
+    
+    if (navBadge) {
+      if (pendingCount > 0) {
+        navBadge.textContent = pendingCount;
+        navBadge.classList.remove("hidden");
+      } else {
+        navBadge.classList.add("hidden");
+      }
+    }
+    if (viewBadge) {
+      viewBadge.textContent = `${pendingCount} Menunggu`;
+      if (pendingCount > 0) {
+        viewBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 font-mono";
+      } else {
+        viewBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 font-mono";
+      }
+    }
+  }
+
+  filterMeetings(filter) {
+    this.meetingFilter = filter;
+    document.querySelectorAll(".meeting-filter-btn").forEach(btn => {
+      if (btn.dataset.meetingFilter === filter) {
+        btn.className = "meeting-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white cursor-pointer shadow-sm";
+      } else {
+        btn.className = "meeting-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer";
+      }
+    });
+    this.renderMeetingsView();
+  }
+
+  renderMeetingsView() {
+    const container = document.getElementById("meetings-list-container");
+    if (!container) return;
+
+    let items = [...this.meetingRequests];
+    if (this.meetingFilter !== "all") {
+      items = items.filter(m => m.status === this.meetingFilter);
+    }
+
+    if (items.length === 0) {
+      container.innerHTML = `
+        <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm">
+          <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <p class="text-sm font-bold text-slate-700">Tidak Ada Permohonan ${this.meetingFilter === "pending" ? "Menunggu" : this.meetingFilter === "approved" ? "Disetujui" : this.meetingFilter === "declined" ? "Ditolak" : ""}</p>
+          <p class="text-xs text-slate-500 mt-1">Permohonan yang diajukan oleh publik via meet.ilhampradani.me akan muncul di sini.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = items.map(m => {
+      const isPending = m.status === "pending";
+      const isApproved = m.status === "approved";
+      const isDeclined = m.status === "declined";
+
+      let statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold font-mono bg-amber-100 text-amber-800 border border-amber-200">Menunggu Persetujuan</span>`;
+      if (isApproved) {
+        statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold font-mono bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1">${ICONS.checkCircle} Disetujui & Masuk Jadwal</span>`;
+      } else if (isDeclined) {
+        statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold font-mono bg-rose-100 text-rose-800 border border-rose-200">Ditolak</span>`;
+      }
+
+      const cleanPhone = m.client_phone.replace(/\D/g, "");
+
+      return `
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3 transition-all hover:border-slate-300">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm sm:text-base font-bold text-slate-900">${this.escapeHtml(m.client_name)}</h3>
+                ${m.client_org ? `<span class="text-xs text-slate-500 font-medium">(${this.escapeHtml(m.client_org)})</span>` : ""}
+              </div>
+              <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                <a href="https://wa.me/${cleanPhone}" target="_blank" class="text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 font-mono">
+                  ${ICONS.wa}
+                  <span>${this.escapeHtml(m.client_phone)}</span>
+                </a>
+                <span>•</span>
+                <span class="text-indigo-700 font-medium">${this.escapeHtml(m.category || "Konsultasi")}</span>
+              </div>
+            </div>
+            <div>
+              ${statusBadge}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono">
+            <div>
+              <span class="text-slate-400 block text-[10px]">Tanggal:</span>
+              <span class="font-bold text-slate-800">${m.meeting_date}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px]">Waktu:</span>
+              <span class="font-bold text-indigo-700">${m.start_time} - ${m.end_time} WIB</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px]">Metode Pertemuan:</span>
+              <span class="font-bold text-slate-800">${this.escapeHtml(m.mode || "Online")}</span>
+            </div>
+          </div>
+
+          ${m.notes ? `
+            <div class="text-xs text-slate-700 bg-amber-50/50 border border-amber-100 rounded-xl p-3">
+              <span class="font-bold text-amber-900 block text-[11px] mb-0.5">Catatan / Kebutuhan:</span>
+              <p class="leading-relaxed whitespace-pre-line">${this.escapeHtml(m.notes)}</p>
+            </div>
+          ` : ""}
+
+          ${isPending ? `
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button onclick="window.app.actionMeeting('${m.id}', 'decline')" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer">
+                Tolak Permohonan
+              </button>
+              <button onclick="window.app.actionMeeting('${m.id}', 'approve')" class="px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <span>Setujui & Jadwalkan</span>
+              </button>
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }).join("");
+  }
+
+  async actionMeeting(id, action) {
+    let reason = "";
+    if (action === "decline") {
+      reason = prompt("Masukkan alasan penolakan permohonan:", "Jadwal pada jam tersebut berhalangan.");
+      if (reason === null) return;
+    }
+
+    try {
+      this.showToast(action === "approve" ? "Memproses persetujuan..." : "Menolak permohonan...", "info");
+      const res = await fetch(`/api/meeting-requests/${id}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, reason })
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || "Gagal memproses permohonan");
+      }
+
+      this.showToast(
+        action === "approve" 
+          ? "Permohonan disetujui! Agenda otomatis dibuat dan konfirmasi WA terkirim." 
+          : "Permohonan telah ditolak.", 
+        "success"
+      );
+
+      await this.fetchMeetingRequests();
+      await this.syncWithCloud();
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
   }
 
   initTaskDate() {
@@ -1614,6 +1914,7 @@ Semoga hari Bapak selalu lancar!
   render() {
     this.updateSidebarBriefing();
     if (this.activeTab === "daily") this.renderDailyView();
+    else if (this.activeTab === "meetings") this.renderMeetingsView();
     else if (this.activeTab === "monthly") this.renderMonthlyView();
     else if (this.activeTab === "roadmap") this.renderRoadmapView();
     else if (this.activeTab === "history") this.renderHistoryView();
@@ -2019,6 +2320,8 @@ Semoga hari Bapak selalu lancar!
     this.saveData();
     this.render();
     this.checkTimeCollision();
+    this.closeAddTaskModal();
+    this.showToast("Agenda berhasil disimpan!", "success");
   }
 
   editTask(id) {
@@ -2068,7 +2371,7 @@ Semoga hari Bapak selalu lancar!
     if (cancelBtn) cancelBtn.classList.remove("hidden");
 
     this.checkTimeCollision();
-    window.scrollTo({ top: 100, behavior: "smooth" });
+    this.openAddTaskModal();
   }
 
   cancelEdit() {
@@ -2089,6 +2392,7 @@ Semoga hari Bapak selalu lancar!
     this.toggleSession2UI();
     this.initValidityPreset();
     this.checkTimeCollision();
+    this.closeAddTaskModal();
   }
 
   toggleTask(id, targetDate) {
