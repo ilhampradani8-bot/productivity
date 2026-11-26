@@ -429,8 +429,13 @@ Salam hormat,
   }
 
   // Static File Serving & Subdomain / Path Routing
+  const host = (req.headers.host || '').toLowerCase();
   let reqPath = pathname;
-  if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
+  if (host.startsWith('meet.') || host.startsWith('jadwal.')) {
+    if (reqPath === '/' || reqPath === '') reqPath = '/meet.html';
+  } else {
+    if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
+  }
   if (reqPath === '/meet' || reqPath === '/public' || reqPath === '/jadwal') reqPath = '/meet.html';
 
   const filePath = path.join(PUBLIC_DIR, reqPath);
