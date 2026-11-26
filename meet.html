@@ -89,7 +89,7 @@
       -webkit-user-select: none;
     }
 
-    img, svg, video {
+    img, video {
       display: block;
       max-width: 100%;
       width: 100%;
@@ -389,17 +389,200 @@
       z-index: 2;
     }
 
-    /* ================= MODAL DIALOG RESET TYPOGRAPHY (15px) ================= */
-    .meet-modal-content {
-      font-size: 14.5px;
-      line-height: 1.5;
-      font-family: var(--sub-font);
+    /* ================= BULLETPROOF POPUP MODAL SCOPED DESIGN SYSTEM (PX-BASED ISOLATION) ================= */
+    #modal-meet {
+      font-size: 13px !important;
+      line-height: 1.45 !important;
+      font-family: var(--sub-font), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      padding: 16px !important;
     }
-    .meet-modal-content input,
-    .meet-modal-content textarea,
-    .meet-modal-content select,
-    .meet-modal-content button {
-      font-size: 13.5px;
+
+    #modal-meet * {
+      box-sizing: border-box !important;
+    }
+
+    /* Strict Icon Sizes - SVGs are small, sharp, and aligned */
+    #modal-meet svg {
+      display: inline-block !important;
+      vertical-align: middle !important;
+      width: 15px !important;
+      height: 15px !important;
+      max-width: none !important;
+      flex-shrink: 0 !important;
+    }
+    #modal-meet svg.w-3, #modal-meet .w-3 svg { width: 12px !important; height: 12px !important; }
+    #modal-meet svg.w-4, #modal-meet .w-4 svg { width: 15px !important; height: 15px !important; }
+    #modal-meet svg.w-5, #modal-meet .w-5 svg { width: 18px !important; height: 18px !important; }
+    #modal-meet svg.w-6, #modal-meet .w-6 svg { width: 22px !important; height: 22px !important; }
+
+    /* Modal Dialog Window */
+    #modal-meet .meet-modal-content {
+      max-width: 580px !important;
+      width: 100% !important;
+      max-height: 88vh !important;
+      padding: 20px 24px !important;
+      border-radius: 20px !important;
+      background: rgba(15, 23, 42, 0.96) !important;
+      border: 1px solid rgba(71, 85, 105, 0.8) !important;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 35px rgba(99, 102, 241, 0.15) !important;
+      margin: auto !important;
+      font-size: 13px !important;
+    }
+
+    /* Modal Headings & Subtitles */
+    #modal-meet h3 {
+      font-size: 17px !important;
+      line-height: 22px !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      letter-spacing: -0.01em !important;
+      margin: 0 !important;
+    }
+
+    #modal-meet p {
+      font-size: 12px !important;
+      line-height: 17px !important;
+      color: #94a3b8 !important;
+      margin: 2px 0 0 0 !important;
+    }
+
+    /* Form Labels */
+    #modal-meet label {
+      font-size: 11px !important;
+      line-height: 15px !important;
+      font-weight: 600 !important;
+      font-family: "JetBrains Mono", monospace !important;
+      letter-spacing: 0.05em !important;
+      color: #cbd5e1 !important;
+      margin-bottom: 4px !important;
+      display: block !important;
+    }
+
+    /* Form Inputs, Selects, & Textarea */
+    #modal-meet input[type="text"],
+    #modal-meet input[type="tel"],
+    #modal-meet input[type="date"],
+    #modal-meet input[type="time"],
+    #modal-meet select,
+    #modal-meet textarea {
+      font-size: 13px !important;
+      line-height: 20px !important;
+      padding: 8px 12px !important;
+      border-radius: 10px !important;
+      background-color: #020617 !important;
+      border: 1px solid #334155 !important;
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      width: 100% !important;
+      transition: border-color 0.2s, box-shadow 0.2s !important;
+    }
+    #modal-meet input[type="text"]:focus,
+    #modal-meet input[type="tel"]:focus,
+    #modal-meet input[type="date"]:focus,
+    #modal-meet input[type="time"]:focus,
+    #modal-meet select:focus,
+    #modal-meet textarea:focus {
+      outline: none !important;
+      border-color: #6366f1 !important;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25) !important;
+    }
+    #modal-meet input::placeholder,
+    #modal-meet textarea::placeholder {
+      color: #64748b !important;
+      -webkit-text-fill-color: #64748b !important;
+      font-size: 12.5px !important;
+    }
+    #modal-meet textarea {
+      min-height: 60px !important;
+      resize: vertical !important;
+    }
+
+    /* Buttons */
+    #modal-meet button {
+      font-size: 12.5px !important;
+      line-height: 18px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+    }
+
+    #modal-meet .slot-preset-btn {
+      font-size: 11.5px !important;
+      padding: 6px 10px !important;
+      border-radius: 8px !important;
+      background: #1e293b !important;
+      border: 1px solid #334155 !important;
+      color: #e2e8f0 !important;
+    }
+    #modal-meet .slot-preset-btn:hover {
+      background: #334155 !important;
+      color: #ffffff !important;
+    }
+
+    /* Override Tailwind REM Utility Classes inside #modal-meet */
+    #modal-meet .text-xs { font-size: 11.5px !important; line-height: 16px !important; }
+    #modal-meet .text-sm { font-size: 13px !important; line-height: 18px !important; }
+    #modal-meet .text-base { font-size: 16px !important; line-height: 22px !important; }
+    #modal-meet .text-\[10px\] { font-size: 10px !important; line-height: 14px !important; }
+    #modal-meet .text-\[11px\] { font-size: 11px !important; line-height: 15px !important; }
+
+    #modal-meet .p-1 { padding: 4px !important; }
+    #modal-meet .p-1\.5 { padding: 6px !important; }
+    #modal-meet .p-2 { padding: 7px 10px !important; }
+    #modal-meet .p-2\.5 { padding: 8px 12px !important; }
+    #modal-meet .p-3 { padding: 10px 14px !important; }
+    #modal-meet .p-3\.5 { padding: 12px 14px !important; }
+    #modal-meet .p-4 { padding: 14px 16px !important; }
+    #modal-meet .p-5 { padding: 16px 20px !important; }
+
+    #modal-meet .px-2 { padding-left: 8px !important; padding-right: 8px !important; }
+    #modal-meet .px-3 { padding-left: 12px !important; padding-right: 12px !important; }
+    #modal-meet .px-3\.5 { padding-left: 14px !important; padding-right: 14px !important; }
+    #modal-meet .px-4 { padding-left: 16px !important; padding-right: 16px !important; }
+    #modal-meet .px-5 { padding-left: 18px !important; padding-right: 18px !important; }
+    #modal-meet .px-6 { padding-left: 20px !important; padding-right: 20px !important; }
+
+    #modal-meet .py-0\.5 { padding-top: 2px !important; padding-bottom: 2px !important; }
+    #modal-meet .py-1 { padding-top: 4px !important; padding-bottom: 4px !important; }
+    #modal-meet .py-1\.5 { padding-top: 6px !important; padding-bottom: 6px !important; }
+    #modal-meet .py-2 { padding-top: 7px !important; padding-bottom: 7px !important; }
+    #modal-meet .py-2\.5 { padding-top: 8px !important; padding-bottom: 8px !important; }
+
+    #modal-meet .gap-1 { gap: 4px !important; }
+    #modal-meet .gap-1\.5 { gap: 6px !important; }
+    #modal-meet .gap-2 { gap: 8px !important; }
+    #modal-meet .gap-2\.5 { gap: 10px !important; }
+    #modal-meet .gap-3 { gap: 12px !important; }
+
+    #modal-meet .rounded-lg { border-radius: 8px !important; }
+    #modal-meet .rounded-xl { border-radius: 10px !important; }
+    #modal-meet .rounded-2xl { border-radius: 14px !important; }
+    #modal-meet .rounded-3xl { border-radius: 20px !important; }
+
+    #modal-meet .space-y-1\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 6px !important; }
+    #modal-meet .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 8px !important; }
+    #modal-meet .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 10px !important; }
+    #modal-meet .space-y-3\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 12px !important; }
+    #modal-meet .space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 14px !important; }
+    #modal-meet .space-y-5 > :not([hidden]) ~ :not([hidden]) { margin-top: 18px !important; }
+
+    #modal-meet .w-2 { width: 8px !important; }
+    #modal-meet .h-2 { height: 8px !important; }
+    #modal-meet .w-2\.5 { width: 9px !important; }
+    #modal-meet .h-2\.5 { height: 9px !important; }
+    #modal-meet .w-4 { width: 15px !important; }
+    #modal-meet .h-4 { height: 15px !important; }
+    #modal-meet .w-5 { width: 18px !important; }
+    #modal-meet .h-5 { height: 18px !important; }
+
+    #modal-meet .max-h-60 { max-height: 220px !important; }
+
+    /* Radio button pills */
+    #modal-meet input[type="radio"] {
+      width: 14px !important;
+      height: 14px !important;
+      accent-color: #6366f1 !important;
+      display: inline-block !important;
+      margin: 0 !important;
     }
 
     /* Modal Animation */
