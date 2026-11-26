@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id" class="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Executive Productivity & Notification Rules</title>
   <meta name="description" content="Sistem Jadwal Eksekutif Full-Width & Aturan Notifikasi WhatsApp">
   <link rel="icon" type="image/svg+xml" href="./icon.svg">
-  <meta name="theme-color" content="#0a0e17">
+  <meta name="theme-color" content="#ffffff">
 
   <script>
     // Bersihkan service worker lama agar browser selalu memuat script terbaru
@@ -29,50 +29,50 @@
         extend: {
           colors: {
             brand: {
-              bg: '#0a0e17',
-              surface: '#0f1523',
-              card: '#131b2e',
-              border: '#1e293b',
-              accent: '#6366f1'
+              bg: '#f8fafc',
+              surface: '#ffffff',
+              card: '#ffffff',
+              border: '#e2e8f0',
+              accent: '#4f46e5'
             }
           }
         }
       }
     }
   </script>
-  <link rel="stylesheet" href="./styles.css?v=20261125_08">
+  <link rel="stylesheet" href="./styles.css?v=20261126_01">
 </head>
-<body class="bg-[#0a0e17] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
 
   <!-- ================= TOP HEADER BAR ================= -->
-  <header class="w-full border-b border-slate-800/80 bg-[#0f1523]/90 backdrop-blur sticky top-0 z-40 px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+  <header class="w-full border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-40 px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4 shadow-sm">
     
     <!-- Brand -->
     <div onclick="window.app.switchTab('daily')" class="flex items-center gap-2.5 cursor-pointer">
-      <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-xs text-white">
+      <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-xs text-white shadow-sm">
         A
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-sm font-black tracking-tight text-white font-mono">SEKRETARIS<span class="text-indigo-400">.DESK</span></span>
-        <span class="text-[10px] text-slate-400 font-mono hidden md:inline">| Executive Time System</span>
+        <span class="text-sm font-black tracking-tight text-slate-900 font-mono">SEKRETARIS<span class="text-indigo-600">.DESK</span></span>
+        <span class="text-[10px] text-slate-500 font-mono hidden md:inline">| Executive Time System</span>
       </div>
     </div>
 
     <!-- Navigation Tab Pills -->
-    <nav class="hidden md:flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
-      <button onclick="window.app.switchTab('daily')" data-tab="daily" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white transition-all cursor-pointer">
+    <nav class="hidden md:flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+      <button onclick="window.app.switchTab('daily')" data-tab="daily" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm transition-all cursor-pointer">
         Agenda Harian
       </button>
-      <button onclick="window.app.switchTab('weekly')" data-tab="weekly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all cursor-pointer">
+      <button onclick="window.app.switchTab('weekly')" data-tab="weekly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all cursor-pointer">
         1 Minggu
       </button>
-      <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all cursor-pointer">
+      <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all cursor-pointer">
         1 Bulan
       </button>
-      <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-slate-200 transition-all cursor-pointer">
+      <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all cursor-pointer">
         Roadmap 5 Tahun
       </button>
-      <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-all flex items-center gap-1.5 cursor-pointer">
+      <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-all flex items-center gap-1.5 cursor-pointer">
         <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
           <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
         </svg>
@@ -83,26 +83,26 @@
     <!-- Header Status & Clock -->
     <div class="flex items-center gap-3">
       <!-- WA Bot Status -->
-      <button onclick="window.app.switchTab('notifications')" id="wa-bot-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 text-xs font-mono hover:border-emerald-500 transition-colors cursor-pointer">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 wa-pulse"></span>
+      <button onclick="window.app.switchTab('notifications')" id="wa-bot-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-mono hover:border-emerald-500 transition-colors cursor-pointer">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 wa-pulse"></span>
         <span id="wa-bot-badge-text" class="text-[11px] font-medium">WA Bot Aktif</span>
       </button>
 
       <!-- Live Clock -->
       <div class="hidden sm:flex flex-col text-right">
-        <span id="header-clock" class="text-xs font-bold font-mono text-cyan-300">--:--:-- WIB</span>
-        <span id="header-date" class="text-[10px] text-slate-400 font-medium">--</span>
+        <span id="header-clock" class="text-xs font-bold font-mono text-slate-800">--:--:-- WIB</span>
+        <span id="header-date" class="text-[10px] text-slate-500 font-medium">--</span>
       </div>
     </div>
   </header>
 
   <!-- Mobile Tab Navigation Bar -->
-  <div class="md:hidden flex items-center gap-1 bg-[#0f1523] border-b border-slate-800 p-2 overflow-x-auto">
+  <div class="md:hidden flex items-center gap-1 bg-white border-b border-slate-200 p-2 overflow-x-auto shadow-sm">
     <button onclick="window.app.switchTab('daily')" data-tab="daily" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white whitespace-nowrap cursor-pointer">Harian</button>
-    <button onclick="window.app.switchTab('weekly')" data-tab="weekly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 whitespace-nowrap cursor-pointer">1 Minggu</button>
-    <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 whitespace-nowrap cursor-pointer">1 Bulan</button>
-    <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 whitespace-nowrap cursor-pointer">5 Tahun</button>
-    <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 whitespace-nowrap cursor-pointer">Aturan WA</button>
+    <button onclick="window.app.switchTab('weekly')" data-tab="weekly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 whitespace-nowrap cursor-pointer">1 Minggu</button>
+    <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 whitespace-nowrap cursor-pointer">1 Bulan</button>
+    <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 whitespace-nowrap cursor-pointer">5 Tahun</button>
+    <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 whitespace-nowrap cursor-pointer">Aturan WA</button>
   </div>
 
   <!-- ================= MAIN FULLWIDTH CONTAINER ================= -->
@@ -116,13 +116,13 @@
         <div class="lg:col-span-8 xl:col-span-9 space-y-4">
           
           <!-- ================= GOOGLE-STYLE TASK CREATOR CARD ================= -->
-          <div class="google-form-card border border-slate-800 rounded-2xl p-5 shadow-lg relative overflow-hidden">
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-800">
+          <div class="google-form-card border border-slate-200 bg-white rounded-2xl p-5 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-slate-200">
               <div class="flex items-center gap-2">
-                <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
-                <h3 class="text-sm font-bold text-white tracking-wide font-mono">FORM AGENDA EKSEKUTIF</h3>
+                <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
+                <h3 class="text-sm font-bold text-slate-900 tracking-wide font-mono">FORM AGENDA EKSEKUTIF</h3>
               </div>
-              <span class="text-[11px] text-indigo-400 bg-indigo-950/60 border border-indigo-800/60 px-2.5 py-0.5 rounded-full font-mono">
+              <span class="text-[11px] text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-full font-mono font-medium">
                 Jadwal 24 Jam Bebas Bentrok
               </span>
             </div>
@@ -132,39 +132,41 @@
               <!-- 1. Judul Agenda (Google-Style Large Clean Input) -->
               <div>
                 <input type="text" id="task-title" required placeholder="Tambahkan judul agenda... (Contoh: Evaluasi Performa Server & AI Model)" 
-                  class="w-full bg-transparent border-b-2 border-slate-700 hover:border-slate-500 focus:border-indigo-500 px-1 py-2 text-base md:text-lg font-semibold text-white placeholder-slate-500 focus:outline-none transition-colors">
+                  class="w-full bg-transparent border-b-2 border-slate-300 hover:border-slate-400 focus:border-indigo-600 px-1 py-2 text-base md:text-lg font-semibold text-slate-900 placeholder-slate-400 focus:outline-none transition-colors">
               </div>
 
               <!-- 2. Tanggal Jadwal Pelaksanaan (Hari Ini, Besok, Senin Depan, Minggu Depan) -->
-              <div class="bg-[#0a0e17]/80 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2.5">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-indigo-400 font-mono">📅 TANGGAL JADWAL PELAKSANAAN</span>
-                    <span class="text-[10px] text-slate-400">Pilih hari kerja atau masa pelaksanaan</span>
+                    <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    <span class="text-xs font-bold text-indigo-700 font-mono">TANGGAL JADWAL PELAKSANAAN</span>
+                    <span class="text-[10px] text-slate-500">Pilih hari kerja atau masa pelaksanaan</span>
                   </div>
                   <!-- Quick Date Presets -->
                   <div class="flex items-center gap-1.5 flex-wrap text-[11px] font-mono">
-                    <button type="button" onclick="window.app.setTaskDatePreset('today')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer">Hari Ini</button>
-                    <button type="button" onclick="window.app.setTaskDatePreset('tomorrow')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer">Besok</button>
-                    <button type="button" onclick="window.app.setTaskDatePreset('next_monday')" class="px-2.5 py-1 rounded-lg bg-indigo-950 text-indigo-300 border border-indigo-800 hover:bg-indigo-900 transition-colors cursor-pointer">Senin Depan</button>
-                    <button type="button" onclick="window.app.setTaskDatePreset('next_week')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors cursor-pointer">Minggu Depan</button>
+                    <button type="button" onclick="window.app.setTaskDatePreset('today')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer">Hari Ini</button>
+                    <button type="button" onclick="window.app.setTaskDatePreset('tomorrow')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer">Besok</button>
+                    <button type="button" onclick="window.app.setTaskDatePreset('next_monday')" class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors cursor-pointer font-semibold">Senin Depan</button>
+                    <button type="button" onclick="window.app.setTaskDatePreset('next_week')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer">Minggu Depan</button>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-2">
-                  <input type="date" id="task-target-date" onchange="window.app.onTaskDateChange()" class="flex-1 bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
-                  <span id="task-date-day-label" class="text-xs font-semibold text-cyan-300 font-mono px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700">Hari Ini</span>
+                  <input type="date" id="task-target-date" onchange="window.app.onTaskDateChange()" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-600 shadow-sm">
+                  <span id="task-date-day-label" class="text-xs font-semibold text-slate-700 font-mono px-3 py-1.5 rounded-lg bg-white border border-slate-200 shadow-sm">Hari Ini</span>
                 </div>
               </div>
 
-              <!-- 2. Waktu Sesi 1 (Siang / Utama) + Tombol Jam Bulat -->
-              <div class="bg-[#0a0e17]/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
+              <!-- 3. Waktu Sesi 1 (Siang / Utama) + Tombol Jam Bulat -->
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-amber-400 font-mono">☀️ SESI 1 (WAKTU UTAMA / SIANG)</span>
-                    <span class="text-[10px] text-slate-400">Pilih rentang jam dalam 24 jam</span>
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                    <span class="text-xs font-bold text-amber-700 font-mono">SESI 1 (WAKTU UTAMA / SIANG)</span>
+                    <span class="text-[10px] text-slate-500">Pilih rentang jam dalam 24 jam</span>
                   </div>
-                  <button type="button" onclick="window.app.openClockPicker('task-start-time')" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer">
+                  <button type="button" onclick="window.app.openClockPicker('task-start-time')" class="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Buka Jam Putar Visual
                   </button>
@@ -173,69 +175,75 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <!-- Jam Mulai -->
                   <div>
-                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Dari Jam (Mulai):</label>
+                    <label class="block text-[11px] font-medium text-slate-600 mb-1">Dari Jam (Mulai):</label>
                     <div class="flex items-center gap-2">
-                      <input type="time" id="task-start-time" value="09:00" class="flex-1 bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
-                      <button type="button" onclick="window.app.openClockPicker('task-start-time')" title="Pilih dengan Jam Bulat" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
-                        🕒
+                      <input type="time" id="task-start-time" value="09:00" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-600 shadow-sm">
+                      <button type="button" onclick="window.app.openClockPicker('task-start-time')" title="Pilih dengan Jam Bulat" class="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                       </button>
                     </div>
                   </div>
 
                   <!-- Jam Selesai -->
                   <div>
-                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Sampai Jam (Selesai):</label>
+                    <label class="block text-[11px] font-medium text-slate-600 mb-1">Sampai Jam (Selesai):</label>
                     <div class="flex items-center gap-2">
-                      <input type="time" id="task-end-time" value="10:30" class="flex-1 bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
-                      <button type="button" onclick="window.app.openClockPicker('task-end-time')" title="Pilih dengan Jam Bulat" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
-                        🕒
+                      <input type="time" id="task-end-time" value="10:30" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-600 shadow-sm">
+                      <button type="button" onclick="window.app.openClockPicker('task-end-time')" title="Pilih dengan Jam Bulat" class="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- 3. Opsi Sesi 2 (Malam / Pisah 2 Waktu) -->
-              <div class="bg-[#0a0e17]/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
+              <!-- 4. Opsi Sesi 2 (Malam / Pisah 2 Waktu) -->
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
                 <div class="flex items-center justify-between">
                   <label class="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" id="toggle-session2" class="custom-checkbox" onchange="window.app.toggleSession2UI()">
-                    <span class="text-xs font-bold text-cyan-400 font-mono">🌙 TAMBAH SESI 2 (WAKTU MALAM / 2 WAKTU DALAM 1 AGENDA)</span>
+                    <span class="text-xs font-bold text-indigo-700 font-mono flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                      TAMBAH SESI 2 (WAKTU MALAM / 2 WAKTU DALAM 1 AGENDA)
+                    </span>
                   </label>
                   <span class="text-[10px] text-slate-500">Opsional untuk agenda 2 tahap</span>
                 </div>
 
-                <div id="session2-container" class="hidden grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800/80">
+                <div id="session2-container" class="hidden grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-200">
                   <div>
-                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Dari Jam Malam (Mulai):</label>
+                    <label class="block text-[11px] font-medium text-slate-600 mb-1">Dari Jam Malam (Mulai):</label>
                     <div class="flex items-center gap-2">
-                      <input type="time" id="task-session2-start" value="19:30" class="flex-1 bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
-                      <button type="button" onclick="window.app.openClockPicker('task-session2-start')" title="Pilih dengan Jam Bulat" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
-                        🕒
+                      <input type="time" id="task-session2-start" value="19:30" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-600 shadow-sm">
+                      <button type="button" onclick="window.app.openClockPicker('task-session2-start')" title="Pilih dengan Jam Bulat" class="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Sampai Jam Malam (Selesai):</label>
+                    <label class="block text-[11px] font-medium text-slate-600 mb-1">Sampai Jam Malam (Selesai):</label>
                     <div class="flex items-center gap-2">
-                      <input type="time" id="task-session2-end" value="20:30" class="flex-1 bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-500">
-                      <button type="button" onclick="window.app.openClockPicker('task-session2-end')" title="Pilih dengan Jam Bulat" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
-                        🕒
+                      <input type="time" id="task-session2-end" value="20:30" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-600 shadow-sm">
+                      <button type="button" onclick="window.app.openClockPicker('task-session2-end')" title="Pilih dengan Jam Bulat" class="p-2 rounded-lg bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 cursor-pointer shadow-sm">
+                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- 4. Visual Jadwal 24 Jam & Real-time Anti-Collision Indicator -->
-              <div class="space-y-1.5">
+              <!-- 5. Visual Jadwal 24 Jam & Real-time Anti-Collision Indicator (CLICKABLE TIMELINE) -->
+              <div class="space-y-1.5 bg-slate-50 border border-slate-200 rounded-xl p-3.5">
                 <div class="flex items-center justify-between text-[11px] font-mono">
-                  <span id="collision-date-label" class="text-slate-400">Peta Waktu 24 Jam (Hari Ini):</span>
-                  <span id="collision-status-badge" class="font-bold text-emerald-400">✅ Slot Waktu Bebas & Aman</span>
+                  <span id="collision-date-label" class="text-slate-600 font-semibold">Peta Waktu 24 Jam:</span>
+                  <span id="collision-status-badge" class="font-bold text-emerald-700 flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-emerald-600 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Slot Waktu Bebas & Aman
+                  </span>
                 </div>
 
-                <!-- 24h Visual Bar -->
-                <div class="timeline-24h-bar" id="timeline-24h-bar" title="Visual Waktu 24 Jam">
+                <!-- 24h Visual Bar (Clickable directly) -->
+                <div class="timeline-24h-bar" id="timeline-24h-bar" onclick="window.app.onTimelineClick(event)" title="Klik langsung pada peta bar 24 jam untuk mengatur jam mulai secara instan">
                   <!-- Occupied and preview blocks rendered via JS -->
                 </div>
 
@@ -248,27 +256,39 @@
                   <span>24:00 Malam</span>
                 </div>
 
-                <!-- Collision Warning Message (if any) -->
-                <div id="collision-warning-box" class="hidden p-2.5 rounded-lg bg-rose-950/60 border border-rose-800 text-xs text-rose-300 flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-2">
-                    <span>⛔</span>
-                    <span id="collision-warning-text">Waktu bertabrakan dengan agenda lain!</span>
+                <!-- Direct Click Hint -->
+                <div class="flex items-center justify-between text-[11px] pt-1">
+                  <div class="flex items-center gap-1 text-indigo-700 font-medium">
+                    <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                    <span>Klik pada peta waktu di atas untuk set jam tanpa ketik manual</span>
                   </div>
-                  <button type="button" onclick="window.app.pickNextFreeSlot()" class="px-2 py-1 rounded bg-rose-900 hover:bg-rose-800 text-white text-[10px] font-semibold whitespace-nowrap cursor-pointer">
+                  <span class="text-[10px] text-slate-400 font-mono">Snap 15 Menit</span>
+                </div>
+
+                <!-- Collision Warning Message (if any) -->
+                <div id="collision-warning-box" class="hidden p-2.5 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span id="collision-warning-text" class="font-medium">Waktu bertabrakan dengan agenda lain!</span>
+                  </div>
+                  <button type="button" onclick="window.app.pickNextFreeSlot()" class="px-2 py-1 rounded bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-semibold whitespace-nowrap cursor-pointer shadow-sm">
                     Pilih Slot Kosong
                   </button>
                 </div>
               </div>
 
-              <!-- 5. Masa Berlaku & Perulangan (Google Style) -->
-              <div class="bg-[#0a0e17]/80 border border-slate-800 rounded-xl p-3.5 space-y-3">
-                <span class="text-xs font-bold text-indigo-400 font-mono block">📅 MASA BERLAKU & PERULANGAN AGENDA</span>
+              <!-- 6. Masa Berlaku & Perulangan (Google Style) -->
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                  <span class="text-xs font-bold text-indigo-700 font-mono">MASA BERLAKU & PERULANGAN AGENDA</span>
+                </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <!-- Pola Perulangan -->
                   <div>
-                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Frekuensi Perulangan:</label>
-                    <select id="task-recurrence" onchange="window.app.handleRecurrenceChange()" class="w-full bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    <label class="block text-[11px] font-medium text-slate-600 mb-1">Frekuensi Perulangan:</label>
+                    <select id="task-recurrence" onchange="window.app.handleRecurrenceChange()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 shadow-sm">
                       <option value="none">Sekali Saja (Hanya Tanggal Ini)</option>
                       <option value="daily" selected>Setiap Hari</option>
                       <option value="weekdays">Hari Kerja (Senin - Jumat)</option>
@@ -279,8 +299,8 @@
 
                   <!-- Batas Masa Berlaku -->
                   <div>
-                    <label class="block text-[11px] font-medium text-slate-400 mb-1">Masa Berlaku Berakhir:</label>
-                    <select id="task-validity-preset" onchange="window.app.handleValidityPresetChange()" class="w-full bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    <label class="block text-[11px] font-medium text-slate-600 mb-1">Masa Berlaku Berakhir:</label>
+                    <select id="task-validity-preset" onchange="window.app.handleValidityPresetChange()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 shadow-sm">
                       <option value="until_completed">Sampai Pekerjaan Selesai / Dihapus</option>
                       <option value="1_month">Batas 1 Bulan ke Depan</option>
                       <option value="1_year">Batas 1 Tahun ke Depan</option>
@@ -292,28 +312,28 @@
 
                 <!-- Custom End Date (if chosen) -->
                 <div id="custom-end-date-row" class="hidden">
-                  <label class="block text-[11px] font-medium text-slate-400 mb-1">Tanggal Batas Akhir:</label>
-                  <input type="date" id="task-valid-until" class="bg-[#131b2e] border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white font-mono focus:outline-none">
+                  <label class="block text-[11px] font-medium text-slate-600 mb-1">Tanggal Batas Akhir:</label>
+                  <input type="date" id="task-valid-until" class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-indigo-600 shadow-sm">
                 </div>
               </div>
 
-              <!-- 6. Catatan Tambahan -->
+              <!-- 7. Catatan Tambahan -->
               <div>
                 <input type="text" id="task-note" placeholder="Tambahkan catatan instruksi kerja atau link pendukung (opsional)..." 
-                  class="w-full bg-[#0a0e17] border border-slate-800 rounded-lg px-3.5 py-2 text-xs text-slate-300 placeholder-slate-600 focus:outline-none focus:border-indigo-500">
+                  class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 shadow-sm">
               </div>
 
-              <!-- 7. Action Bar -->
+              <!-- 8. Action Bar -->
               <div class="flex items-center justify-between pt-2">
                 <span class="text-[11px] text-slate-500">Agenda dapat diedit atau dihapus kapan saja.</span>
                 <div class="flex items-center gap-2">
-                  <button type="button" id="btn-cancel-edit" onclick="window.app.cancelEdit()" class="hidden px-3.5 py-2 text-xs font-semibold text-rose-400 hover:text-rose-300 bg-rose-950/50 border border-rose-800/60 rounded-xl transition-colors cursor-pointer">
+                  <button type="button" id="btn-cancel-edit" onclick="window.app.cancelEdit()" class="hidden px-3.5 py-2 text-xs font-semibold text-rose-700 hover:text-rose-800 bg-rose-50 border border-rose-200 rounded-xl transition-colors cursor-pointer">
                     Batal Edit
                   </button>
-                  <button type="reset" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors cursor-pointer">
+                  <button type="reset" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer">
                     Reset
                   </button>
-                  <button type="submit" id="btn-save-task" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+                  <button type="submit" id="btn-save-task" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:text-slate-500 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
                     <span id="btn-save-task-text">+ Simpan ke Jadwal</span>
                   </button>
                 </div>
@@ -323,20 +343,20 @@
           </div>
 
           <!-- Date Navigation & Search Bar (NO PRIORITIES, NO CATEGORIES) -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0f1523]/80 border border-slate-800/80 rounded-xl px-4 py-2.5 text-xs">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs shadow-sm">
             <div class="flex items-center gap-2">
-              <button id="btn-nav-prev" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
+              <button id="btn-nav-prev" title="Hari Sebelumnya" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
               </button>
-              <input type="date" id="date-input" class="bg-[#0a0e17] border border-slate-700 rounded px-2.5 py-1 text-slate-200 font-mono text-xs focus:outline-none">
-              <button id="btn-nav-next" class="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer">
+              <input type="date" id="date-input" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-800 font-mono text-xs focus:outline-none focus:border-indigo-600">
+              <button id="btn-nav-next" title="Hari Berikutnya" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
-              <button id="btn-nav-today" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-400 font-medium cursor-pointer">Hari Ini</button>
+              <button id="btn-nav-today" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-indigo-700 font-semibold cursor-pointer">Hari Ini</button>
             </div>
 
             <div class="flex items-center gap-2">
-              <input type="text" id="search-input" placeholder="Cari agenda atau catatan..." class="bg-[#0a0e17] border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-300 focus:outline-none w-48 sm:w-64">
+              <input type="text" id="search-input" placeholder="Cari agenda atau catatan..." class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 w-48 sm:w-64">
             </div>
           </div>
 
@@ -350,61 +370,64 @@
         <div class="lg:col-span-4 xl:col-span-3 space-y-4">
           
           <!-- Briefing Sekertaris & Suara -->
-          <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-3">
-            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-              <span class="text-xs font-bold uppercase tracking-wider font-mono text-indigo-400">Briefing Sekertaris</span>
-              <button id="btn-voice-briefing" class="text-[11px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 hover:bg-indigo-900 transition-colors flex items-center gap-1 cursor-pointer">
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 shadow-sm">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+              <span class="text-xs font-bold uppercase tracking-wider font-mono text-indigo-700">Briefing Sekertaris</span>
+              <button id="btn-voice-briefing" class="text-[11px] px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1 cursor-pointer font-medium">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
                 Dengarkan
               </button>
             </div>
             
             <div>
-              <h4 id="sidebar-greeting" class="text-sm font-bold text-white">Selamat Datang, Pak Ilham!</h4>
-              <p id="sidebar-desc" class="text-xs text-slate-300 mt-1 leading-relaxed">
+              <h4 id="sidebar-greeting" class="text-sm font-bold text-slate-900">Selamat Datang, Pak Ilham!</h4>
+              <p id="sidebar-desc" class="text-xs text-slate-600 mt-1 leading-relaxed">
                 Memuat analisis jadwal...
               </p>
             </div>
 
             <!-- Metrik Ringkas (NO PRIORITIES) -->
-            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-800/80 text-center font-mono">
-              <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
-                <span class="text-[10px] text-slate-400 block">Selesai</span>
-                <span id="stat-daily-pct" class="text-base font-bold text-emerald-400">0%</span>
+            <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200 text-center font-mono">
+              <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="text-[10px] text-slate-500 block">Selesai</span>
+                <span id="stat-daily-pct" class="text-base font-bold text-emerald-700">0%</span>
               </div>
-              <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
-                <span class="text-[10px] text-slate-400 block">Total Agenda</span>
-                <span id="stat-daily-total" class="text-base font-bold text-cyan-400">0</span>
+              <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="text-[10px] text-slate-500 block">Total Agenda</span>
+                <span id="stat-daily-total" class="text-base font-bold text-indigo-700">0</span>
               </div>
-              <div class="p-2 rounded-lg bg-[#0a0e17] border border-slate-800">
-                <span class="text-[10px] text-slate-400 block">5Y Plan</span>
-                <span id="stat-5y-pct" class="text-base font-bold text-indigo-400">0%</span>
+              <div class="p-2 rounded-lg bg-slate-50 border border-slate-200">
+                <span class="text-[10px] text-slate-500 block">5Y Plan</span>
+                <span id="stat-5y-pct" class="text-base font-bold text-slate-800">0%</span>
               </div>
             </div>
           </div>
 
           <!-- Pintasan Cepat WhatsApp -->
-          <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-2.5 text-xs">
-            <span class="text-xs font-bold uppercase tracking-wider font-mono text-emerald-400 block pb-1 border-b border-slate-800">Pintasan Notifikasi</span>
-            <button onclick="window.app.sendDailyBriefingToWA()" class="w-full py-2 px-3 bg-emerald-600/90 hover:bg-emerald-600 text-white font-medium text-xs rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer">
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2.5 text-xs shadow-sm">
+            <span class="text-xs font-bold uppercase tracking-wider font-mono text-emerald-700 block pb-1 border-b border-slate-200">Pintasan Notifikasi</span>
+            <button onclick="window.app.sendDailyBriefingToWA()" class="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 cursor-pointer">
               <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
                 <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
               </svg>
               <span>Kirim Briefing Hari Ini ke WA</span>
             </button>
-            <button onclick="window.app.switchTab('notifications')" class="w-full py-1.5 px-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs rounded-xl transition-colors text-center cursor-pointer">
-              Atur Jadwal & Nomor Notifikasi ➔
+            <button onclick="window.app.switchTab('notifications')" class="w-full py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs rounded-xl transition-colors text-center cursor-pointer border border-slate-200">
+              <span class="flex items-center justify-center gap-1">
+                <span>Atur Jadwal & Nomor Notifikasi</span>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </span>
             </button>
           </div>
 
           <!-- Cadangan Data -->
-          <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
-            <span class="text-xs font-bold uppercase tracking-wider font-mono text-slate-400 block pb-1 border-b border-slate-800">Cadangan Data</span>
+          <div class="bg-white border border-slate-200 rounded-2xl p-4 space-y-2 text-xs shadow-sm">
+            <span class="text-xs font-bold uppercase tracking-wider font-mono text-slate-700 block pb-1 border-b border-slate-200">Cadangan Data</span>
             <div class="flex items-center gap-2">
-              <button id="btn-export-backup" class="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors text-center cursor-pointer">
+              <button id="btn-export-backup" class="flex-1 py-1.5 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors text-center cursor-pointer">
                 Ekspor JSON
               </button>
-              <label class="flex-1 py-1.5 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors text-center cursor-pointer">
+              <label class="flex-1 py-1.5 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors text-center cursor-pointer">
                 Impor JSON
                 <input type="file" id="file-import-backup" accept=".json" class="hidden">
               </label>
@@ -418,9 +441,9 @@
 
     <!-- ================= VIEW 2: 1 MINGGU ================= -->
     <div id="view-weekly" class="view-section hidden space-y-4">
-      <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
-        <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-indigo-400">Sprint Mingguan (7 Hari)</h2>
-        <p class="text-xs text-slate-400 mt-1">Pantau ritme kerja Senin hingga Minggu secara menyeluruh.</p>
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+        <h2 class="text-sm font-bold text-indigo-700 uppercase tracking-wider font-mono">Sprint Mingguan (7 Hari)</h2>
+        <p class="text-xs text-slate-600 mt-1">Pantau ritme kerja Senin hingga Minggu secara menyeluruh.</p>
       </div>
       <div id="weekly-grid-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5">
         <!-- Rendered by app.js -->
@@ -429,9 +452,9 @@
 
     <!-- ================= VIEW 3: 1 BULAN ================= -->
     <div id="view-monthly" class="view-section hidden space-y-4">
-      <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
-        <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-cyan-400">Milestone Bulanan</h2>
-        <p class="text-xs text-slate-400 mt-1">Daftar target besar, checkpoint strategis, dan evaluasi bulanan.</p>
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+        <h2 class="text-sm font-bold text-indigo-700 uppercase tracking-wider font-mono">Milestone Bulanan</h2>
+        <p class="text-xs text-slate-600 mt-1">Daftar target besar, checkpoint strategis, dan evaluasi bulanan.</p>
       </div>
       <div id="monthly-list-container" class="space-y-2.5">
         <!-- Rendered by app.js -->
@@ -440,9 +463,9 @@
 
     <!-- ================= VIEW 4: ROADMAP 5 TAHUN ================= -->
     <div id="view-roadmap" class="view-section hidden space-y-4">
-      <div class="bg-[#0f1523] border border-slate-800 rounded-xl p-4">
-        <h2 class="text-sm font-bold text-white uppercase tracking-wider font-mono text-emerald-400">Masterplan Strategis 5 Tahun (2026 - 2030)</h2>
-        <p class="text-xs text-slate-400 mt-1">Peta jalan lengkap per tahun dan kuartal yang dapat langsung diturunkan ke jadwal harian.</p>
+      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+        <h2 class="text-sm font-bold text-indigo-700 uppercase tracking-wider font-mono">Masterplan Strategis 5 Tahun (2026 - 2030)</h2>
+        <p class="text-xs text-slate-600 mt-1">Peta jalan lengkap per tahun dan kuartal yang dapat langsung diturunkan ke jadwal harian.</p>
       </div>
       <div id="roadmap-5y-container" class="space-y-4">
         <!-- Rendered by app.js -->
@@ -453,25 +476,25 @@
     <div id="view-notifications" class="view-section hidden space-y-6">
       
       <!-- Banner Halaman Khusus Notifikasi -->
-      <div class="bg-gradient-to-r from-emerald-950/40 via-[#0f1523] to-[#0f1523] border border-slate-800 rounded-2xl p-5">
+      <div class="bg-gradient-to-r from-emerald-50 via-white to-white border border-slate-200 rounded-2xl p-5 shadow-sm">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 border border-emerald-200 flex items-center justify-center text-emerald-700">
               <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
                 <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
               </svg>
             </div>
             <div>
-              <h2 class="text-base font-bold text-white">Pusat Konfigurasi & Aturan Notifikasi WhatsApp</h2>
-              <p class="text-xs text-slate-400 mt-0.5">Atur jadwal pengiriman briefing rutin, nomor tujuan, dan pengingat jadwal eksekutif.</p>
+              <h2 class="text-base font-bold text-slate-900">Pusat Konfigurasi & Aturan Notifikasi WhatsApp</h2>
+              <p class="text-xs text-slate-600 mt-0.5">Atur jadwal pengiriman briefing rutin, nomor tujuan, dan pengingat jadwal eksekutif.</p>
             </div>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="window.app.sendTestNotification()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer">
-              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <button onclick="window.app.sendTestNotification()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-300 transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm">
+              <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
               Tes Kirim WA Sekarang
             </button>
-            <button onclick="window.app.sendDailyBriefingToWA()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
+            <button onclick="window.app.sendDailyBriefingToWA()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-sm">
               Kirim Briefing Hari Ini
             </button>
           </div>
@@ -482,65 +505,65 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
         <!-- Kartu 1: Gateway & Nomor Tujuan -->
-        <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-5 space-y-4">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase text-emerald-400">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
+          <h3 class="text-sm font-bold text-emerald-700 flex items-center gap-2 font-mono uppercase">
             <span>01.</span> Pengaturan Gateway & Nomor
           </h3>
 
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">Nomor WhatsApp Penerima:</label>
-            <input type="text" id="notif-target-phone" class="w-full bg-[#0a0e17] border border-slate-700 rounded-xl px-3.5 py-2 text-xs text-white font-mono focus:outline-none focus:border-emerald-500" placeholder="6289691905347">
+            <label class="block text-xs font-medium text-slate-700 mb-1">Nomor WhatsApp Penerima:</label>
+            <input type="text" id="notif-target-phone" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs text-slate-900 font-mono focus:outline-none focus:border-emerald-600 shadow-sm" placeholder="6289691905347">
             <span class="text-[11px] text-slate-500 mt-1 block">Format nomor diawali kode negara 62 (contoh: 6289691905347).</span>
           </div>
 
-          <div class="p-3 rounded-xl bg-[#0a0e17] border border-slate-800 space-y-1.5 text-xs font-mono">
-            <div class="flex justify-between text-slate-400">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs font-mono">
+            <div class="flex justify-between text-slate-600">
               <span>Status Bot Baileys UTM:</span>
-              <span class="text-emerald-400 font-bold">Terhubung (Port 3055)</span>
+              <span class="text-emerald-700 font-bold">Terhubung (Port 3055)</span>
             </div>
-            <div class="flex justify-between text-slate-400">
+            <div class="flex justify-between text-slate-600">
               <span>Jalur Pengiriman:</span>
-              <span class="text-slate-200">Local Daemon & Webhook</span>
+              <span class="text-slate-800">Local Daemon & Webhook</span>
             </div>
-            <div class="flex justify-between text-slate-400">
+            <div class="flex justify-between text-slate-600">
               <span>Mode Fallback:</span>
-              <span class="text-cyan-400">WhatsApp Web Auto-Open</span>
+              <span class="text-indigo-700">WhatsApp Web Auto-Open</span>
             </div>
           </div>
         </div>
 
         <!-- Kartu 2: Aturan Jadwal Otomatis -->
-        <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-5 space-y-4">
-          <h3 class="text-sm font-bold text-white flex items-center gap-2 font-mono uppercase text-indigo-400">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
+          <h3 class="text-sm font-bold text-indigo-700 flex items-center gap-2 font-mono uppercase">
             <span>02.</span> Jadwal Notifikasi Rutin
           </h3>
 
           <!-- Aturan 1: Briefing Pagi -->
-          <div class="flex items-center justify-between p-3 rounded-xl bg-[#0a0e17] border border-slate-800">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
             <div>
-              <span class="text-xs font-bold text-slate-200 block">Briefing Pagi Hari</span>
-              <span class="text-[11px] text-slate-400">Rekap seluruh agenda harian bebas bentrok.</span>
+              <span class="text-xs font-bold text-slate-800 block">Briefing Pagi Hari</span>
+              <span class="text-[11px] text-slate-500">Rekap seluruh agenda harian bebas bentrok.</span>
             </div>
             <div class="flex items-center gap-2">
-              <input type="time" id="notif-morning-time" value="07:00" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 font-mono">
+              <input type="time" id="notif-morning-time" value="07:00" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-800 font-mono shadow-sm">
               <input type="checkbox" id="notif-morning-enabled" checked class="custom-checkbox">
             </div>
           </div>
 
           <!-- Aturan 2: Evaluasi Malam -->
-          <div class="flex items-center justify-between p-3 rounded-xl bg-[#0a0e17] border border-slate-800">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
             <div>
-              <span class="text-xs font-bold text-slate-200 block">Evaluasi & Rekap Malam</span>
-              <span class="text-[11px] text-slate-400">Laporan capaian tugas dan evaluasi produktivitas.</span>
+              <span class="text-xs font-bold text-slate-800 block">Evaluasi & Rekap Malam</span>
+              <span class="text-[11px] text-slate-500">Laporan capaian tugas dan evaluasi produktivitas.</span>
             </div>
             <div class="flex items-center gap-2">
-              <input type="time" id="notif-evening-time" value="21:00" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 font-mono">
+              <input type="time" id="notif-evening-time" value="21:00" class="bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-800 font-mono shadow-sm">
               <input type="checkbox" id="notif-evening-enabled" checked class="custom-checkbox">
             </div>
           </div>
 
           <!-- Tombol Simpan -->
-          <button onclick="window.app.saveNotificationSettings()" class="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer text-center">
+          <button onclick="window.app.saveNotificationSettings()" class="w-full py-2.5 px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-colors cursor-pointer text-center">
             Simpan Seluruh Aturan Notifikasi
           </button>
         </div>
@@ -548,8 +571,8 @@
       </div>
 
       <!-- Kartu 3: Riwayat Log Pengiriman Notifikasi -->
-      <div class="bg-[#0f1523] border border-slate-800 rounded-2xl p-5 space-y-3">
-        <h3 class="text-sm font-bold text-white font-mono uppercase text-slate-300">
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm">
+        <h3 class="text-sm font-bold text-slate-800 font-mono uppercase">
           Riwayat Pengiriman Notifikasi Terakhir
         </h3>
         <div id="notif-log-container" class="space-y-2">
@@ -562,37 +585,39 @@
   </main>
 
   <!-- ================= POPUP JAM BULAT INTERAKTIF (ANALOG RADIAL CLOCK PICKER) ================= -->
-  <div id="modal-clock-picker" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-[#0f1523] border border-slate-700 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-5 animate-in fade-in duration-200">
+  <div id="modal-clock-picker" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-5 text-slate-800">
       
       <!-- Modal Header -->
-      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div class="flex items-center justify-between border-b border-slate-200 pb-3">
         <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
-          <h3 class="text-sm font-bold text-white font-mono uppercase tracking-wider">PEMILIH JAM BULAT</h3>
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+          <h3 class="text-sm font-bold text-slate-900 font-mono uppercase tracking-wider">PEMILIH JAM BULAT</h3>
         </div>
-        <button onclick="window.app.closeClockPicker()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer">
-          ✕
+        <button onclick="window.app.closeClockPicker()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
       <!-- Digital Readout Display -->
-      <div class="flex items-center justify-center gap-2 bg-[#0a0e17] border border-slate-800 rounded-2xl py-3 px-4">
-        <button id="clock-btn-mode-hour" onclick="window.app.setClockUnit('hour')" class="text-3xl font-black font-mono text-indigo-400 bg-indigo-950/60 border border-indigo-700/60 rounded-xl px-3 py-1 cursor-pointer transition-all">
+      <div class="flex items-center justify-center gap-2 bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 shadow-sm">
+        <button id="clock-btn-mode-hour" onclick="window.app.setClockUnit('hour')" class="text-3xl font-black font-mono text-indigo-700 bg-white border border-indigo-200 shadow-sm rounded-xl px-3 py-1 cursor-pointer transition-all">
           09
         </button>
         <span class="text-2xl font-bold text-slate-400">:</span>
-        <button id="clock-btn-mode-minute" onclick="window.app.setClockUnit('minute')" class="text-3xl font-black font-mono text-slate-400 hover:text-white rounded-xl px-3 py-1 cursor-pointer transition-all">
+        <button id="clock-btn-mode-minute" onclick="window.app.setClockUnit('minute')" class="text-3xl font-black font-mono text-slate-500 hover:text-slate-900 rounded-xl px-3 py-1 cursor-pointer transition-all">
           00
         </button>
 
         <!-- Toggle Siang vs Malam -->
-        <div class="flex flex-col gap-1 ml-3 pl-3 border-l border-slate-800 text-[10px] font-mono font-bold">
-          <button id="clock-btn-day" onclick="window.app.setClockPeriod('day')" class="px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 cursor-pointer">
-            ☀️ SIANG
+        <div class="flex flex-col gap-1 ml-3 pl-3 border-l border-slate-200 text-[10px] font-mono font-bold">
+          <button id="clock-btn-day" onclick="window.app.setClockPeriod('day')" class="px-2 py-1 rounded bg-amber-50 text-amber-700 border border-amber-200 cursor-pointer flex items-center gap-1">
+            <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            SIANG
           </button>
-          <button id="clock-btn-night" onclick="window.app.setClockPeriod('night')" class="px-2 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer">
-            🌙 MALAM
+          <button id="clock-btn-night" onclick="window.app.setClockPeriod('night')" class="px-2 py-1 rounded text-slate-500 hover:text-slate-800 cursor-pointer flex items-center gap-1">
+            <svg class="w-3 h-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            MALAM
           </button>
         </div>
       </div>
@@ -611,18 +636,18 @@
 
       <!-- Quick Preset Buttons -->
       <div class="flex items-center justify-between gap-1 text-[11px] font-mono">
-        <button onclick="window.app.clockAddMinutes(-15)" class="px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">-15m</button>
-        <button onclick="window.app.clockAddMinutes(15)" class="px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">+15m</button>
-        <button onclick="window.app.clockAddMinutes(30)" class="px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">+30m</button>
-        <button onclick="window.app.clockAddMinutes(60)" class="px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">+1 Jam</button>
+        <button onclick="window.app.clockAddMinutes(-15)" class="px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 cursor-pointer">-15m</button>
+        <button onclick="window.app.clockAddMinutes(15)" class="px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 cursor-pointer">+15m</button>
+        <button onclick="window.app.clockAddMinutes(30)" class="px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 cursor-pointer">+30m</button>
+        <button onclick="window.app.clockAddMinutes(60)" class="px-2 py-1 rounded bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 cursor-pointer">+1 Jam</button>
       </div>
 
       <!-- Modal Footer -->
-      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-        <button onclick="window.app.closeClockPicker()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white cursor-pointer">
+      <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
+        <button onclick="window.app.closeClockPicker()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer">
           Batal
         </button>
-        <button onclick="window.app.applyClockPicker()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg transition-all cursor-pointer">
+        <button onclick="window.app.applyClockPicker()" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer">
           Terapkan Jam
         </button>
       </div>
@@ -631,17 +656,17 @@
   </div>
 
   <!-- ================= MINIMALIST FOOTER ================= -->
-  <footer class="w-full border-t border-slate-800/80 bg-[#0a0e17] py-3 text-xs text-slate-500 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+  <footer class="w-full border-t border-slate-200 bg-white py-3 text-xs text-slate-500 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 shadow-inner">
     <div class="flex items-center gap-2">
       <span>© 2026 Ilham Pradani • Executive Productivity & Notification Rules</span>
-      <span class="text-slate-700">|</span>
-      <span class="font-mono text-indigo-400">productivity.ilhampradani.me</span>
+      <span class="text-slate-300">|</span>
+      <span class="font-mono text-indigo-600">productivity.ilhampradani.me</span>
     </div>
-    <div class="text-[11px] text-slate-600 font-mono">
+    <div class="text-[11px] text-slate-500 font-mono">
       Gateway Port 3080 • Baileys Port 3055
     </div>
   </footer>
 
-  <script src="./app.js?v=20261125_08"></script>
+  <script src="./app.js?v=20261126_01"></script>
 </body>
 </html>

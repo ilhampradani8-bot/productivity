@@ -1,15 +1,32 @@
 /**
  * Executive Productivity & Notification Rules System
- * Google-Style Minimalist Architecture
+ * Google-Style Minimalist Architecture - Classic White Edition
  * Features:
- * - Google Calendar/Forms style task creator
- * - 24-Hour Anti-Collision / Anti-Overlap validation ("Waktu Kosong")
+ * - Chronological Auto-Sorting for Daily View
+ * - Prominent High-Contrast Time Pillar on Task Cards
+ * - 100% SVG Icons (Zero Unicode Emojis in UI)
+ * - Clickable 24-Hour Time Map (Direct Set Start/End Time Snapped to 15m)
+ * - Anti-Collision / Anti-Overlap validation ("Waktu Kosong")
  * - Interactive Radial Analog Clock Picker with smooth drag and Siang/Malam switch
  * - Support for 2 Time Sessions per day (Sesi Siang & Sesi Malam)
- * - Expiration & Recurrence rules (Daily, Yearly, 1M, 1Y, 3Y, until completed)
+ * - Expiration & Recurrence rules (Daily, Weekdays, Weekly, Yearly, 1M, 1Y, 3Y, until completed)
  * - Zero Priorities, Zero Categories (Streamlined Executive Focus)
  * - WhatsApp Baileys Bot Gateway integration
  */
+
+const ICONS = {
+  sun: `<svg class="w-3.5 h-3.5 text-amber-500 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`,
+  moon: `<svg class="w-3.5 h-3.5 text-indigo-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`,
+  clock: `<svg class="w-3.5 h-3.5 text-slate-500 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+  calendar: `<svg class="w-3.5 h-3.5 text-indigo-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`,
+  repeat: `<svg class="w-3 h-3 text-indigo-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>`,
+  checkCircle: `<svg class="w-4 h-4 text-emerald-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+  alertTriangle: `<svg class="w-4 h-4 text-rose-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`,
+  save: `<svg class="w-4 h-4 text-white inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>`,
+  edit: `<svg class="w-4 h-4 text-indigo-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>`,
+  trash: `<svg class="w-4 h-4 text-slate-400 hover:text-rose-600 inline-block flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`,
+  wa: `<svg class="w-4 h-4 fill-current text-emerald-600 inline-block flex-shrink-0" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>`
+};
 
 const DEFAULT_SYSTEM_DATA = {
   profile: {
@@ -29,7 +46,7 @@ const DEFAULT_SYSTEM_DATA = {
       time: "21:00"
     },
     logs: [
-      { id: "log-1", time: "2026-11-25 23:18:20", type: "Gateway Connected", status: "Terkirim", phone: "6289691905347" }
+      { id: "log-1", time: "2026-11-26 08:00:00", type: "Gateway Connected", status: "Terkirim", phone: "6289691905347" }
     ]
   },
   fiveYearPlan: [
@@ -78,7 +95,7 @@ const DEFAULT_SYSTEM_DATA = {
           quarter: "Q4 2026",
           focus: "Eksekusi Sistem Produktivitas Eksekutif & Review Tahunan",
           status: "in_progress",
-          progress: 80,
+          progress: 85,
           steps: [
             { id: "s109", title: "Peluncuran dashboard Sekretaris Pribadi productivity.ilhampradani.me", done: true, note: "Aplikasi live & terintegrasi Cloudflare Tunnel" },
             { id: "s110", title: "Integrasi gateway notifikasi WhatsApp 24/7", done: true, note: "Panggilan pesan bot langsung" }
@@ -190,7 +207,7 @@ const DEFAULT_SYSTEM_DATA = {
   dailyTasks: [
     {
       id: "t-1",
-      date: "2026-11-25",
+      date: "2026-11-26",
       timeStart: "07:30",
       timeEnd: "08:30",
       hasSecondSession: false,
@@ -200,14 +217,14 @@ const DEFAULT_SYSTEM_DATA = {
       note: "Briefing mandiri & penetapan fokus non-negotiables",
       recurrence: "daily",
       validityType: "3_years",
-      validUntil: "2029-11-25",
+      validUntil: "2029-11-26",
       status: "done",
-      completedDates: ["2026-11-25"],
+      completedDates: ["2026-11-26"],
       deletedDates: []
     },
     {
       id: "t-2",
-      date: "2026-11-25",
+      date: "2026-11-26",
       timeStart: "09:00",
       timeEnd: "10:30",
       hasSecondSession: false,
@@ -217,16 +234,16 @@ const DEFAULT_SYSTEM_DATA = {
       note: "Verifikasi kestabilan usque proxy & memory footprint",
       recurrence: "daily",
       validityType: "3_years",
-      validUntil: "2029-11-25",
+      validUntil: "2029-11-26",
       status: "done",
-      completedDates: ["2026-11-25"],
+      completedDates: ["2026-11-26"],
       deletedDates: []
     },
     {
       id: "t-3",
-      date: "2026-11-25",
+      date: "2026-11-26",
       timeStart: "11:00",
-      timeEnd: "13:00",
+      timeEnd: "12:30",
       hasSecondSession: true,
       session2Start: "20:00",
       session2End: "21:30",
@@ -236,14 +253,14 @@ const DEFAULT_SYSTEM_DATA = {
       validityType: "until_completed",
       validUntil: "",
       status: "done",
-      completedDates: ["2026-11-25"],
+      completedDates: ["2026-11-26"],
       deletedDates: []
     },
     {
       id: "t-4",
-      date: "2026-11-25",
-      timeStart: "14:30",
-      timeEnd: "16:00",
+      date: "2026-11-26",
+      timeStart: "14:00",
+      timeEnd: "15:30",
       hasSecondSession: false,
       session2Start: "",
       session2End: "",
@@ -253,12 +270,12 @@ const DEFAULT_SYSTEM_DATA = {
       validityType: "until_completed",
       validUntil: "",
       status: "done",
-      completedDates: ["2026-11-25"],
+      completedDates: ["2026-11-26"],
       deletedDates: []
     },
     {
       id: "t-5",
-      date: "2026-11-25",
+      date: "2026-11-26",
       timeStart: "16:30",
       timeEnd: "17:30",
       hasSecondSession: false,
@@ -268,7 +285,7 @@ const DEFAULT_SYSTEM_DATA = {
       note: "Baca modul materi strategis 60 menit",
       recurrence: "daily",
       validityType: "1_year",
-      validUntil: "2027-11-25",
+      validUntil: "2027-11-26",
       status: "todo",
       completedDates: [],
       deletedDates: []
@@ -278,7 +295,7 @@ const DEFAULT_SYSTEM_DATA = {
 
 class ProductivityApp {
   constructor() {
-    this.storageKey = "sekretaris_produktivitas_fw_v4";
+    this.storageKey = "sekretaris_produktivitas_fw_v5";
     this.data = this.loadData();
     this.activeTab = "daily";
     this.selectedDate = this.getTodayDateString();
@@ -292,7 +309,7 @@ class ProductivityApp {
     this.clockHour = 9;
     this.clockMinute = 0;
     this.clockUnit = "hour"; // 'hour' or 'minute'
-    this.clockPeriod = "day"; // 'day' (☀️ Siang: 12-23 / daytime) or 'night' (🌙 Malam: 00-11 / nighttime)
+    this.clockPeriod = "day"; // 'day' (Siang: 12-23) or 'night' (Malam: 00-11)
     this.isClockDragging = false;
     this.editingTaskId = null;
 
@@ -313,7 +330,6 @@ class ProductivityApp {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed && parsed.dailyTasks) {
-          // Normalisasi task data lama ke format baru jika perlu
           parsed.dailyTasks = parsed.dailyTasks.map(t => {
             if (!t.timeStart && t.time) {
               t.timeStart = t.time;
@@ -434,11 +450,11 @@ class ProductivityApp {
     this.activeTab = tab;
     document.querySelectorAll(".tab-pill").forEach(el => {
       if (el.dataset.tab === tab) {
-        el.classList.remove("text-slate-400", "bg-transparent");
-        el.classList.add("bg-indigo-600", "text-white");
+        el.classList.remove("text-slate-600", "bg-transparent");
+        el.classList.add("bg-indigo-600", "text-white", "shadow-sm");
       } else {
-        el.classList.remove("bg-indigo-600", "text-white");
-        el.classList.add("text-slate-400");
+        el.classList.remove("bg-indigo-600", "text-white", "shadow-sm");
+        el.classList.add("text-slate-600");
       }
     });
 
@@ -474,6 +490,58 @@ class ProductivityApp {
     return `${h}:${m}`;
   }
 
+  formatDuration(startStr, endStr) {
+    if (!startStr || !endStr) return "";
+    const s = this.timeToMinutes(startStr);
+    const e = this.timeToMinutes(endStr);
+    const diff = e - s;
+    if (diff <= 0) return "";
+    const h = Math.floor(diff / 60);
+    const m = diff % 60;
+    if (h > 0 && m > 0) return `${h} jam ${m} mnt`;
+    if (h > 0) return `${h} jam`;
+    return `${m} menit`;
+  }
+
+  // ===================== CLICKABLE 24-HOUR TIMELINE =====================
+  onTimelineClick(e) {
+    const bar = document.getElementById("timeline-24h-bar");
+    if (!bar) return;
+    const rect = bar.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const x = clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, x / rect.width));
+    const rawMins = ratio * 1440;
+    
+    // Snap ke kelipatan 15 menit terdekat
+    let snappedStart = Math.round(rawMins / 15) * 15;
+    if (snappedStart >= 1440) snappedStart = 1425;
+    
+    // Durasi default 60 menit atau sampai batas 23:59
+    let snappedEnd = Math.min(1439, snappedStart + 60);
+    if (snappedEnd <= snappedStart) snappedEnd = 1439;
+
+    const s1StartEl = document.getElementById("task-start-time");
+    const s1EndEl = document.getElementById("task-end-time");
+    const toggleS2 = document.getElementById("toggle-session2");
+    const s2StartEl = document.getElementById("task-session2-start");
+    const s2EndEl = document.getElementById("task-session2-end");
+
+    const hasS2 = toggleS2 && toggleS2.checked;
+    const s1End = s1EndEl ? this.timeToMinutes(s1EndEl.value) : 600;
+
+    // Jika Sesi 2 dicentang dan klik dilakukan di waktu malam setelah Sesi 1, isi Sesi 2
+    if (hasS2 && snappedStart >= s1End && s2StartEl && s2EndEl) {
+      s2StartEl.value = this.minutesToTime(snappedStart);
+      s2EndEl.value = this.minutesToTime(snappedEnd);
+    } else if (s1StartEl && s1EndEl) {
+      s1StartEl.value = this.minutesToTime(snappedStart);
+      s1EndEl.value = this.minutesToTime(snappedEnd);
+    }
+
+    this.checkTimeCollision();
+  }
+
   // Mengambil seluruh agenda yang berlaku untuk tanggal tertentu
   getTasksForDate(targetDate) {
     return this.data.dailyTasks.filter(task => {
@@ -501,7 +569,7 @@ class ProductivityApp {
         return dow >= 1 && dow <= 5;
       }
 
-      // Weekly on specific day (e.g. Setiap Senin / Hari Terpilih)
+      // Weekly on specific day
       if (task.recurrence === "weekly_day") {
         if (targetDate < task.date) return false;
         if (task.validUntil && targetDate > task.validUntil) return false;
@@ -521,7 +589,6 @@ class ProductivityApp {
 
       return false;
     }).map(task => {
-      // Hitung status selesai pada tanggal ini
       let isDone = task.status === "done";
       if (task.recurrence && task.recurrence !== "none") {
         isDone = task.completedDates && task.completedDates.includes(targetDate);
@@ -617,11 +684,11 @@ class ProductivityApp {
       }
     }
 
-    // Update UI status
+    // Update UI status dengan SVG
     if (conflict) {
       if (badgeEl) {
-        badgeEl.textContent = "⛔ Ada Bentrok Waktu!";
-        badgeEl.className = "font-bold text-rose-400";
+        badgeEl.innerHTML = `${ICONS.alertTriangle} <span>Ada Bentrok Waktu!</span>`;
+        badgeEl.className = "font-bold text-rose-700 flex items-center gap-1.5";
       }
       if (warnBox && warnText) {
         warnBox.classList.remove("hidden");
@@ -630,8 +697,8 @@ class ProductivityApp {
       if (submitBtn) submitBtn.disabled = true;
     } else {
       if (badgeEl) {
-        badgeEl.textContent = "✅ Slot Waktu Bebas & Aman (Tidak Menimpa Work)";
-        badgeEl.className = "font-bold text-emerald-400";
+        badgeEl.innerHTML = `${ICONS.checkCircle} <span>Slot Waktu Bebas & Aman (Tidak Menimpa Work)</span>`;
+        badgeEl.className = "font-bold text-emerald-700 flex items-center gap-1.5";
       }
       if (warnBox) warnBox.classList.add("hidden");
       if (submitBtn) submitBtn.disabled = false;
@@ -639,7 +706,6 @@ class ProductivityApp {
 
     // Render Visual Timeline Bar 24 Jam
     let html = "";
-    // Gambar slot terisi
     occupied.forEach(occ => {
       const left = (occ.start / 1440) * 100;
       const width = Math.max(1, ((occ.end - occ.start) / 1440) * 100);
@@ -648,7 +714,6 @@ class ProductivityApp {
       `;
     });
 
-    // Gambar kandidat Sesi 1
     if (s1End > s1Start) {
       const left = (s1Start / 1440) * 100;
       const width = Math.max(1, ((s1End - s1Start) / 1440) * 100);
@@ -658,7 +723,6 @@ class ProductivityApp {
       `;
     }
 
-    // Gambar kandidat Sesi 2 jika aktif
     if (hasS2 && s2End > s2Start) {
       const left = (s2Start / 1440) * 100;
       const width = Math.max(1, ((s2End - s2Start) / 1440) * 100);
@@ -676,8 +740,7 @@ class ProductivityApp {
     const targetDateInput = document.getElementById("task-target-date");
     const targetDate = (targetDateInput && targetDateInput.value) || this.selectedDate;
     const occupied = this.getOccupiedIntervals(targetDate, this.editingTaskId);
-    // Cari celah kosong mulai pukul 08:00 (480 menit) hingga 22:00 (1320 menit)
-    let pointer = 480;
+    let pointer = 480; // 08:00
     let foundStart = null;
 
     while (pointer + requestedDurationMinutes <= 1380) {
@@ -685,7 +748,7 @@ class ProductivityApp {
       for (const occ of occupied) {
         if (pointer < occ.end && (pointer + requestedDurationMinutes) > occ.start) {
           isFree = false;
-          pointer = occ.end; // loncat ke akhir slot terisi
+          pointer = occ.end;
           break;
         }
       }
@@ -696,8 +759,7 @@ class ProductivityApp {
     }
 
     if (foundStart === null) {
-      // Jika di jam kerja penuh, cari dari jam 06:00
-      pointer = 360;
+      pointer = 360; // 06:00
       while (pointer + requestedDurationMinutes <= 1440) {
         let isFree = true;
         for (const occ of occupied) {
@@ -723,7 +785,7 @@ class ProductivityApp {
         this.checkTimeCollision();
       }
     } else {
-      alert("Jadwal hari ini sudah sangat padat dalam 24 jam! Silakan kurangi durasi atau pilih tanggal lain.");
+      alert("Jadwal hari ini sudah padat dalam 24 jam. Silakan kurangi durasi atau pilih tanggal lain.");
     }
   }
 
@@ -740,14 +802,11 @@ class ProductivityApp {
     let h24 = parseInt(hStr, 10) || 0;
     this.clockMinute = parseInt(mStr, 10) || 0;
 
-    // Tentukan Siang vs Malam
-    // Siang: 12:00 - 23:59 (atau daytime 06:00 - 17:59). Standar AM/PM: PM = Siang/Sore/Malam, AM = Malam/Subuh/Pagi
-    // Di Indonesia: Jam 12 ke atas adalah siang/sore/malam, jam 0-11 adalah malam/subuh/pagi.
     if (h24 >= 12) {
-      this.clockPeriod = "day"; // ☀️ Siang
+      this.clockPeriod = "day"; // Siang
       this.clockHour = h24 === 12 ? 12 : h24 - 12;
     } else {
-      this.clockPeriod = "night"; // 🌙 Malam / Pagi
+      this.clockPeriod = "night"; // Malam
       this.clockHour = h24 === 0 ? 12 : h24;
     }
 
@@ -780,13 +839,12 @@ class ProductivityApp {
     const container = document.getElementById("clock-numbers-container");
     if (!container) return;
 
-    const radius = 90; // Jarak dari pusat (center: 125px, 125px)
+    const radius = 90;
     const centerX = 125;
     const centerY = 125;
     let html = "";
 
     if (this.clockUnit === "hour") {
-      // 1..12
       for (let i = 1; i <= 12; i++) {
         const angle = (i * 30 - 90) * (Math.PI / 180);
         const x = centerX + radius * Math.cos(angle);
@@ -799,7 +857,6 @@ class ProductivityApp {
         `;
       }
     } else {
-      // Menit 00, 05, 10, ... 55
       for (let i = 0; i < 60; i += 5) {
         const angle = (i * 6 - 90) * (Math.PI / 180);
         const x = centerX + radius * Math.cos(angle);
@@ -824,7 +881,6 @@ class ProductivityApp {
     const handLine = document.getElementById("clock-hand-line");
     const handPointer = document.getElementById("clock-hand-pointer");
 
-    // Hitung 24 jam real
     let h24 = this.clockHour;
     if (this.clockPeriod === "day") {
       h24 = this.clockHour === 12 ? 12 : this.clockHour + 12;
@@ -835,33 +891,31 @@ class ProductivityApp {
     if (btnHour) {
       btnHour.textContent = String(h24).padStart(2, "0");
       if (this.clockUnit === "hour") {
-        btnHour.className = "text-3xl font-black font-mono text-indigo-400 bg-indigo-950/80 border border-indigo-600 rounded-xl px-3 py-1 cursor-pointer transition-all";
+        btnHour.className = "text-3xl font-black font-mono text-indigo-700 bg-white border border-indigo-200 shadow-sm rounded-xl px-3 py-1 cursor-pointer transition-all";
       } else {
-        btnHour.className = "text-3xl font-black font-mono text-slate-400 hover:text-white rounded-xl px-3 py-1 cursor-pointer transition-all";
+        btnHour.className = "text-3xl font-black font-mono text-slate-400 hover:text-slate-800 rounded-xl px-3 py-1 cursor-pointer transition-all";
       }
     }
 
     if (btnMin) {
       btnMin.textContent = String(this.clockMinute).padStart(2, "0");
       if (this.clockUnit === "minute") {
-        btnMin.className = "text-3xl font-black font-mono text-indigo-400 bg-indigo-950/80 border border-indigo-600 rounded-xl px-3 py-1 cursor-pointer transition-all";
+        btnMin.className = "text-3xl font-black font-mono text-indigo-700 bg-white border border-indigo-200 shadow-sm rounded-xl px-3 py-1 cursor-pointer transition-all";
       } else {
-        btnMin.className = "text-3xl font-black font-mono text-slate-400 hover:text-white rounded-xl px-3 py-1 cursor-pointer transition-all";
+        btnMin.className = "text-3xl font-black font-mono text-slate-400 hover:text-slate-800 rounded-xl px-3 py-1 cursor-pointer transition-all";
       }
     }
 
-    // Toggle button styles
     if (btnDay && btnNight) {
       if (this.clockPeriod === "day") {
-        btnDay.className = "px-2.5 py-1 rounded-lg bg-amber-500/30 text-amber-300 border border-amber-500/60 font-bold cursor-pointer";
-        btnNight.className = "px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200 cursor-pointer";
+        btnDay.className = "px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 border border-amber-300 font-bold cursor-pointer flex items-center gap-1 shadow-sm";
+        btnNight.className = "px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800 cursor-pointer flex items-center gap-1";
       } else {
-        btnNight.className = "px-2.5 py-1 rounded-lg bg-cyan-500/30 text-cyan-300 border border-cyan-500/60 font-bold cursor-pointer";
-        btnDay.className = "px-2.5 py-1 rounded-lg text-slate-400 hover:text-slate-200 cursor-pointer";
+        btnNight.className = "px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 border border-indigo-300 font-bold cursor-pointer flex items-center gap-1 shadow-sm";
+        btnDay.className = "px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-800 cursor-pointer flex items-center gap-1";
       }
     }
 
-    // Update rotation angle
     let angle = 0;
     if (this.clockUnit === "hour") {
       angle = (this.clockHour % 12) * 30;
@@ -895,17 +949,14 @@ class ProductivityApp {
     const deltaX = clientX - centerX;
     const deltaY = clientY - centerY;
 
-    // Hitung sudut dalam derajat (0 - 360)
     let degrees = Math.atan2(deltaY, deltaX) * (180 / Math.PI) + 90;
     if (degrees < 0) degrees += 360;
 
     if (this.clockUnit === "hour") {
-      // 12 langkah @ 30 derajat
       let hour = Math.round(degrees / 30);
       if (hour === 0) hour = 12;
       this.clockHour = hour;
     } else {
-      // 60 langkah @ 6 derajat
       let minute = Math.round(degrees / 6) % 60;
       this.clockMinute = minute;
     }
@@ -974,7 +1025,6 @@ class ProductivityApp {
     window.addEventListener("pointerup", () => {
       if (this.isClockDragging) {
         this.isClockDragging = false;
-        // Jika baru memilih jam, otomatis alihkan ke menit agar mulus seperti Google Clock
         if (this.clockUnit === "hour") {
           setTimeout(() => {
             this.setClockUnit("minute");
@@ -1001,7 +1051,6 @@ class ProductivityApp {
   }
 
   handleRecurrenceChange() {
-    // Dipanggil saat frekuensi perulangan berubah
     this.handleValidityPresetChange();
   }
 
@@ -1102,7 +1151,7 @@ class ProductivityApp {
     else if (this.activeTab === "notifications") this.renderNotificationsView();
   }
 
-  // ===================== DAILY VIEW (NO PRIORITIES, NO CATEGORIES) =====================
+  // ===================== DAILY VIEW: STRICT CHRONOLOGICAL SORTING & PROMINENT TIME PILLAR =====================
   renderDailyView() {
     const list = document.getElementById("daily-task-container");
     if (!list) return;
@@ -1114,18 +1163,21 @@ class ProductivityApp {
       tasks = tasks.filter(t => t.title.toLowerCase().includes(q) || (t.note && t.note.toLowerCase().includes(q)));
     }
 
-    // Urutkan berdasarkan waktu mulai
+    // STRICT CHRONOLOGICAL AUTO-SORTING (Waktu Mulai Ascending)
     tasks.sort((a, b) => {
-      const sA = a.timeStart || "99:99";
-      const sB = b.timeStart || "99:99";
-      return sA.localeCompare(sB);
+      const mA = this.timeToMinutes(a.timeStart || "23:59");
+      const mB = this.timeToMinutes(b.timeStart || "23:59");
+      if (mA !== mB) return mA - mB;
+      const eA = this.timeToMinutes(a.timeEnd || "23:59");
+      const eB = this.timeToMinutes(b.timeEnd || "23:59");
+      return eA - eB;
     });
 
     if (tasks.length === 0) {
       list.innerHTML = `
-        <div class="p-8 text-center bg-slate-900/40 rounded-2xl border border-dashed border-slate-800">
-          <p class="text-sm font-medium text-slate-400">Tidak ada agenda pada tanggal ini.</p>
-          <p class="text-xs text-slate-500 mt-1">Gunakan form Google-style di atas untuk menjadwalkan agenda bebas bentrok.</p>
+        <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm">
+          <p class="text-sm font-medium text-slate-600">Tidak ada agenda pada tanggal ini.</p>
+          <p class="text-xs text-slate-500 mt-1">Gunakan form Google-style atau klik peta bar 24 jam di atas untuk menjadwalkan agenda bebas bentrok.</p>
         </div>
       `;
       return;
@@ -1133,69 +1185,72 @@ class ProductivityApp {
 
     list.innerHTML = tasks.map(task => {
       const isDone = task.isDone;
+      const dur1 = this.formatDuration(task.timeStart, task.timeEnd);
+      const dur2 = task.hasSecondSession ? this.formatDuration(task.session2Start, task.session2End) : "";
+
       let recurrenceBadge = "";
       if (task.recurrence === "daily") {
-        recurrenceBadge = `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-950/70 text-indigo-300 border border-indigo-800/50">🔁 Tiap Hari ${task.validUntil ? 's/d ' + task.validUntil : ''}</span>`;
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">${ICONS.repeat} <span>Tiap Hari ${task.validUntil ? 's/d ' + task.validUntil : ''}</span></span>`;
       } else if (task.recurrence === "weekdays") {
-        recurrenceBadge = `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-800/50">🔁 Senin - Jumat (Hari Kerja)</span>`;
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">${ICONS.repeat} <span>Senin - Jumat (Hari Kerja)</span></span>`;
       } else if (task.recurrence === "weekly_day") {
         const parts = (task.date || this.selectedDate).split("-");
         const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
         const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-        recurrenceBadge = `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-950/70 text-blue-300 border border-blue-800/50">🔁 Setiap ${days[d.getDay()]}</span>`;
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Setiap ${days[d.getDay()]}</span></span>`;
       } else if (task.recurrence === "yearly") {
-        recurrenceBadge = `<span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/70 text-cyan-300 border border-cyan-800/50">🔁 Tiap Tahun</span>`;
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 border border-cyan-200">${ICONS.repeat} <span>Tiap Tahun</span></span>`;
       }
 
       return `
-        <div class="flex items-center justify-between gap-3 p-4 rounded-2xl border transition-all ${
-          isDone ? "bg-slate-950/40 border-slate-900 opacity-60" : "bg-[#0f1523]/80 hover:bg-[#0f1523] border-slate-800 shadow-sm"
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border transition-all ${
+          isDone ? "bg-slate-50/70 border-slate-200 opacity-60" : "bg-white hover:bg-slate-50/50 border-slate-200 shadow-sm"
         }">
-          <div class="flex items-center gap-3 flex-1 min-w-0">
-            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="custom-checkbox flex-shrink-0">
+          <div class="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+            <!-- Checkbox -->
+            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="custom-checkbox flex-shrink-0 mt-1 sm:mt-0">
             
-            <div class="flex-1 min-w-0">
-              <!-- Waktu & Badge Perulangan (NO PRIORITAS, NO KATEGORI) -->
-              <div class="flex items-center gap-2 flex-wrap mb-1.5">
-                ${task.timeStart ? `
-                  <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg bg-slate-800 text-amber-300 border border-slate-700/80">
-                    ☀️ ${task.timeStart} - ${task.timeEnd || 'Selesai'}
-                  </span>
-                ` : ''}
-                
-                ${task.hasSecondSession && task.session2Start ? `
-                  <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-lg bg-slate-800 text-cyan-300 border border-slate-700/80">
-                    🌙 ${task.session2Start} - ${task.session2End || 'Selesai'}
-                  </span>
-                ` : ''}
+            <!-- PROMINENT TIME PILLAR (BAGIAN JAM LEBIH DIPERJELAS) -->
+            <div class="task-time-pillar flex-shrink-0 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 min-w-[130px] shadow-sm">
+              <div class="flex items-center gap-1.5 text-xs font-bold font-mono text-slate-900">
+                ${ICONS.sun}
+                <span>${task.timeStart || '09:00'} - ${task.timeEnd || 'Selesai'}</span>
+              </div>
+              ${dur1 ? `<span class="text-[10px] font-mono font-medium text-slate-500 mt-0.5">${dur1}</span>` : ''}
+              
+              ${task.hasSecondSession && task.session2Start ? `
+                <div class="flex items-center gap-1.5 text-xs font-bold font-mono text-indigo-700 mt-1.5 pt-1.5 border-t border-slate-200 w-full justify-center">
+                  ${ICONS.moon}
+                  <span>${task.session2Start} - ${task.session2End || 'Selesai'}</span>
+                </div>
+                ${dur2 ? `<span class="text-[9px] font-mono text-indigo-500">${dur2}</span>` : ''}
+              ` : ''}
+            </div>
 
+            <!-- Task Detail & Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap mb-1">
                 ${recurrenceBadge}
               </div>
 
-              <p class="text-sm font-semibold ${isDone ? 'line-through text-slate-500' : 'text-slate-100'} break-words">
+              <h4 class="text-sm font-bold ${isDone ? 'line-through text-slate-400' : 'text-slate-900'} break-words">
                 ${this.escapeHtml(task.title)}
-              </p>
+              </h4>
               
-              ${task.note ? `<p class="text-xs text-slate-400 mt-1 break-words leading-relaxed">${this.escapeHtml(task.note)}</p>` : ''}
+              ${task.note ? `<p class="text-xs text-slate-600 mt-1 break-words leading-relaxed">${this.escapeHtml(task.note)}</p>` : ''}
             </div>
           </div>
 
           <!-- Actions -->
-          <div class="flex items-center gap-1.5 flex-shrink-0">
-            <button onclick="window.app.editTask('${task.id}')" title="Edit Agenda Ini" class="p-2 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/40 rounded-xl transition-colors cursor-pointer">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
+          <div class="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-center">
+            <button onclick="window.app.editTask('${task.id}')" title="Edit Agenda Ini" class="p-2 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-indigo-200">
+              ${ICONS.edit}
             </button>
-            <button onclick="window.app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="p-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-950/40 rounded-xl transition-colors cursor-pointer">
-              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
-              </svg>
+            <button onclick="window.app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="p-2 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-emerald-200">
+              ${ICONS.wa}
             </button>
-            <button onclick="window.app.deleteTask('${task.id}', '${this.selectedDate}')" title="Hapus Tugas" class="p-2 text-slate-500 hover:text-rose-400 hover:bg-rose-950/30 rounded-xl transition-colors cursor-pointer">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+            <button onclick="window.app.deleteTask('${task.id}', '${this.selectedDate}')" title="Hapus Tugas" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-rose-200">
+              ${ICONS.trash}
             </button>
           </div>
         </div>
@@ -1252,7 +1307,6 @@ class ProductivityApp {
       };
       this.data.dailyTasks.unshift(newTask);
 
-      // Jika tanggal berbeda dari yang sedang aktif dilihat, otomatis lompat ke tanggal tersebut
       if (targetDate !== this.selectedDate) {
         this.selectedDate = targetDate;
         const dateInput = document.getElementById("date-input");
@@ -1306,7 +1360,9 @@ class ProductivityApp {
     if (untilEl) untilEl.value = task.validUntil || "";
     if (noteEl) noteEl.value = task.note || "";
 
-    if (submitTextEl) submitTextEl.textContent = "💾 Simpan Perubahan Agenda";
+    if (submitTextEl) {
+      submitTextEl.innerHTML = `${ICONS.save} <span>Simpan Perubahan Agenda</span>`;
+    }
     if (cancelBtn) cancelBtn.classList.remove("hidden");
 
     this.checkTimeCollision();
@@ -1357,9 +1413,8 @@ class ProductivityApp {
     const task = this.data.dailyTasks.find(item => item.id === id);
     if (!task) return;
 
-    // Jika agenda berulang, tanyakan apakah hapus untuk hari ini atau seluruhnya
     if (task.recurrence && task.recurrence !== "none") {
-      const choice = confirm(`Agenda "${task.title}" berulang (${task.recurrence === 'daily' ? 'Setiap Hari' : 'Setiap Tahun'}).\n\nKlik OK untuk Hapus Hanya Hari Ini (${targetDate}).\nKlik CANCEL jika ingin membatalkan (atau buka dialog konfirmasi hapus permanen).`);
+      const choice = confirm(`Agenda "${task.title}" berulang (${task.recurrence === 'daily' ? 'Setiap Hari' : 'Setiap Minggu/Tahun'}).\n\nKlik OK untuk Hapus Hanya Hari Ini (${targetDate}).\nKlik CANCEL untuk opsi hapus permanen.`);
       if (choice) {
         if (!task.deletedDates) task.deletedDates = [];
         if (!task.deletedDates.includes(targetDate)) task.deletedDates.push(targetDate);
@@ -1398,32 +1453,32 @@ class ProductivityApp {
 
       return `
         <div class="rounded-2xl border p-4 transition-all ${
-          isSelected ? "bg-slate-900 border-indigo-500 ring-1 ring-indigo-500" : "bg-[#0f1523]/80 border-slate-800"
+          isSelected ? "bg-indigo-50/60 border-indigo-500 ring-1 ring-indigo-500 shadow-sm" : "bg-white border-slate-200 shadow-sm"
         }">
-          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+          <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
             <div>
-              <span class="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">${day.label}</span>
-              <p class="text-sm font-bold text-white font-mono">${day.date.split("-").slice(1).join("/")}</p>
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 font-mono">${day.label}</span>
+              <p class="text-sm font-bold text-slate-900 font-mono">${day.date.split("-").slice(1).join("/")}</p>
             </div>
-            <button onclick="window.app.selectDateAndJump('${day.date}')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-indigo-600 text-slate-300 hover:text-white transition-colors cursor-pointer">
+            <button onclick="window.app.selectDateAndJump('${day.date}')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 transition-colors cursor-pointer border border-slate-200">
               Buka
             </button>
           </div>
-          <p class="text-xs text-indigo-300 font-medium mb-3 p-1.5 rounded-lg bg-indigo-950/30 border border-indigo-900/40 line-clamp-2">
+          <p class="text-xs text-indigo-700 font-medium mb-3 p-1.5 rounded-lg bg-indigo-50 border border-indigo-100 line-clamp-2">
             ${this.escapeHtml(day.focus)}
           </p>
           <div class="space-y-1.5 min-h-[75px]">
             ${tasks.slice(0, 3).map(t => `
-              <div class="text-xs truncate ${t.isDone ? 'line-through text-slate-500' : 'text-slate-300'}">
+              <div class="text-xs truncate ${t.isDone ? 'line-through text-slate-400' : 'text-slate-700'}">
                 • ${t.timeStart ? `[${t.timeStart}] ` : ''}${this.escapeHtml(t.title)}
               </div>
             `).join("")}
-            ${total > 3 ? `<p class="text-[10px] text-slate-500">+${total - 3} lainnya</p>` : ''}
-            ${total === 0 ? `<p class="text-xs text-slate-600 italic">Slot kosong 24 jam</p>` : ''}
+            ${total > 3 ? `<p class="text-[10px] text-slate-400 font-mono">+${total - 3} lainnya</p>` : ''}
+            ${total === 0 ? `<p class="text-xs text-slate-400 italic">Slot kosong 24 jam</p>` : ''}
           </div>
-          <div class="mt-3 pt-2 border-t border-slate-800 flex justify-between text-xs text-slate-400 font-mono">
+          <div class="mt-3 pt-2 border-t border-slate-200 flex justify-between text-xs text-slate-600 font-mono">
             <span>${done}/${total} Selesai</span>
-            <span>${total > 0 ? Math.round((done / total) * 100) : 0}%</span>
+            <span class="font-bold text-indigo-700">${total > 0 ? Math.round((done / total) * 100) : 0}%</span>
           </div>
         </div>
       `;
@@ -1442,15 +1497,15 @@ class ProductivityApp {
     if (!list) return;
 
     list.innerHTML = this.data.monthlyPlan.milestones.map(m => `
-      <div class="flex items-center justify-between p-4 rounded-2xl bg-[#0f1523]/80 border border-slate-800">
+      <div class="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
         <div class="flex items-center gap-3">
           <input type="checkbox" ${m.done ? 'checked' : ''} onchange="window.app.toggleMonthlyMilestone('${m.id}')" class="custom-checkbox">
           <div>
-            <span class="text-[11px] font-mono text-cyan-400 block">${m.targetDate}</span>
-            <p class="text-sm font-semibold ${m.done ? 'line-through text-slate-500' : 'text-white'}">${this.escapeHtml(m.title)}</p>
+            <span class="text-[11px] font-mono text-indigo-600 font-semibold block">${m.targetDate}</span>
+            <p class="text-sm font-semibold ${m.done ? 'line-through text-slate-400' : 'text-slate-900'}">${this.escapeHtml(m.title)}</p>
           </div>
         </div>
-        <button onclick="window.app.pushMilestoneToDaily('${m.id}')" class="text-xs px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white transition-colors cursor-pointer">
+        <button onclick="window.app.pushMilestoneToDaily('${m.id}')" class="text-xs px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 border border-slate-200 transition-colors cursor-pointer">
           + Jadwal Harian
         </button>
       </div>
@@ -1509,43 +1564,43 @@ class ProductivityApp {
       const pct = total > 0 ? Math.round((done / total) * 100) : year.overallProgress;
 
       return `
-        <div class="bg-[#0f1523]/80 border border-slate-800 rounded-2xl p-5 mb-5">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 mb-5 shadow-sm">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200">
             <div>
               <div class="flex items-center gap-2">
-                <span class="text-2xl font-black text-indigo-400 font-mono">${year.year}</span>
-                <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800 font-medium">${year.theme}</span>
+                <span class="text-2xl font-black text-indigo-600 font-mono">${year.year}</span>
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium">${year.theme}</span>
               </div>
-              <h3 class="text-base font-bold text-white mt-1">${this.escapeHtml(year.title)}</h3>
+              <h3 class="text-base font-bold text-slate-900 mt-1">${this.escapeHtml(year.title)}</h3>
             </div>
             <div class="min-w-[180px]">
-              <div class="flex justify-between text-xs text-slate-400 mb-1 font-mono">
+              <div class="flex justify-between text-xs text-slate-500 mb-1 font-mono">
                 <span>Capaian</span>
-                <span class="text-indigo-300 font-bold">${pct}%</span>
+                <span class="text-indigo-700 font-bold">${pct}%</span>
               </div>
-              <div class="w-full bg-slate-800 rounded-full h-2">
-                <div class="bg-gradient-to-r from-indigo-500 to-emerald-400 h-2 rounded-full" style="width: ${pct}%"></div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="bg-gradient-to-r from-indigo-600 to-emerald-500 h-2 rounded-full" style="width: ${pct}%"></div>
               </div>
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             ${year.quarters.map(q => `
-              <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3.5">
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
                 <div class="flex justify-between items-center mb-1.5">
-                  <span class="text-xs font-bold text-cyan-400 font-mono">${q.quarter}</span>
-                  <span class="text-[10px] text-slate-400 font-mono">${q.steps.filter(s => s.done).length}/${q.steps.length} Selesai</span>
+                  <span class="text-xs font-bold text-indigo-700 font-mono">${q.quarter}</span>
+                  <span class="text-[10px] text-slate-500 font-mono">${q.steps.filter(s => s.done).length}/${q.steps.length} Selesai</span>
                 </div>
-                <h4 class="text-xs font-semibold text-slate-200 mb-2.5">${this.escapeHtml(q.focus)}</h4>
+                <h4 class="text-xs font-semibold text-slate-800 mb-2.5">${this.escapeHtml(q.focus)}</h4>
                 
                 <div class="space-y-1.5">
                   ${q.steps.map(step => `
-                    <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs">
+                    <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-white border border-slate-200 text-xs shadow-sm">
                       <div class="flex items-center gap-2 flex-1 min-w-0">
                         <input type="checkbox" ${step.done ? 'checked' : ''} onchange="window.app.toggle5YStep('${year.id}', '${q.id}', '${step.id}')" class="custom-checkbox flex-shrink-0">
-                        <span class="${step.done ? 'line-through text-slate-500' : 'text-slate-300'} truncate">${this.escapeHtml(step.title)}</span>
+                        <span class="${step.done ? 'line-through text-slate-400' : 'text-slate-800'} truncate">${this.escapeHtml(step.title)}</span>
                       </div>
-                      <button onclick="window.app.push5YStepToDaily('${year.year}', '${q.quarter}', '${step.id}')" title="Jadikan Agenda Harian" class="text-indigo-400 hover:text-white p-1 rounded hover:bg-indigo-600 transition-colors cursor-pointer">
+                      <button onclick="window.app.push5YStepToDaily('${year.year}', '${q.quarter}', '${step.id}')" title="Jadikan Agenda Harian" class="text-indigo-600 hover:text-white p-1 rounded hover:bg-indigo-600 transition-colors cursor-pointer text-[11px] font-medium">
                         + Hari Ini
                       </button>
                     </div>
@@ -1629,12 +1684,12 @@ class ProductivityApp {
         logListEl.innerHTML = `<p class="text-xs text-slate-500 italic">Belum ada riwayat notifikasi.</p>`;
       } else {
         logListEl.innerHTML = logs.map(l => `
-          <div class="flex items-center justify-between p-3 rounded-xl bg-[#0a0e17] border border-slate-800 text-xs font-mono">
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono shadow-sm">
             <div>
-              <span class="text-slate-300 font-semibold">[${l.type}]</span>
+              <span class="text-slate-800 font-semibold">[${l.type}]</span>
               <span class="text-slate-500 text-[11px] block">${l.time} • ke ${l.phone}</span>
             </div>
-            <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold">${l.status}</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">${l.status}</span>
           </div>
         `).join("");
       }
@@ -1656,17 +1711,17 @@ class ProductivityApp {
     if (eveningCheckEl) notif.eveningRecap.enabled = eveningCheckEl.checked;
 
     this.saveData();
-    alert("✅ Seluruh aturan notifikasi WhatsApp berhasil disimpan!");
+    alert("Seluruh aturan notifikasi WhatsApp berhasil disimpan!");
   }
 
   async sendTestNotification() {
     const phone = this.data.notifications.targetPhone || "6289691905347";
     const nowStr = new Date().toLocaleTimeString("id-ID");
     const message = 
-`🔔 *[UJI COBA NOTIFIKASI SEKERTARIS]*
+`*[UJI COBA NOTIFIKASI SEKERTARIS]*
 Halo Pak ${this.data.profile.name}, sistem notifikasi WhatsApp berhasil terhubung pada pukul ${nowStr} WIB.
 Gateway bot lokal di UTM aktif dan siap mengirimkan jadwal rutin Anda.
-🤖 *Aura Executive Desk*`;
+*Aura Executive Desk*`;
 
     await this.dispatchWAMessage(phone, message, "Tes Notifikasi");
   }
@@ -1681,31 +1736,31 @@ Gateway bot lokal di UTM aktif dan siap mengirimkan jadwal rutin Anda.
       taskLines = "_Belum ada agenda tercatat._\n";
     } else {
       taskLines = tasks.map((t, idx) => {
-        const status = t.isDone ? "✅" : "⏳";
-        const time1 = t.timeStart ? `[☀️ ${t.timeStart} - ${t.timeEnd}] ` : "";
-        const time2 = t.hasSecondSession && t.session2Start ? ` [🌙 ${t.session2Start} - ${t.session2End}]` : "";
+        const status = t.isDone ? "[SELESAI]" : "[TODO]";
+        const time1 = t.timeStart ? `[${t.timeStart} - ${t.timeEnd}] ` : "";
+        const time2 = t.hasSecondSession && t.session2Start ? ` [Malam: ${t.session2Start} - ${t.session2End}]` : "";
         return `${status} ${idx + 1}. ${time1}${t.title}${time2}`;
       }).join("\n");
     }
 
     const message = 
-`📋 *BRIEFING PRODUKTIVITAS EKSEKUTIF*
-👤 *Untuk:* Pak ${this.data.profile.name}
-📅 *Tanggal:* ${this.selectedDate}
+`*BRIEFING PRODUKTIVITAS EKSEKUTIF*
+*Untuk:* Pak ${this.data.profile.name}
+*Tanggal:* ${this.selectedDate}
 
-⚡ *RINGKASAN STATUS 24 JAM:*
+*RINGKASAN STATUS 24 JAM:*
 • Total Agenda: ${m.total}
 • Selesai: ${m.done} (${m.pct}%)
 • Progress Roadmap 5 Tahun: ${m.pct5Y}%
 
-📌 *DAFTAR AGENDA KERJA (BEBAS BENTROK):*
+*DAFTAR AGENDA KERJA (BEBAS BENTROK):*
 ${taskLines}
 
-🎯 *FOKUS STRATEGIS 5Y:*
+*FOKUS STRATEGIS 5Y:*
 Infrastruktur & Automasi Ekosistem Mandiri
 
-💡 _"Waktu teralokasi bersih tanpa tabrakan. Tetap fokus dan jaga momentum!"_
-🤖 *Aura Executive Secretary*`;
+_"Waktu teralokasi bersih tanpa tabrakan. Tetap fokus dan jaga momentum!"_
+*Aura Executive Secretary*`;
 
     await this.dispatchWAMessage(phone, message, "Briefing Harian");
   }
@@ -1715,16 +1770,16 @@ Infrastruktur & Automasi Ekosistem Mandiri
     const task = this.data.dailyTasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const time1 = task.timeStart ? `☀️ ${task.timeStart} - ${task.timeEnd} WIB` : 'Hari Ini';
-    const time2 = task.hasSecondSession && task.session2Start ? `\n🌙 *Sesi Malam:* ${task.session2Start} - ${task.session2End} WIB` : '';
-    const recStr = task.recurrence === 'daily' ? `\n🔁 *Perulangan:* Setiap Hari ${task.validUntil ? '(s/d ' + task.validUntil + ')' : ''}` : '';
+    const time1 = task.timeStart ? `${task.timeStart} - ${task.timeEnd} WIB` : 'Hari Ini';
+    const time2 = task.hasSecondSession && task.session2Start ? `\n*Sesi Malam:* ${task.session2Start} - ${task.session2End} WIB` : '';
+    const recStr = task.recurrence === 'daily' ? `\n*Perulangan:* Setiap Hari ${task.validUntil ? '(s/d ' + task.validUntil + ')' : ''}` : '';
 
     const message = 
-`🔔 *PENGINGAT AGENDA EKSEKUTIF*
-📌 *Tugas:* ${task.title}
-⏰ *Waktu Utama:* ${time1}${time2}${recStr}
-${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
-🤖 *Aura Executive Desk*`;
+`*PENGINGAT AGENDA EKSEKUTIF*
+*Tugas:* ${task.title}
+*Waktu Utama:* ${time1}${time2}${recStr}
+${task.note ? `*Catatan:* ${task.note}\n` : ''}
+*Aura Executive Desk*`;
 
     await this.dispatchWAMessage(phone, message, `Pengingat: ${task.title}`);
   }
@@ -1751,7 +1806,7 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
         if (this.data.notifications.logs.length > 20) this.data.notifications.logs.pop();
         this.saveData();
 
-        alert(`✅ ${label} berhasil dikirim ke WhatsApp (${phone}) via Bot Server!`);
+        alert(`${label} berhasil dikirim ke WhatsApp (${phone}) via Bot Server!`);
         if (this.activeTab === "notifications") this.renderNotificationsView();
       } else {
         throw new Error(data.error || "Gagal mengirim via bot");
@@ -1760,7 +1815,7 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
       console.warn("Fallback to Web WhatsApp:", err);
       const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       window.open(waUrl, "_blank");
-      alert(`⚠️ Bot lokal offline/terkendala. Pesan dibuka langsung via WhatsApp Web!`);
+      alert(`Bot lokal offline/terkendala. Pesan dibuka langsung via WhatsApp Web.`);
     }
   }
 
@@ -1823,7 +1878,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
 
   // ===================== EVENT BINDINGS =====================
   bindEvents() {
-    // Delegasi klik tab
     document.addEventListener("click", (e) => {
       const pill = e.target.closest(".tab-pill");
       if (pill && pill.dataset.tab) {
@@ -1832,7 +1886,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
       }
     });
 
-    // Date selector
     const dateInput = document.getElementById("date-input");
     if (dateInput) {
       dateInput.value = this.selectedDate;
@@ -1844,7 +1897,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
       });
     }
 
-    // Quick Date navigation
     const btnToday = document.getElementById("btn-nav-today");
     const btnPrev = document.getElementById("btn-nav-prev");
     const btnNext = document.getElementById("btn-nav-next");
@@ -1883,7 +1935,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
       });
     }
 
-    // Search input
     const searchInput = document.getElementById("search-input");
     if (searchInput) {
       searchInput.addEventListener("input", (e) => {
@@ -1892,7 +1943,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
       });
     }
 
-    // Form time inputs change listener for anti-collision check
     ["task-start-time", "task-end-time", "task-session2-start", "task-session2-end"].forEach(id => {
       const el = document.getElementById(id);
       if (el) {
@@ -1901,7 +1951,6 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
       }
     });
 
-    // Google-style Task Creator Form Submit
     const googleForm = document.getElementById("google-add-form");
     if (googleForm) {
       googleForm.addEventListener("submit", (e) => {
@@ -1934,22 +1983,18 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
           note
         });
 
-        // Reset title & note only so time presets stay convenient
         if (document.getElementById("task-title")) document.getElementById("task-title").value = "";
         if (document.getElementById("task-note")) document.getElementById("task-note").value = "";
         
-        // Pilih slot waktu berikutnya secara otomatis agar siap untuk input berikutnya
         this.pickNextFreeSlot(60);
       });
     }
 
-    // Voice briefing button
     const btnVoice = document.getElementById("btn-voice-briefing");
     if (btnVoice) {
       btnVoice.addEventListener("click", () => this.speakBriefing());
     }
 
-    // Backup & Restore
     const btnExport = document.getElementById("btn-export-backup");
     if (btnExport) btnExport.addEventListener("click", () => this.exportJSON());
 
@@ -1973,5 +2018,4 @@ ${task.note ? `📝 *Catatan:* ${task.note}\n` : ''}
   }
 }
 
-// Inisialisasi global
 window.app = new ProductivityApp();
