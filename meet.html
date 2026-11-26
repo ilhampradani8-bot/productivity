@@ -46,7 +46,7 @@
 
     @media (max-width: 768px) {
       html {
-        font-size: 13.5vw;
+        font-size: 11.2vw;
       }
     }
 
@@ -231,6 +231,8 @@
       height: 100vh;
       position: relative;
       overflow: hidden;
+      isolation: isolate;
+      background: #000;
     }
     .hero .container {
       display: flex;
@@ -240,19 +242,23 @@
     }
     .hero .hero-video {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
       object-fit: cover;
-      z-index: -1;
-      opacity: 0.75;
-      filter: brightness(0.68) contrast(1.18);
+      z-index: 0;
+      opacity: 0.95;
+      filter: brightness(0.96) contrast(1.1);
+      pointer-events: none;
     }
     .hero-overlay {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.85) 100%);
+      background: rgba(0, 0, 0, 0.28);
       z-index: 1;
       pointer-events: none;
     }
@@ -265,6 +271,7 @@
     @media (max-width: 768px) {
       .hero .title-block {
         padding-left: 0;
+        width: 100%;
       }
     }
     .hero .title-block .title-h1 {
@@ -287,8 +294,12 @@
       padding-left: 0.83rem;
     }
     @media (max-width: 768px) {
+      .hero .title-block .title-h1 {
+        font-size: 1.05rem;
+        line-height: 1.08rem;
+      }
       .hero .title-block .title-h1 .title-row-2 {
-        padding-left: 0.25rem;
+        padding-left: 0.15rem;
       }
     }
 
@@ -320,8 +331,8 @@
     }
     @media (max-width: 768px) {
       .hero .second-desc {
-        bottom: -0.8rem;
-        left: 0.2rem;
+        bottom: -0.85rem;
+        left: 0.1rem;
       }
     }
 
@@ -333,6 +344,11 @@
       display: flex;
       z-index: 10;
       opacity: 0.8;
+    }
+    @media (max-width: 768px) {
+      .hero .copyright {
+        display: none;
+      }
     }
 
     .hero .scroll-to {
@@ -349,8 +365,9 @@
     }
     @media (max-width: 768px) {
       .hero .scroll-to {
-        left: 4.2rem;
-        width: 2.2rem;
+        left: 0.25rem;
+        bottom: 0.35rem;
+        width: 3.2rem;
       }
     }
     .hero .scroll-to:hover {
@@ -372,6 +389,19 @@
       height: 1.7rem;
       display: flex;
       justify-content: center;
+      align-items: center;
+      z-index: 10;
+      cursor: pointer;
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    @media (max-width: 768px) {
+      .hero .book-btn {
+        right: 0.25rem;
+        bottom: 0.35rem;
+        width: 1.55rem;
+        height: 1.55rem;
+      }
+    }
       align-items: center;
       z-index: 10;
       cursor: pointer;
@@ -782,15 +812,20 @@
           </button>
         </div>
 
-        <!-- Date Picker Input -->
-        <div class="bg-zinc-950 p-3 rounded border border-zinc-800 flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2 text-xs font-mono text-zinc-400">
-            <svg class="w-4 h-4 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <span>PILIH TANGGAL:</span>
+        <!-- Mode Choice Date Trigger (1-Tap Selection) -->
+        <div onclick="openDateChoiceModal()" class="bg-zinc-950 p-2.5 rounded border border-zinc-800 hover:border-zinc-500 flex items-center justify-between gap-2 cursor-pointer transition-colors group" title="Sentuh untuk memilih tanggal">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 text-zinc-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <div>
+              <span class="text-[10px] text-zinc-500 font-mono block leading-none mb-0.5">TANGGAL TERPILIH:</span>
+              <span id="label-selected-date-slots" class="font-bold text-white text-xs font-mono">Memuat...</span>
+            </div>
           </div>
-          <input type="date" id="slot-date-input" onchange="onSlotDateChange()" 
-            class="bg-black border border-zinc-800 rounded px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white">
+          <span class="text-[11px] font-mono text-zinc-300 group-hover:text-white bg-zinc-900 border border-zinc-700 rounded px-2.5 py-1 transition-colors">
+            Pilih Tanggal ▾
+          </span>
         </div>
+        <input type="hidden" id="slot-date-input">
 
         <!-- Slots List Container -->
         <div class="space-y-2">
@@ -871,8 +906,11 @@
             <div class="grid grid-cols-3 gap-2">
               <div>
                 <label class="block text-[10px] text-zinc-400 mb-0.5 font-mono">Tanggal:</label>
-                <input type="date" id="meet-date" required 
-                  class="w-full bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white">
+                <div onclick="openDateChoiceModal()" class="w-full bg-black border border-zinc-800 hover:border-zinc-500 rounded px-2.5 py-1.5 text-xs font-mono text-white cursor-pointer flex items-center justify-between" title="Sentuh untuk memilih tanggal">
+                  <span id="label-selected-date-form">Memuat...</span>
+                  <span class="text-zinc-500 text-[10px]">Pilih ▾</span>
+                </div>
+                <input type="hidden" id="meet-date" required value="">
               </div>
               <div>
                 <label class="block text-[10px] text-zinc-400 mb-0.5 font-mono">Mulai:</label>
@@ -939,7 +977,51 @@
     </div>
   </div>
 
-  <!-- ================= GSAP KINETIC ANIMATIONS & MODAL LOGIC ================= -->
+  <!-- ================= POPUP MODAL: PILIH TANGGAL (MODE CHOICE / 1 TAP) ================= -->
+  <div id="modal-date-picker" class="fixed inset-0 z-[60] bg-black/90 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-black border border-zinc-800 rounded-lg p-4 sm:p-5 max-w-md w-full text-zinc-100 space-y-4 shadow-2xl my-auto max-h-[92vh] overflow-y-auto">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between pb-2.5 border-b border-zinc-900">
+        <div>
+          <h4 class="text-sm font-bold text-white">Pilih Tanggal Pertemuan</h4>
+          <p class="text-[11px] text-zinc-400">Sentuh salah satu tanggal di bawah untuk memilih instan (1 sentuhan).</p>
+        </div>
+        <button type="button" onclick="closeDateChoiceModal()" class="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer" title="Tutup">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Section 1: 12 Pilihan Hari Mendatang (Choice Mode) -->
+      <div class="space-y-2">
+        <span class="text-[11px] font-mono font-bold text-zinc-400 block">PILIHAN HARI TERDEKAT (MODE CHOICE):</span>
+        <div id="date-choice-chips-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Section 2: Kalender Visual Lengkap -->
+      <div class="pt-2 border-t border-zinc-900 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono font-bold text-zinc-400">PILIH BULAN LAIN:</span>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="changeCalendarMonth(-1)" class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-500 text-xs text-white cursor-pointer">‹</button>
+            <span id="calendar-month-label" class="text-xs font-mono font-bold text-white min-w-[110px] text-center">Bulan</span>
+            <button type="button" onclick="changeCalendarMonth(1)" class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-500 text-xs text-white cursor-pointer">›</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-zinc-500 pb-1">
+          <span>MIN</span><span>SEN</span><span>SEL</span><span>RAB</span><span>KAM</span><span>JUM</span><span>SAB</span>
+        </div>
+
+        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 text-center font-mono text-xs">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
   <script>
     // 1. GSAP Hero Timeline
     gsap.registerPlugin(CustomEase);
@@ -1036,8 +1118,22 @@
         closeMeetModal();
       }
     });
+    document.getElementById("modal-date-picker")?.addEventListener("click", (e) => {
+      if (e.target.id === "modal-date-picker") {
+        closeDateChoiceModal();
+      }
+    });
 
-    // 3. Real-Time Slot Explorer Logic
+    // ================= DATE CHOICE POPUP & CALENDAR LOGIC =================
+    let currentSelectedDate = getTodayString();
+    let calendarViewYear = new Date().getFullYear();
+    let calendarViewMonth = new Date().getMonth();
+
+    const INDO_DAYS = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const INDO_MONTHS = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const SHORT_DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
     function getTodayString() {
       const now = new Date();
       const y = now.getFullYear();
@@ -1046,13 +1142,180 @@
       return `${y}-${m}-${d}`;
     }
 
+    function formatDateIndo(dateStr, full = true) {
+      if (!dateStr) return "";
+      const [y, m, d] = dateStr.split("-").map(Number);
+      const dt = new Date(y, m - 1, d);
+      const dayName = full ? INDO_DAYS[dt.getDay()] : SHORT_DAYS[dt.getDay()];
+      const monthName = full ? INDO_MONTHS[dt.getMonth()] : SHORT_MONTHS[dt.getMonth()];
+      return `${dayName}, ${d} ${monthName} ${y}`;
+    }
+
+    function openDateChoiceModal() {
+      const modal = document.getElementById("modal-date-picker");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      renderDateChoiceChips();
+      renderCalendarMonthGrid();
+    }
+
+    function closeDateChoiceModal() {
+      const modal = document.getElementById("modal-date-picker");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function applySelectedDate(dateStr) {
+      currentSelectedDate = dateStr;
+      
+      const labelSlots = document.getElementById("label-selected-date-slots");
+      const labelForm = document.getElementById("label-selected-date-form");
+      const inputSlot = document.getElementById("slot-date-input");
+      const inputMeet = document.getElementById("meet-date");
+
+      if (labelSlots) labelSlots.textContent = formatDateIndo(dateStr, true);
+      if (labelForm) labelForm.textContent = formatDateIndo(dateStr, false);
+      if (inputSlot) inputSlot.value = dateStr;
+      if (inputMeet) inputMeet.value = dateStr;
+
+      closeDateChoiceModal();
+      fetchAvailableSlots(dateStr);
+    }
+
+    function renderDateChoiceChips() {
+      const container = document.getElementById("date-choice-chips-grid");
+      if (!container) return;
+
+      const chips = [];
+      const now = new Date();
+      const todayY = now.getFullYear();
+      const todayM = now.getMonth();
+      const todayD = now.getDate();
+
+      for (let i = 0; i < 12; i++) {
+        const d = new Date(todayY, todayM, todayD + i);
+        const yStr = d.getFullYear();
+        const mStr = String(d.getMonth() + 1).padStart(2, "0");
+        const dStr = String(d.getDate()).padStart(2, "0");
+        const dateStr = `${yStr}-${mStr}-${dStr}`;
+
+        let badge = "";
+        if (i === 0) badge = "Hari Ini";
+        else if (i === 1) badge = "Besok";
+        else if (i === 2) badge = "Lusa";
+
+        const isSelected = dateStr === currentSelectedDate;
+
+        chips.push(`
+          <button type="button" onclick="applySelectedDate('${dateStr}')" 
+            class="p-2.5 rounded text-left border transition-all cursor-pointer ${
+              isSelected 
+                ? 'bg-white text-black border-white font-bold shadow' 
+                : 'bg-zinc-950 hover:bg-zinc-900 border-zinc-800 hover:border-zinc-500 text-zinc-200'
+            }">
+            <div class="flex items-center justify-between text-[10px] font-mono mb-1">
+              <span class="${isSelected ? 'text-zinc-600' : 'text-zinc-400'} font-semibold">${SHORT_DAYS[d.getDay()]}</span>
+              ${badge ? `<span class="px-1.5 py-0.2 rounded text-[9px] ${isSelected ? 'bg-black text-white' : 'bg-zinc-800 text-zinc-300'} font-mono">${badge}</span>` : ''}
+            </div>
+            <div class="text-xs font-mono font-bold leading-tight">
+              ${d.getDate()} ${SHORT_MONTHS[d.getMonth()]} ${yStr}
+            </div>
+          </button>
+        `);
+      }
+
+      container.innerHTML = chips.join("");
+    }
+
+    function renderCalendarMonthGrid() {
+      const label = document.getElementById("calendar-month-label");
+      const grid = document.getElementById("calendar-days-grid");
+      if (!label || !grid) return;
+
+      label.textContent = `${INDO_MONTHS[calendarViewMonth]} ${calendarViewYear}`;
+
+      const firstDay = new Date(calendarViewYear, calendarViewMonth, 1).getDay();
+      const daysInMonth = new Date(calendarViewYear, calendarViewMonth + 1, 0).getDate();
+
+      const today = new Date();
+      const todayZero = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+
+      const cells = [];
+      for (let i = 0; i < firstDay; i++) {
+        cells.push(`<div class="p-1.5 opacity-0"></div>`);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const thisDate = new Date(calendarViewYear, calendarViewMonth, day);
+        const thisTime = thisDate.getTime();
+        const isPast = thisTime < todayZero;
+
+        const mStr = String(calendarViewMonth + 1).padStart(2, "0");
+        const dStr = String(day).padStart(2, "0");
+        const dateStr = `${calendarViewYear}-${mStr}-${dStr}`;
+        const isSelected = dateStr === currentSelectedDate;
+
+        if (isPast) {
+          cells.push(`
+            <div class="p-1.5 rounded text-zinc-600 cursor-not-allowed opacity-30 text-xs">
+              ${day}
+            </div>
+          `);
+        } else {
+          cells.push(`
+            <button type="button" onclick="applySelectedDate('${dateStr}')" 
+              class="p-1.5 rounded transition-all cursor-pointer text-xs ${
+                isSelected 
+                  ? 'bg-white text-black font-bold shadow' 
+                  : 'bg-zinc-950 hover:bg-zinc-800 text-zinc-200 border border-zinc-900 hover:border-zinc-700'
+              }">
+              ${day}
+            </button>
+          `);
+        }
+      }
+
+      grid.innerHTML = cells.join("");
+    }
+
+    function changeCalendarMonth(delta) {
+      calendarViewMonth += delta;
+      if (calendarViewMonth < 0) {
+        calendarViewMonth = 11;
+        calendarViewYear--;
+      } else if (calendarViewMonth > 11) {
+        calendarViewMonth = 0;
+        calendarViewYear++;
+      }
+      renderCalendarMonthGrid();
+    }
+
     function initSlotCalendar() {
-      const input = document.getElementById("slot-date-input");
-      const meetDate = document.getElementById("meet-date");
       const today = getTodayString();
-      if (input) input.value = today;
-      if (meetDate) meetDate.value = today;
-      fetchAvailableSlots(today);
+      currentSelectedDate = today;
+      applySelectedDate(today);
+
+      // Play hero video smoothly and reliably on desktop and mobile
+      const video = document.querySelector('.hero-video');
+      if (video) {
+        video.muted = true;
+        video.playsInline = true;
+        const playPromise = video.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            console.log('Autoplay deferred for touch/click interaction');
+            const playOnTouch = () => {
+              video.play();
+              document.removeEventListener('click', playOnTouch);
+              document.removeEventListener('touchstart', playOnTouch);
+            };
+            document.addEventListener('click', playOnTouch);
+            document.addEventListener('touchstart', playOnTouch);
+          });
+        }
+      }
     }
 
     function setSlotDatePreset(preset) {
@@ -1073,24 +1336,8 @@
 
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
-      const dayStr = String(d.getDate()).padStart(2, "0");
-      const targetStr = `${y}-${m}-${dayStr}`;
-
-      const input = document.getElementById("slot-date-input");
-      const meetDate = document.getElementById("meet-date");
-      if (input) input.value = targetStr;
-      if (meetDate) meetDate.value = targetStr;
-
-      fetchAvailableSlots(targetStr);
-    }
-
-    function onSlotDateChange() {
-      const input = document.getElementById("slot-date-input");
-      const meetDate = document.getElementById("meet-date");
-      if (!input) return;
-      const val = input.value;
-      if (meetDate) meetDate.value = val;
-      fetchAvailableSlots(val);
+      const dt = String(d.getDate()).padStart(2, "0");
+      applySelectedDate(`${y}-${m}-${dt}`);
     }
 
     async function fetchAvailableSlots(dateStr) {
