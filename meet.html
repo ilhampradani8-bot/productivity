@@ -655,10 +655,299 @@
       display: inline-block !important;
       margin: 0 !important;
     }
-      height: 14px !important;
-      accent-color: #6366f1 !important;
+
+    /* ================= POPUP MODAL PILIH TANGGAL (RESPONSIVE PIXEL SCOPE) ================= */
+    #modal-date-picker {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 9999 !important;
+      background: rgba(0, 0, 0, 0.88) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      padding: 12px !important;
+      font-family: var(--sub-font), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 12px !important;
+      line-height: 1.4 !important;
+    }
+    #modal-date-picker.hidden {
+      display: none !important;
+    }
+    #modal-date-picker.flex {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #modal-date-picker * {
+      box-sizing: border-box !important;
+    }
+    #modal-date-picker svg {
       display: inline-block !important;
+      vertical-align: middle !important;
+      width: 14px !important;
+      height: 14px !important;
+      max-width: none !important;
+      flex-shrink: 0 !important;
+    }
+
+    #modal-date-picker .date-picker-card {
+      max-width: 390px !important;
+      width: 94vw !important;
+      max-height: 86vh !important;
+      background: #000000 !important;
+      border: 1px solid #27272a !important;
+      border-radius: 8px !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 1), 0 0 0 1px #18181b !important;
+      padding: 16px !important;
+      margin: auto !important;
+      overflow-y: auto !important;
+      color: #ffffff !important;
+    }
+
+    .date-picker-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: flex-start !important;
+      padding-bottom: 10px !important;
+      border-bottom: 1px solid #18181b !important;
+      margin-bottom: 12px !important;
+    }
+    .date-picker-header h4 {
+      font-size: 14px !important;
+      line-height: 18px !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
       margin: 0 !important;
+    }
+    .date-picker-header p {
+      font-size: 11px !important;
+      line-height: 15px !important;
+      color: #a1a1aa !important;
+      margin: 2px 0 0 0 !important;
+    }
+    .date-picker-close-btn {
+      width: 26px !important;
+      height: 26px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 4px !important;
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      border-radius: 4px !important;
+      color: #a1a1aa !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+      flex-shrink: 0 !important;
+    }
+    .date-picker-close-btn:hover {
+      color: #ffffff !important;
+      background: #18181b !important;
+      border-color: #27272a !important;
+    }
+
+    .date-picker-sublabel {
+      font-size: 10px !important;
+      line-height: 14px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      font-weight: 700 !important;
+      color: #a1a1aa !important;
+      letter-spacing: 0.05em !important;
+      display: block !important;
+      margin-bottom: 8px !important;
+    }
+
+    .date-choice-grid {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 6px !important;
+      margin-bottom: 14px !important;
+    }
+    @media (max-width: 360px) {
+      .date-choice-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+
+    .date-chip-btn {
+      padding: 6px 8px !important;
+      border-radius: 6px !important;
+      text-align: left !important;
+      cursor: pointer !important;
+      border: 1px solid #27272a !important;
+      background: #09090b !important;
+      color: #e4e4e7 !important;
+      transition: all 0.15s ease !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+    .date-chip-btn:hover {
+      background: #18181b !important;
+      border-color: #52525b !important;
+      color: #ffffff !important;
+    }
+    .date-chip-btn.selected {
+      background: #ffffff !important;
+      border-color: #ffffff !important;
+      color: #000000 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.25) !important;
+    }
+    .date-chip-top {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      font-size: 9.5px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      margin-bottom: 4px !important;
+      line-height: 12px !important;
+    }
+    .date-chip-top .day-name {
+      color: #a1a1aa !important;
+    }
+    .date-chip-btn.selected .date-chip-top .day-name {
+      color: #3f3f46 !important;
+    }
+    .date-chip-badge {
+      padding: 1px 4px !important;
+      border-radius: 3px !important;
+      font-size: 8.5px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      font-weight: 700 !important;
+      line-height: 11px !important;
+    }
+    .date-chip-badge.badge-light {
+      background: #27272a !important;
+      color: #d4d4d8 !important;
+    }
+    .date-chip-btn.selected .date-chip-badge.badge-dark {
+      background: #000000 !important;
+      color: #ffffff !important;
+    }
+    .date-chip-date {
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      font-family: "JetBrains Mono", monospace !important;
+      line-height: 14px !important;
+    }
+
+    .date-picker-calendar-box {
+      border-top: 1px solid #18181b !important;
+      padding-top: 10px !important;
+    }
+    .date-picker-month-nav {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      margin-bottom: 8px !important;
+    }
+    .date-picker-nav-controls {
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+    }
+    .date-nav-btn {
+      padding: 2px 8px !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      background: #18181b !important;
+      border: 1px solid #27272a !important;
+      color: #ffffff !important;
+      border-radius: 4px !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+    }
+    .date-nav-btn:hover {
+      background: #27272a !important;
+      border-color: #71717a !important;
+    }
+    .date-month-text {
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      font-family: "JetBrains Mono", monospace !important;
+      color: #ffffff !important;
+      min-width: 90px !important;
+      text-align: center !important;
+    }
+
+    .date-calendar-weekdays {
+      display: grid !important;
+      grid-template-columns: repeat(7, 1fr) !important;
+      gap: 4px !important;
+      text-align: center !important;
+      font-size: 9.5px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      color: #71717a !important;
+      margin-bottom: 4px !important;
+    }
+    .date-calendar-days {
+      display: grid !important;
+      grid-template-columns: repeat(7, 1fr) !important;
+      gap: 4px !important;
+      text-align: center !important;
+      font-family: "JetBrains Mono", monospace !important;
+    }
+    .date-cal-cell {
+      padding: 5px 2px !important;
+      border-radius: 4px !important;
+      font-size: 11px !important;
+      line-height: 14px !important;
+      text-align: center !important;
+      border: 1px solid transparent !important;
+      transition: all 0.15s ease !important;
+      min-height: 26px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .date-cal-cell.empty {
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+    .date-cal-cell.past {
+      color: #52525b !important;
+      cursor: not-allowed !important;
+      opacity: 0.3 !important;
+    }
+    .date-cal-cell.active {
+      background: #09090b !important;
+      border-color: #18181b !important;
+      color: #d4d4d8 !important;
+      cursor: pointer !important;
+    }
+    .date-cal-cell.active:hover {
+      background: #18181b !important;
+      border-color: #52525b !important;
+      color: #ffffff !important;
+    }
+    .date-cal-cell.selected {
+      background: #ffffff !important;
+      border-color: #ffffff !important;
+      color: #000000 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 2px 6px rgba(255, 255, 255, 0.25) !important;
+    }
+
+    @media (max-width: 480px) {
+      #modal-date-picker .date-picker-card {
+        padding: 12px 10px !important;
+        width: 95vw !important;
+      }
+      .date-choice-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 5px !important;
+      }
+      .date-chip-btn {
+        padding: 5px 6px !important;
+      }
+      .date-chip-date {
+        font-size: 10px !important;
+      }
+      .date-cal-cell {
+        min-height: 24px !important;
+        padding: 4px 1px !important;
+        font-size: 10px !important;
+      }
     }
 
     /* Modal Animation */
@@ -978,44 +1267,44 @@
   </div>
 
   <!-- ================= POPUP MODAL: PILIH TANGGAL (MODE CHOICE / 1 TAP) ================= -->
-  <div id="modal-date-picker" class="fixed inset-0 z-[60] bg-black/90 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-black border border-zinc-800 rounded-lg p-4 sm:p-5 max-w-md w-full text-zinc-100 space-y-4 shadow-2xl my-auto max-h-[92vh] overflow-y-auto">
+  <div id="modal-date-picker" class="hidden items-center justify-center">
+    <div class="date-picker-card modal-enter">
       
       <!-- Header -->
-      <div class="flex items-center justify-between pb-2.5 border-b border-zinc-900">
+      <div class="date-picker-header">
         <div>
-          <h4 class="text-sm font-bold text-white">Pilih Tanggal Pertemuan</h4>
-          <p class="text-[11px] text-zinc-400">Sentuh salah satu tanggal di bawah untuk memilih instan (1 sentuhan).</p>
+          <h4>Pilih Tanggal Pertemuan</h4>
+          <p>Sentuh salah satu tanggal di bawah untuk memilih instan (1 sentuhan).</p>
         </div>
-        <button type="button" onclick="closeDateChoiceModal()" class="p-1 rounded text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer" title="Tutup">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        <button type="button" onclick="closeDateChoiceModal()" class="date-picker-close-btn" title="Tutup">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
       <!-- Section 1: 12 Pilihan Hari Mendatang (Choice Mode) -->
-      <div class="space-y-2">
-        <span class="text-[11px] font-mono font-bold text-zinc-400 block">PILIHAN HARI TERDEKAT (MODE CHOICE):</span>
-        <div id="date-choice-chips-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div>
+        <span class="date-picker-sublabel">PILIHAN HARI TERDEKAT (MODE CHOICE):</span>
+        <div id="date-choice-chips-grid" class="date-choice-grid">
           <!-- Rendered by JS -->
         </div>
       </div>
 
       <!-- Section 2: Kalender Visual Lengkap -->
-      <div class="pt-2 border-t border-zinc-900 space-y-2">
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-mono font-bold text-zinc-400">PILIH BULAN LAIN:</span>
-          <div class="flex items-center gap-1.5">
-            <button type="button" onclick="changeCalendarMonth(-1)" class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-500 text-xs text-white cursor-pointer">‹</button>
-            <span id="calendar-month-label" class="text-xs font-mono font-bold text-white min-w-[110px] text-center">Bulan</span>
-            <button type="button" onclick="changeCalendarMonth(1)" class="px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 hover:border-zinc-500 text-xs text-white cursor-pointer">›</button>
+      <div class="date-picker-calendar-box">
+        <div class="date-picker-month-nav">
+          <span class="date-picker-sublabel" style="margin-bottom:0 !important;">PILIH BULAN LAIN:</span>
+          <div class="date-picker-nav-controls">
+            <button type="button" onclick="changeCalendarMonth(-1)" class="date-nav-btn">‹</button>
+            <span id="calendar-month-label" class="date-month-text">Bulan</span>
+            <button type="button" onclick="changeCalendarMonth(1)" class="date-nav-btn">›</button>
           </div>
         </div>
 
-        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-mono text-zinc-500 pb-1">
+        <div class="date-calendar-weekdays">
           <span>MIN</span><span>SEN</span><span>SEL</span><span>RAB</span><span>KAM</span><span>JUM</span><span>SAB</span>
         </div>
 
-        <div id="calendar-days-grid" class="grid grid-cols-7 gap-1 text-center font-mono text-xs">
+        <div id="calendar-days-grid" class="date-calendar-days">
           <!-- Rendered by JS -->
         </div>
       </div>
@@ -1210,17 +1499,13 @@
 
         chips.push(`
           <button type="button" onclick="applySelectedDate('${dateStr}')" 
-            class="p-2.5 rounded text-left border transition-all cursor-pointer ${
-              isSelected 
-                ? 'bg-white text-black border-white font-bold shadow' 
-                : 'bg-zinc-950 hover:bg-zinc-900 border-zinc-800 hover:border-zinc-500 text-zinc-200'
-            }">
-            <div class="flex items-center justify-between text-[10px] font-mono mb-1">
-              <span class="${isSelected ? 'text-zinc-600' : 'text-zinc-400'} font-semibold">${SHORT_DAYS[d.getDay()]}</span>
-              ${badge ? `<span class="px-1.5 py-0.2 rounded text-[9px] ${isSelected ? 'bg-black text-white' : 'bg-zinc-800 text-zinc-300'} font-mono">${badge}</span>` : ''}
+            class="date-chip-btn ${isSelected ? 'selected' : ''}">
+            <div class="date-chip-top">
+              <span class="day-name">${SHORT_DAYS[d.getDay()]}</span>
+              ${badge ? `<span class="date-chip-badge ${isSelected ? 'badge-dark' : 'badge-light'}">${badge}</span>` : ''}
             </div>
-            <div class="text-xs font-mono font-bold leading-tight">
-              ${d.getDate()} ${SHORT_MONTHS[d.getMonth()]} ${yStr}
+            <div class="date-chip-date">
+              ${d.getDate()} ${SHORT_MONTHS[d.getMonth()]}
             </div>
           </button>
         `);
@@ -1244,7 +1529,7 @@
 
       const cells = [];
       for (let i = 0; i < firstDay; i++) {
-        cells.push(`<div class="p-1.5 opacity-0"></div>`);
+        cells.push(`<div class="date-cal-cell empty"></div>`);
       }
 
       for (let day = 1; day <= daysInMonth; day++) {
@@ -1259,18 +1544,14 @@
 
         if (isPast) {
           cells.push(`
-            <div class="p-1.5 rounded text-zinc-600 cursor-not-allowed opacity-30 text-xs">
+            <div class="date-cal-cell past">
               ${day}
             </div>
           `);
         } else {
           cells.push(`
             <button type="button" onclick="applySelectedDate('${dateStr}')" 
-              class="p-1.5 rounded transition-all cursor-pointer text-xs ${
-                isSelected 
-                  ? 'bg-white text-black font-bold shadow' 
-                  : 'bg-zinc-950 hover:bg-zinc-800 text-zinc-200 border border-zinc-900 hover:border-zinc-700'
-              }">
+              class="date-cal-cell ${isSelected ? 'selected' : 'active'}">
               ${day}
             </button>
           `);
