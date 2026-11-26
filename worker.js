@@ -41,6 +41,35 @@ export default {
       });
     }
 
+    // Direct SEO Routes (robots.txt & sitemap.xml)
+    if (url.pathname === "/robots.txt") {
+      const robots = `User-agent: *\nAllow: /\n\nUser-agent: Googlebot\nAllow: /\n\nSitemap: https://meet.ilhampradani.me/sitemap.xml\nSitemap: https://productivity.ilhampradani.me/sitemap.xml\n`;
+      return new Response(robots, {
+        headers: { "Content-Type": "text/plain; charset=UTF-8", "Cache-Control": "public, max-age=86400" }
+      });
+    }
+
+    if (url.pathname === "/sitemap.xml") {
+      const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://meet.ilhampradani.me/</loc>
+    <lastmod>2026-11-27T02:00:00+08:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://productivity.ilhampradani.me/</loc>
+    <lastmod>2026-11-27T02:00:00+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>`;
+      return new Response(sitemap, {
+        headers: { "Content-Type": "application/xml; charset=UTF-8", "Cache-Control": "public, max-age=86400" }
+      });
+    }
+
     // API Routes
     if (url.pathname.startsWith("/api/")) {
       try {
