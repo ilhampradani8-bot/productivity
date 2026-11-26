@@ -183,7 +183,7 @@
     .header .logo-wrap span:last-child {
       position: relative;
       left: 0.13rem;
-      color: #818cf8;
+      color: #ef4444;
     }
     .header .header-menu {
       display: flex;
@@ -192,6 +192,40 @@
     }
     .header .header-menu__item:not(:last-child) {
       margin-right: 0.37rem;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        height: auto !important;
+        padding: 14px 16px !important;
+      }
+      .header .logo-wrap span:first-child {
+        font-size: 14px !important;
+        line-height: 16px !important;
+      }
+      .header .logo-wrap span:last-child {
+        font-size: 13px !important;
+        line-height: 15px !important;
+        left: 2px !important;
+      }
+      .header .header-menu {
+        gap: 6px !important;
+      }
+      .header .header-menu__item {
+        font-size: 11px !important;
+        line-height: 14px !important;
+        padding: 5px 9px !important;
+        border-radius: 4px !important;
+        background: rgba(0, 0, 0, 0.7) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        margin-right: 0 !important;
+        white-space: nowrap !important;
+        color: #ffffff !important;
+      }
+      .header .header-menu__item:hover {
+        border-color: #ef4444 !important;
+        color: #ef4444 !important;
+      }
     }
 
     /* Kinetic Hero SVGs */
@@ -293,16 +327,6 @@
     .hero .title-block .title-h1 .title-row-2 {
       padding-left: 0.83rem;
     }
-    @media (max-width: 768px) {
-      .hero .title-block .title-h1 {
-        font-size: 1.05rem;
-        line-height: 1.08rem;
-      }
-      .hero .title-block .title-h1 .title-row-2 {
-        padding-left: 0.15rem;
-      }
-    }
-
     #ry { margin-right: 0.15rem; }
     #fo { margin-right: 0.15rem; }
     #tells { margin-right: 0.05rem; }
@@ -316,24 +340,12 @@
       overflow: hidden;
       display: flex;
     }
-    @media (max-width: 768px) {
-      .hero .first-desc {
-        top: -0.65rem;
-        right: 0.1rem;
-      }
-    }
     .hero .second-desc {
       position: absolute;
       bottom: -1rem;
       left: 4.85rem;
       overflow: hidden;
       display: flex;
-    }
-    @media (max-width: 768px) {
-      .hero .second-desc {
-        bottom: -0.85rem;
-        left: 0.1rem;
-      }
     }
 
     .hero .copyright {
@@ -344,11 +356,6 @@
       display: flex;
       z-index: 10;
       opacity: 0.8;
-    }
-    @media (max-width: 768px) {
-      .hero .copyright {
-        display: none;
-      }
     }
 
     .hero .scroll-to {
@@ -363,18 +370,11 @@
       cursor: pointer;
       transition: transform 0.25s ease;
     }
-    @media (max-width: 768px) {
-      .hero .scroll-to {
-        left: 0.25rem;
-        bottom: 0.35rem;
-        width: 3.2rem;
-      }
-    }
     .hero .scroll-to:hover {
       transform: translateY(-2px);
     }
     .hero .scroll-to:hover span {
-      color: #818cf8;
+      color: #ef4444;
     }
     .hero .scroll-to__row {
       overflow: hidden;
@@ -389,19 +389,6 @@
       height: 1.7rem;
       display: flex;
       justify-content: center;
-      align-items: center;
-      z-index: 10;
-      cursor: pointer;
-      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-    @media (max-width: 768px) {
-      .hero .book-btn {
-        right: 0.25rem;
-        bottom: 0.35rem;
-        width: 1.55rem;
-        height: 1.55rem;
-      }
-    }
       align-items: center;
       z-index: 10;
       cursor: pointer;
@@ -423,9 +410,9 @@
       background: rgba(255, 255, 255, 0.05);
     }
     .hero .book-btn:hover .book-btn__circle {
-      background: rgba(129, 140, 248, 0.22);
-      border-color: #818cf8;
-      box-shadow: 0 0 25px rgba(129, 140, 248, 0.5);
+      background: rgba(239, 68, 68, 0.22);
+      border-color: #ef4444;
+      box-shadow: 0 0 25px rgba(239, 68, 68, 0.5);
     }
     .hero .book-btn .btn-text {
       width: 1.36rem;
@@ -436,6 +423,110 @@
       align-items: center;
       position: relative;
       z-index: 2;
+    }
+
+    /* ================= MOBILE VIEWPORT ANTI-COLLISION ENGINE ================= */
+    @media (max-width: 768px) {
+      .hero .container {
+        padding: 0 16px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+      }
+      .hero .title-block {
+        padding-left: 0 !important;
+        width: 100% !important;
+        margin-top: -36px !important;
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+      }
+      .hero .first-desc {
+        position: static !important;
+        top: auto !important;
+        right: auto !important;
+        margin-bottom: 8px !important;
+        display: block !important;
+      }
+      .hero .first-desc .desc-1 {
+        font-size: 11px !important;
+        line-height: 15px !important;
+        color: #ef4444 !important; /* RED ACCENT */
+        font-weight: 600 !important;
+        letter-spacing: 0.04em !important;
+        text-transform: uppercase !important;
+      }
+      .hero .title-block .title-h1 {
+        font-size: 13vw !important;
+        line-height: 1.02 !important;
+        letter-spacing: -0.02em !important;
+        margin: 0 !important;
+        font-family: var(--main-font) !important;
+      }
+      .hero .title-block .title-h1 .title-row-1,
+      .hero .title-block .title-h1 .title-row-2 {
+        display: flex !important;
+        align-items: baseline !important;
+      }
+      .hero .title-block .title-h1 .title-row-2 {
+        padding-left: 0 !important;
+        margin-top: 2px !important;
+      }
+      .hero .second-desc {
+        position: static !important;
+        bottom: auto !important;
+        left: auto !important;
+        margin-top: 12px !important;
+        display: block !important;
+      }
+      .hero .second-desc .desc-1 {
+        font-size: 12px !important;
+        line-height: 17px !important;
+        color: #d4d4d8 !important;
+        font-weight: 500 !important;
+      }
+
+      .hero .copyright {
+        display: none !important;
+      }
+
+      .hero .scroll-to {
+        position: absolute !important;
+        left: 16px !important;
+        bottom: 22px !important;
+        width: auto !important;
+        max-width: 160px !important;
+      }
+      .hero .scroll-to .desc-1 {
+        font-size: 10px !important;
+        line-height: 13px !important;
+      }
+      .hero .scroll-to .scroll-arrow-svg {
+        width: 12px !important;
+        height: 12px !important;
+      }
+
+      .hero .book-btn {
+        position: absolute !important;
+        right: 16px !important;
+        bottom: 16px !important;
+        width: 74px !important;
+        height: 74px !important;
+      }
+      .hero .book-btn .book-btn__circle {
+        width: 74px !important;
+        height: 74px !important;
+        border-color: #ef4444 !important;
+      }
+      .hero .book-btn .btn-text {
+        width: 64px !important;
+      }
+      .hero .book-btn .btn-1 {
+        font-size: 9.5px !important;
+        line-height: 12px !important;
+        font-weight: 700 !important;
+      }
     }
 
     /* ================= BULLETPROOF POPUP MODAL: TAJAM HITAM & ELEGAN (NO BLUR) ================= */
@@ -950,6 +1041,277 @@
       }
     }
 
+    /* ================= POPUP MODAL PILIH JAM (RESPONSIVE PIXEL SCOPE) ================= */
+    #modal-time-picker {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 9999 !important;
+      background: rgba(0, 0, 0, 0.88) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      padding: 12px !important;
+      font-family: var(--sub-font), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 12px !important;
+      line-height: 1.4 !important;
+    }
+    #modal-time-picker.hidden {
+      display: none !important;
+    }
+    #modal-time-picker.flex {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    #modal-time-picker * {
+      box-sizing: border-box !important;
+    }
+    #modal-time-picker svg {
+      display: inline-block !important;
+      vertical-align: middle !important;
+      width: 14px !important;
+      height: 14px !important;
+      max-width: none !important;
+      flex-shrink: 0 !important;
+    }
+
+    #modal-time-picker .time-picker-card {
+      max-width: 390px !important;
+      width: 94vw !important;
+      max-height: 88vh !important;
+      background: #000000 !important;
+      border: 1px solid #27272a !important;
+      border-radius: 8px !important;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 1), 0 0 0 1px #18181b !important;
+      padding: 16px !important;
+      margin: auto !important;
+      overflow-y: auto !important;
+      color: #ffffff !important;
+    }
+
+    .time-picker-header {
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: flex-start !important;
+      padding-bottom: 10px !important;
+      border-bottom: 1px solid #18181b !important;
+      margin-bottom: 12px !important;
+    }
+    .time-picker-header h4 {
+      font-size: 14px !important;
+      line-height: 18px !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      margin: 0 !important;
+    }
+    .time-picker-header p {
+      font-size: 11px !important;
+      line-height: 15px !important;
+      color: #a1a1aa !important;
+      margin: 2px 0 0 0 !important;
+    }
+    .time-picker-close-btn {
+      width: 26px !important;
+      height: 26px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 4px !important;
+      background: transparent !important;
+      border: 1px solid transparent !important;
+      border-radius: 4px !important;
+      color: #a1a1aa !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+      flex-shrink: 0 !important;
+    }
+    .time-picker-close-btn:hover {
+      color: #ffffff !important;
+      background: #18181b !important;
+      border-color: #27272a !important;
+    }
+
+    .time-picker-sublabel {
+      font-size: 10px !important;
+      line-height: 14px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      font-weight: 700 !important;
+      color: #a1a1aa !important;
+      letter-spacing: 0.05em !important;
+      display: block !important;
+      margin-bottom: 6px !important;
+    }
+
+    .time-preset-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6px !important;
+      margin-bottom: 14px !important;
+    }
+
+    .time-slot-btn {
+      padding: 7px 10px !important;
+      border-radius: 6px !important;
+      text-align: left !important;
+      cursor: pointer !important;
+      border: 1px solid #27272a !important;
+      background: #09090b !important;
+      color: #e4e4e7 !important;
+      transition: all 0.15s ease !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+    }
+    .time-slot-btn:hover {
+      background: #18181b !important;
+      border-color: #ef4444 !important;
+      color: #ffffff !important;
+    }
+    .time-slot-btn.selected {
+      background: #ef4444 !important;
+      border-color: #ef4444 !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+    }
+    .time-slot-btn .slot-time {
+      font-size: 11px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      font-weight: 700 !important;
+    }
+    .time-slot-btn .slot-badge {
+      font-size: 9px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      padding: 1px 4px !important;
+      border-radius: 3px !important;
+      background: #18181b !important;
+      color: #a1a1aa !important;
+    }
+    .time-slot-btn.selected .slot-badge {
+      background: #7f1d1d !important;
+      color: #fecaca !important;
+    }
+
+    .time-picker-custom-box {
+      border-top: 1px solid #18181b !important;
+      padding-top: 12px !important;
+    }
+
+    .time-hours-grid {
+      display: grid !important;
+      grid-template-columns: repeat(6, 1fr) !important;
+      gap: 4px !important;
+      margin-bottom: 8px !important;
+    }
+    @media (max-width: 380px) {
+      .time-hours-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+      }
+    }
+    .time-hour-chip {
+      padding: 5px 2px !important;
+      border-radius: 4px !important;
+      font-size: 10.5px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      text-align: center !important;
+      background: #09090b !important;
+      border: 1px solid #27272a !important;
+      color: #d4d4d8 !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+    }
+    .time-hour-chip:hover {
+      background: #18181b !important;
+      border-color: #71717a !important;
+    }
+    .time-hour-chip.selected {
+      background: #ffffff !important;
+      border-color: #ffffff !important;
+      color: #000000 !important;
+      font-weight: 700 !important;
+    }
+
+    .time-duration-grid {
+      display: grid !important;
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 5px !important;
+      margin-bottom: 12px !important;
+    }
+    .time-duration-chip {
+      padding: 5px 4px !important;
+      border-radius: 4px !important;
+      font-size: 10.5px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      text-align: center !important;
+      background: #09090b !important;
+      border: 1px solid #27272a !important;
+      color: #d4d4d8 !important;
+      cursor: pointer !important;
+      transition: all 0.15s ease !important;
+    }
+    .time-duration-chip:hover {
+      background: #18181b !important;
+      border-color: #71717a !important;
+    }
+    .time-duration-chip.selected {
+      background: #ef4444 !important;
+      border-color: #ef4444 !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+    }
+
+    .time-preview-bar {
+      background: #09090b !important;
+      border: 1px solid #27272a !important;
+      border-radius: 6px !important;
+      padding: 8px 10px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      gap: 8px !important;
+    }
+    .time-preview-label {
+      font-size: 9.5px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      color: #71717a !important;
+      display: block !important;
+    }
+    .time-preview-val {
+      font-size: 11.5px !important;
+      font-family: "JetBrains Mono", monospace !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      display: block !important;
+    }
+    .time-apply-btn {
+      background: #ffffff !important;
+      color: #000000 !important;
+      border: 1px solid #ffffff !important;
+      border-radius: 4px !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      padding: 6px 10px !important;
+      cursor: pointer !important;
+      white-space: nowrap !important;
+      transition: all 0.15s ease !important;
+    }
+    .time-apply-btn:hover {
+      background: #ef4444 !important;
+      border-color: #ef4444 !important;
+      color: #ffffff !important;
+    }
+
+    @media (max-width: 480px) {
+      #modal-time-picker .time-picker-card {
+        padding: 12px 10px !important;
+        width: 95vw !important;
+      }
+      .time-slot-btn {
+        padding: 6px 8px !important;
+      }
+      .time-slot-btn .slot-time {
+        font-size: 10px !important;
+      }
+    }
+
     /* Modal Animation */
     .modal-enter {
       animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -971,7 +1333,7 @@
       </div>
       <ul class="header-menu">
         <li class="header-menu__item header-text-1" onclick="openMeetModal('slots')">
-          Lihat Jadwal Kosong
+          Cek Jadwal
         </li>
         <li class="header-menu__item header-text-1" onclick="openMeetModal('form')">
           Ajukan Jadwal
@@ -1192,24 +1554,27 @@
               </button>
             </div>
 
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
-                <label class="block text-[10px] text-zinc-400 mb-0.5 font-mono">Tanggal:</label>
-                <div onclick="openDateChoiceModal()" class="w-full bg-black border border-zinc-800 hover:border-zinc-500 rounded px-2.5 py-1.5 text-xs font-mono text-white cursor-pointer flex items-center justify-between" title="Sentuh untuk memilih tanggal">
+                <label class="block text-[10px] text-zinc-400 mb-0.5 font-mono">TANGGAL PERTEMUAN:</label>
+                <div onclick="openDateChoiceModal()" class="w-full bg-black border border-zinc-800 hover:border-zinc-500 rounded px-2.5 py-2 text-xs font-mono text-white cursor-pointer flex items-center justify-between" title="Sentuh untuk memilih tanggal">
                   <span id="label-selected-date-form">Memuat...</span>
                   <span class="text-zinc-500 text-[10px]">Pilih ▾</span>
                 </div>
                 <input type="hidden" id="meet-date" required value="">
               </div>
+
               <div>
-                <label class="block text-[10px] text-zinc-400 mb-0.5 font-mono">Mulai:</label>
-                <input type="time" id="meet-start-time" required value="09:00" 
-                  class="w-full bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white">
-              </div>
-              <div>
-                <label class="block text-[10px] text-zinc-400 mb-0.5 font-mono">Selesai:</label>
-                <input type="time" id="meet-end-time" required value="10:30" 
-                  class="w-full bg-black border border-zinc-800 rounded px-2 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-white">
+                <label class="block text-[10px] text-zinc-400 mb-0.5 font-mono">RENTANG JAM PERTEMUAN:</label>
+                <div onclick="openTimeChoiceModal()" class="w-full bg-black border border-zinc-800 hover:border-zinc-500 rounded px-2.5 py-2 text-xs font-mono text-white cursor-pointer flex items-center justify-between" title="Sentuh untuk memilih jam pertemuan">
+                  <div class="flex items-center gap-1.5 overflow-hidden">
+                    <span id="label-selected-time-form" class="font-bold text-white truncate">09:00 - 10:00 WIB</span>
+                    <span id="label-selected-duration-badge" class="px-1.5 py-0.5 rounded text-[9px] bg-red-950 text-red-400 font-mono border border-red-900 flex-shrink-0">60m</span>
+                  </div>
+                  <span class="text-zinc-500 text-[10px] flex-shrink-0">Pilih ▾</span>
+                </div>
+                <input type="hidden" id="meet-start-time" required value="09:00">
+                <input type="hidden" id="meet-end-time" required value="10:00">
               </div>
             </div>
           </div>
@@ -1306,6 +1671,56 @@
 
         <div id="calendar-days-grid" class="date-calendar-days">
           <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= POPUP MODAL: PILIH JAM & DURASI (MODE CHOICE / 1 TAP) ================= -->
+  <div id="modal-time-picker" class="hidden items-center justify-center">
+    <div class="time-picker-card modal-enter">
+      
+      <!-- Header -->
+      <div class="time-picker-header">
+        <div>
+          <h4>Pilih Jam & Durasi Pertemuan</h4>
+          <p>Sentuh salah satu slot instan atau tentukan jam & durasi kustom.</p>
+        </div>
+        <button type="button" onclick="closeTimeChoiceModal()" class="time-picker-close-btn" title="Tutup">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Section 1: Slot Rekomendasi Instan (1-Tap Selesai) -->
+      <div>
+        <span class="time-picker-sublabel">SLOT REKOMENDASI (1-TAP INSTAN):</span>
+        <div id="time-preset-slots-grid" class="time-preset-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Section 2: Kustomisasi Jam Mulai & Durasi -->
+      <div class="time-picker-custom-box">
+        <span class="time-picker-sublabel">KUSTOM JAM MULAI:</span>
+        <div id="custom-hours-chips" class="time-hours-grid">
+          <!-- Rendered by JS -->
+        </div>
+
+        <span class="time-picker-sublabel" style="margin-top: 10px !important;">PILIH DURASI:</span>
+        <div id="custom-duration-chips" class="time-duration-grid">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Preview & Action -->
+        <div class="time-preview-bar">
+          <div>
+            <span class="time-preview-label">WAKTU TERPILIH:</span>
+            <span id="time-custom-preview-text" class="time-preview-val">09:00 - 10:00 WIB (60 Menit)</span>
+          </div>
+          <button type="button" onclick="applyCustomTimeSelection()" class="time-apply-btn">
+            Gunakan Jam Ini ✓
+          </button>
         </div>
       </div>
 
@@ -1410,6 +1825,11 @@
     document.getElementById("modal-date-picker")?.addEventListener("click", (e) => {
       if (e.target.id === "modal-date-picker") {
         closeDateChoiceModal();
+      }
+    });
+    document.getElementById("modal-time-picker")?.addEventListener("click", (e) => {
+      if (e.target.id === "modal-time-picker") {
+        closeTimeChoiceModal();
       }
     });
 
@@ -1573,10 +1993,153 @@
       renderCalendarMonthGrid();
     }
 
+    // ================= TIME CHOICE POPUP LOGIC =================
+    let currentSelectedStartTime = "09:00";
+    let currentSelectedEndTime = "10:00";
+    let customStartHour = "09:00";
+    let customDurationMin = 60;
+
+    const POPULAR_SLOTS = [
+      { start: "09:00", end: "10:00", badge: "Pagi" },
+      { start: "10:00", end: "11:00", badge: "Pagi" },
+      { start: "11:00", end: "12:00", badge: "Siang" },
+      { start: "13:30", end: "14:30", badge: "Siang" },
+      { start: "14:30", end: "15:30", badge: "Sore" },
+      { start: "15:30", end: "16:30", badge: "Sore" },
+      { start: "16:30", end: "17:30", badge: "Sore" },
+      { start: "19:30", end: "20:30", badge: "Malam" }
+    ];
+
+    const CUSTOM_HOURS = ["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00", "19:00", "20:00", "21:00"];
+    const CUSTOM_DURATIONS = [
+      { min: 30, label: "30m" },
+      { min: 45, label: "45m" },
+      { min: 60, label: "1 Jam" },
+      { min: 90, label: "1.5 Jam" },
+      { min: 120, label: "2 Jam" }
+    ];
+
+    function openTimeChoiceModal() {
+      const modal = document.getElementById("modal-time-picker");
+      if (!modal) return;
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      renderPopularTimeSlots();
+      renderCustomHoursGrid();
+      renderCustomDurationGrid();
+      updateCustomTimePreview();
+    }
+
+    function closeTimeChoiceModal() {
+      const modal = document.getElementById("modal-time-picker");
+      if (!modal) return;
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function applySelectedTime(start, end) {
+      currentSelectedStartTime = start;
+      currentSelectedEndTime = end;
+
+      const startEl = document.getElementById("meet-start-time");
+      const endEl = document.getElementById("meet-end-time");
+      const labelTime = document.getElementById("label-selected-time-form");
+      const badgeDuration = document.getElementById("label-selected-duration-badge");
+
+      if (startEl) startEl.value = start;
+      if (endEl) endEl.value = end;
+
+      if (labelTime) {
+        labelTime.textContent = `${start} - ${end} WIB`;
+      }
+
+      const [sh, sm] = start.split(":").map(Number);
+      const [eh, em] = end.split(":").map(Number);
+      const diffMin = (eh * 60 + em) - (sh * 60 + sm);
+      if (badgeDuration) {
+        if (diffMin > 0) {
+          badgeDuration.textContent = (diffMin >= 60 && diffMin % 60 === 0) ? `${diffMin / 60} Jam` : `${diffMin}m`;
+        } else {
+          badgeDuration.textContent = "Kustom";
+        }
+      }
+
+      closeTimeChoiceModal();
+    }
+
+    function renderPopularTimeSlots() {
+      const container = document.getElementById("time-preset-slots-grid");
+      if (!container) return;
+
+      container.innerHTML = POPULAR_SLOTS.map(s => {
+        const isSelected = (s.start === currentSelectedStartTime && s.end === currentSelectedEndTime);
+        return `
+          <button type="button" onclick="applySelectedTime('${s.start}', '${s.end}')"
+            class="time-slot-btn ${isSelected ? 'selected' : ''}">
+            <span class="slot-time">${s.start} - ${s.end}</span>
+            <span class="slot-badge">${s.badge}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderCustomHoursGrid() {
+      const grid = document.getElementById("custom-hours-chips");
+      if (!grid) return;
+      grid.innerHTML = CUSTOM_HOURS.map(h => `
+        <button type="button" onclick="setCustomHour('${h}')" class="time-hour-chip ${h === customStartHour ? 'selected' : ''}">
+          ${h}
+        </button>
+      `).join("");
+    }
+
+    function renderCustomDurationGrid() {
+      const grid = document.getElementById("custom-duration-chips");
+      if (!grid) return;
+      grid.innerHTML = CUSTOM_DURATIONS.map(d => `
+        <button type="button" onclick="setCustomDuration(${d.min})" class="time-duration-chip ${d.min === customDurationMin ? 'selected' : ''}">
+          ${d.label}
+        </button>
+      `).join("");
+    }
+
+    function setCustomHour(h) {
+      customStartHour = h;
+      renderCustomHoursGrid();
+      updateCustomTimePreview();
+    }
+
+    function setCustomDuration(min) {
+      customDurationMin = min;
+      renderCustomDurationGrid();
+      updateCustomTimePreview();
+    }
+
+    function computeCustomEndTime(start, min) {
+      const [h, m] = start.split(":").map(Number);
+      const totalMin = h * 60 + m + min;
+      const endH = Math.floor(totalMin / 60) % 24;
+      const endM = totalMin % 60;
+      return `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+    }
+
+    function updateCustomTimePreview() {
+      const preview = document.getElementById("time-custom-preview-text");
+      if (!preview) return;
+      const end = computeCustomEndTime(customStartHour, customDurationMin);
+      preview.textContent = `${customStartHour} - ${end} WIB (${customDurationMin} Menit)`;
+    }
+
+    function applyCustomTimeSelection() {
+      const end = computeCustomEndTime(customStartHour, customDurationMin);
+      applySelectedTime(customStartHour, end);
+    }
+
     function initSlotCalendar() {
       const today = getTodayString();
       currentSelectedDate = today;
       applySelectedDate(today);
+      applySelectedTime("09:00", "10:00");
 
       // Play hero video smoothly and reliably on desktop and mobile
       const video = document.querySelector('.hero-video');
@@ -1628,7 +2191,7 @@
 
       container.innerHTML = `
         <div class="p-6 text-center text-slate-500 text-xs font-mono">
-          <div class="inline-block w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+          <div class="inline-block w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-2"></div>
           <div>Memeriksa ketersediaan jadwal ${dateStr}...</div>
         </div>
       `;
@@ -1690,12 +2253,7 @@
     }
 
     function selectSlot(start, end) {
-      const startEl = document.getElementById("meet-start-time");
-      const endEl = document.getElementById("meet-end-time");
-
-      if (startEl) startEl.value = start;
-      if (endEl) endEl.value = end;
-
+      applySelectedTime(start, end);
       switchModalTab('form');
     }
 
