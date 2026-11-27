@@ -207,9 +207,9 @@ public class MainActivity extends Activity {
         LinearLayout subBtnRow = new LinearLayout(this);
         subBtnRow.setOrientation(LinearLayout.HORIZONTAL);
 
-        // Button B: Test Alarm Sound
+        // Button B: Test Alarm Vibration & Notification
         Button btnTest = new Button(this);
-        btnTest.setText("🔔 Uji Suara");
+        btnTest.setText("Uji Getar Notif");
         btnTest.setTextColor(Color.WHITE);
         btnTest.setTextSize(12);
         btnTest.setTypeface(Typeface.DEFAULT_BOLD);
@@ -228,6 +228,13 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 scheduleTestAlarm();
+            }
+        });
+        btnTest.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                scheduleTestWakeupAlarm();
+                return true;
             }
         });
         subBtnRow.addView(btnTest);
@@ -1115,16 +1122,33 @@ public class MainActivity extends Activity {
     }
 
     private void scheduleTestAlarm() {
-        Toast.makeText(this, "Alarm uji coba berbunyi dalam 3 detik...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Pengingat Getar & Notifikasi diuji dalam 3 detik (Tanpa Suara Berisik)...", Toast.LENGTH_SHORT).show();
 
         AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmReceiver.class);
-        intent.putExtra(AlarmSoundService.EXTRA_TITLE, "Uji Coba Alarm Eksekutif");
+        intent.putExtra(AlarmSoundService.EXTRA_TITLE, "Agenda Dimulai: Uji Coba Pengingat");
         intent.putExtra(AlarmSoundService.EXTRA_TIME, "Sekarang");
-        intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, "test-alarm");
+        intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, "test_agenda_silent");
 
         PendingIntent pi = PendingIntent.getBroadcast(
                 this, 9999, intent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+
+        long triggerAt = System.currentTimeMillis() + 3000;
+        setExactAlarm(am, triggerAt, pi);
+    }
+
+    private void scheduleTestWakeupAlarm() {
+        Toast.makeText(this, "Alarm Bangun Tidur (Suara Keras) diuji dalam 3 detik...", Toast.LENGTH_SHORT).show();
+
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra(AlarmSoundService.EXTRA_TITLE, "Alarm Bangun Tidur (Uji Coba)");
+        intent.putExtra(AlarmSoundService.EXTRA_TIME, "Sekarang");
+        intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, "sleep_wakeup_test");
+
+        PendingIntent pi = PendingIntent.getBroadcast(
+                this, 9998, intent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
         );
 
         long triggerAt = System.currentTimeMillis() + 3000;

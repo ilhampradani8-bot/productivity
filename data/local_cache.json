@@ -273,6 +273,25 @@
   },
   "dailyTasks": [
     {
+      "id": "t-1795787339368",
+      "date": "2026-11-28",
+      "timeStart": "11:00",
+      "timeEnd": "12:00",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "Prof ikhwan - gmeet",
+      "note": "temu abmalaya fiskal",
+      "label": "",
+      "recurrence": "none",
+      "validityType": "until_completed",
+      "validUntil": "",
+      "status": "todo",
+      "completedDates": [],
+      "deletedDates": [],
+      "updated_at": "2026-11-27T13:49:02.055Z"
+    },
+    {
       "id": "t-1795782808734",
       "date": "2026-11-29",
       "timeStart": "12:15",

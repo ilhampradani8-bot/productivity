@@ -55,6 +55,13 @@ public class AlarmAlertActivity extends Activity {
 
         final String taskId = getIntent().getStringExtra(AlarmSoundService.EXTRA_TASK_ID);
 
+        // Hanya tampilkan popup layar penuh jika ini adalah Alarm Bangun Tidur
+        if (!AlarmReceiver.isWakeupAlarm(taskId, taskTitle)) {
+            stopAlarmService();
+            finish();
+            return;
+        }
+
         // OLED True Black Root
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
