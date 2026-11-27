@@ -3278,65 +3278,9 @@ Semoga hari Bapak selalu lancar!
               `).join("")}
             </div>
           </div>
-
-          <!-- 4. Collapsible Rincian Target (Hidden by default to prevent long list) -->
-          <div class="pt-1 border-t border-slate-100">
-            <button type="button" onclick="window.app.toggleYearDetails('${year.id}')" class="w-full flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors cursor-pointer border border-slate-200">
-              <div class="flex items-center gap-2">
-                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                <span>Kelola & Rincian Target (${allSteps.length} Target)</span>
-              </div>
-              <span id="year-toggle-arrow-${year.id}" class="text-[10px] font-mono text-indigo-600 font-bold">Buka Rincian ▼</span>
-            </button>
-
-            <div id="year-details-${year.id}" class="hidden space-y-1.5 pt-2">
-              ${allSteps.length === 0 ? `
-                <div onclick="window.app.openAdd5YStepModal('${year.id}')" class="p-3 text-center rounded-xl border border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/20 text-slate-400 hover:text-indigo-600 text-xs cursor-pointer transition-all">
-                  + Klik di sini untuk menambahkan target kerja tahun ${year.year}
-                </div>
-              ` : allSteps.map(step => `
-                <div class="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200 text-xs transition-colors group">
-                  <div class="flex items-center gap-2 flex-1 min-w-0">
-                    <input type="checkbox" ${step.done ? 'checked' : ''} onchange="window.app.toggle5YStep('${year.id}', '${step.quarterId}', '${step.id}')" class="custom-checkbox flex-shrink-0">
-                    <div class="flex-1 min-w-0">
-                      <span class="${step.done ? 'line-through text-slate-400' : 'text-slate-900 font-medium'} truncate block">${this.escapeHtml(step.title)}</span>
-                      ${step.note ? `<span class="text-[10px] text-slate-400 truncate block">${this.escapeHtml(step.note)}</span>` : ''}
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-1 flex-shrink-0">
-                    <button onclick="window.app.push5YStepToDaily('${year.year}', '${step.quarterName || ''}', '${step.id}')" title="Jadikan Agenda Harian Hari Ini" class="px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 transition-colors cursor-pointer text-[10px] sm:text-[11px] font-medium flex items-center gap-1">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                      <span>Hari Ini</span>
-                    </button>
-                    <button onclick="window.app.openEdit5YStepModal('${year.id}', '${step.quarterId}', '${step.id}')" title="Edit Target" class="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-white cursor-pointer">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                    </button>
-                    <button onclick="window.app.delete5YStep('${year.id}', '${step.quarterId}', '${step.id}')" title="Hapus Target" class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-white cursor-pointer">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    </button>
-                  </div>
-                </div>
-              `).join("")}
-            </div>
-          </div>
         </div>
       `;
     }).join("");
-  }
-
-  toggleYearDetails(yearId) {
-    const el = document.getElementById(`year-details-${yearId}`);
-    const arrow = document.getElementById(`year-toggle-arrow-${yearId}`);
-    if (!el) return;
-    const isHidden = el.classList.contains("hidden");
-    if (isHidden) {
-      el.classList.remove("hidden");
-      if (arrow) arrow.textContent = "Tutup Rincian ▲";
-    } else {
-      el.classList.add("hidden");
-      if (arrow) arrow.textContent = "Buka Rincian ▼";
-    }
   }
 
   openAdd5YYearModal() {
