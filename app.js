@@ -3164,7 +3164,7 @@ Semoga hari Bapak selalu lancar!
         <div class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm space-y-3">
           <!-- Top Row: Tahun & Judul & Aksi -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
-            <div class="flex items-center gap-2.5 flex-1 min-w-0">
+            <div class="flex items-center gap-2 sm:gap-2.5 flex-1 min-w-0 flex-wrap sm:flex-nowrap">
               <span class="text-xl sm:text-2xl font-black text-indigo-600 font-mono tracking-tight flex-shrink-0">${year.year}</span>
               <div class="flex-1 min-w-0">
                 ${year.title ? `
@@ -3173,13 +3173,13 @@ Semoga hari Bapak selalu lancar!
                   <span class="text-xs text-slate-400 italic">Target Tahunan Mandiri (klik Edit untuk mengisi fokus/tema)</span>
                 `}
               </div>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${pctDone >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'} whitespace-nowrap">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${pctDone >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'} whitespace-nowrap flex-shrink-0">
                 ${pctDone}% Tercapai
               </span>
             </div>
 
             <!-- Action Buttons for this Year -->
-            <div class="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-center">
+            <div class="flex items-center gap-1.5 flex-shrink-0 self-start sm:self-center flex-wrap pt-1 sm:pt-0">
               <button onclick="window.app.openAdd5YStepModal('${year.id}')" class="px-2.5 sm:px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold flex items-center gap-1 cursor-pointer shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>+ Target</span>
