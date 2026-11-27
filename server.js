@@ -10,6 +10,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 // Load local environment variables from .env if present
 try {
@@ -319,6 +320,55 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // API: Status Perangkat Alarm (Samsung Galaxy A10s via ADB)
+  if (pathname === '/api/alarm/device-status' && req.method === 'GET') {
+    exec('adb -s 127.0.0.1:5555 get-state && adb -s 127.0.0.1:5555 shell dumpsys battery', (err, stdout) => {
+      const output = stdout || '';
+      const isOnline = output.includes('device');
+      let batteryLevel = 'Unknown';
+      const m = output.match(/level:\s*(\d+)/);
+      if (m) batteryLevel = m[1] + '%';
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        online: isOnline,
+        device: 'Samsung Galaxy A10s (SM-A107F)',
+        endpoint: '127.0.0.1:5555',
+        state: isOnline ? 'device' : 'offline',
+        battery: batteryLevel
+      }));
+    });
+    return;
+  }
+
+  // API: Trigger Test Alarm ke HP Samsung via ADB
+  if (pathname === '/api/alarm/trigger-test' && req.method === 'POST') {
+    const cmd = 'adb -s 127.0.0.1:5555 shell am broadcast -n me.ilhampradani.productivity.alarm/.AlarmReceiver --es extra_title "Uji Coba Alarm dari Web" --es extra_time "Sekarang WIB" --es extra_task_id "web-test"';
+    exec(cmd, (err, stdout, stderr) => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: !err,
+        output: (stdout || '').trim(),
+        error: err ? err.message : null
+      }));
+    });
+    return;
+  }
+
+  // API: Memicu Sinkronisasi Jadwal & Alarm ke HP Samsung via ADB
+  if (pathname === '/api/alarm/sync-phone' && req.method === 'POST') {
+    const cmd = 'adb -s 127.0.0.1:5555 shell am broadcast -n me.ilhampradani.productivity.alarm/.AlarmReceiver --es action sync';
+    exec(cmd, (err, stdout, stderr) => {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        success: !err,
+        output: (stdout || '').trim(),
+        error: err ? err.message : null
+      }));
+    });
+    return;
+  }
+
   // API PUBLIC: Ketersediaan Waktu Kosong Real-Time
   if (pathname === '/api/public/available-slots' && req.method === 'GET') {
     const date = parsedUrl.searchParams.get("date") || new Date().toISOString().split("T")[0];
@@ -562,6 +612,7 @@ Salam hormat,
         if (parsed.dailyTasks) currentData.dailyTasks = parsed.dailyTasks;
         if (parsed.notifications) currentData.notifications = parsed.notifications;
         if (parsed.fiveYearPlan) currentData.fiveYearPlan = parsed.fiveYearPlan;
+        if (parsed.alarmSettings) currentData.alarmSettings = parsed.alarmSettings;
         
         fs.writeFileSync(cacheFile, JSON.stringify(currentData, null, 2), 'utf8');
 
@@ -585,6 +636,10 @@ Salam hormat,
               if (parsed.fiveYearPlan) {
                 const fiveYearVal = JSON.stringify(parsed.fiveYearPlan).replace(/'/g, "''");
                 await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('fiveYearPlan', '${fiveYearVal}', datetime('now'));`);
+              }
+              if (parsed.alarmSettings) {
+                const alarmVal = JSON.stringify(parsed.alarmSettings).replace(/'/g, "''");
+                await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('alarm', '${alarmVal}', datetime('now'));`);
               }
             } catch (err) {
               console.warn('[D1 Sync Background Error]:', err.message);
@@ -612,7 +667,10 @@ Salam hormat,
         return res.end(JSON.stringify({
           success: true,
           tasks: localData.dailyTasks || [],
-          settings: { notifications: localData.notifications || {} },
+          settings: {
+            notifications: localData.notifications || {},
+            alarm: localData.alarmSettings || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true }
+          },
           fiveYearPlan: localData.fiveYearPlan || []
         }));
       } catch (e) {}
@@ -632,7 +690,10 @@ Salam hormat,
         tasks: tasks.map(t => {
           try { return t.raw_json ? JSON.parse(t.raw_json) : t; } catch { return t; }
         }),
-        settings: settingsMap,
+        settings: {
+          notifications: settingsMap.notifications || {},
+          alarm: settingsMap.alarm || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true }
+        },
         fiveYearPlan: settingsMap.fiveYearPlan || []
       }));
     }

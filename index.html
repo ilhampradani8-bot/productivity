@@ -81,7 +81,7 @@
         <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
           <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/>
         </svg>
-        Aturan Notifikasi
+        Aturan WA & Alarm HP
       </button>
     </nav>
 
@@ -125,7 +125,7 @@
     <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 whitespace-nowrap cursor-pointer">Roadmap Bulanan</button>
     <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 whitespace-nowrap cursor-pointer">5 Tahun</button>
     <button onclick="window.app.switchTab('history')" data-tab="history" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-indigo-700 whitespace-nowrap cursor-pointer">Riwayat</button>
-    <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-700 whitespace-nowrap cursor-pointer">Aturan WA</button>
+    <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-700 whitespace-nowrap cursor-pointer">Aturan WA & Alarm</button>
   </div>
 
   <!-- ================= MAIN FULLWIDTH CONTAINER ================= -->
@@ -325,8 +325,8 @@
               </svg>
             </div>
             <div>
-              <h2 class="text-sm sm:text-base font-bold text-slate-900">Pusat Konfigurasi & Aturan Notifikasi WhatsApp</h2>
-              <p class="text-xs text-slate-600 mt-0.5">Atur jadwal pengiriman briefing rutin, nomor tujuan resmi, dan peringatan tugas terlewat.</p>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900">Pusat Konfigurasi Notifikasi WhatsApp & Alarm HP</h2>
+              <p class="text-xs text-slate-600 mt-0.5">Atur jadwal pengiriman briefing rutin, nomor penerima, serta waktu dering alarm HP Samsung.</p>
             </div>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
@@ -344,6 +344,135 @@
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- ================= KARTU PENGATURAN ALARM HP SAMSUNG A10s ================= -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 border border-slate-700 text-white rounded-2xl p-4 sm:p-5 shadow-lg space-y-4">
+        
+        <!-- Header Kartu Alarm HP -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-700/80 pb-3.5">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-400 flex-shrink-0 shadow-inner">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0zM7 3l-4 4m18-4l-4 4"/></svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm sm:text-base font-black tracking-tight text-white font-mono uppercase">Pusat Kontrol & Aturan Alarm HP Samsung A10s</h2>
+                <span class="px-2 py-0.5 rounded-full bg-indigo-500/30 border border-indigo-400/50 text-indigo-300 text-[10px] font-mono font-bold">SM-A107F</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-0.5">Konfigurasi kapan alarm berdering otomatis di HP Samsung dan sinkronisasi live ke database.</p>
+            </div>
+          </div>
+
+          <!-- Status Koneksi Live Perangkat -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <div id="alarm-device-status-badge" class="px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="alarm-device-status-text">Memeriksa HP Samsung...</span>
+            </div>
+            <button onclick="window.app.refreshDeviceStatus()" title="Muat ulang status HP" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 transition-colors cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Callout Penjelasan Kapan Alarm Nyala -->
+        <div class="p-3.5 rounded-xl bg-slate-800/80 border border-slate-700/80 space-y-2 text-xs">
+          <div class="flex items-center gap-2 text-indigo-300 font-bold font-mono uppercase tracking-wide text-[11px] sm:text-xs">
+            <svg class="w-4 h-4 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Kapan Saja Alarm di HP Samsung Anda Berdering?</span>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-slate-300 text-[11px] leading-relaxed">
+            <div class="flex items-start gap-1.5">
+              <span class="text-emerald-400 font-bold flex-shrink-0">1. Tepat Jam Mulai (00 Menit):</span>
+              <span>Layar HP bangun & nada alarm berbunyi tepat di jam mulai agenda kerja (misal: 07:30, 09:00, 16:30).</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-amber-400 font-bold flex-shrink-0">2. Peringatan Persiapan:</span>
+              <span>Alarm berdering 5, 10, atau 15 menit sebelum agenda dimulai untuk persiapan berkas atau transit.</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-indigo-400 font-bold flex-shrink-0">3. Saat Agenda Berakhir:</span>
+              <span>Alarm berdering saat durasi tugas selesai sebagai pengingat evaluasi atau checklist selesai.</span>
+            </div>
+            <div class="flex items-start gap-1.5">
+              <span class="text-purple-400 font-bold flex-shrink-0">4. Bangun Tidur Pagi:</span>
+              <span>Alarm berdering tepat saat waktu alokasi tidur dinamis (6 jam / istirahat) berakhir.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Pengaturan Waktu Alarm -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          
+          <!-- Opsi 1: Tepat Jam Mulai -->
+          <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/80 flex items-center justify-between gap-3">
+            <div>
+              <span class="text-xs font-bold text-white block">Alarm Tepat Jam Mulai Agenda</span>
+              <span class="text-[11px] text-slate-400">Berdering di menit 00 saat waktu mulai (timeStart) tiba.</span>
+            </div>
+            <input type="checkbox" id="alarm-ring-on-start" checked class="custom-checkbox h-4 w-4 rounded accent-indigo-500 cursor-pointer">
+          </div>
+
+          <!-- Opsi 2: Peringatan Persiapan Awal -->
+          <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/80 flex items-center justify-between gap-3">
+            <div>
+              <span class="text-xs font-bold text-white block">Peringatan Persiapan Awal</span>
+              <span class="text-[11px] text-slate-400">Alarm berdering beberapa menit sebelum agenda dimulai.</span>
+            </div>
+            <select id="alarm-ring-before-minutes" class="bg-slate-900 border border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none focus:border-indigo-400 cursor-pointer">
+              <option value="0">0 Menit (Hanya Mulai)</option>
+              <option value="5">5 Menit Sebelum</option>
+              <option value="10">10 Menit Sebelum</option>
+              <option value="15">15 Menit Sebelum</option>
+            </select>
+          </div>
+
+          <!-- Opsi 3: Saat Agenda Berakhir -->
+          <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/80 flex items-center justify-between gap-3">
+            <div>
+              <span class="text-xs font-bold text-white block">Alarm Saat Agenda Berakhir</span>
+              <span class="text-[11px] text-slate-400">Pengingat untuk menandai tugas selesai atau mengisi kendala.</span>
+            </div>
+            <input type="checkbox" id="alarm-ring-on-end" checked class="custom-checkbox h-4 w-4 rounded accent-indigo-500 cursor-pointer">
+          </div>
+
+          <!-- Opsi 4: Bangun Tidur Pagi -->
+          <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700/80 flex items-center justify-between gap-3">
+            <div>
+              <span class="text-xs font-bold text-white block">Alarm Bangun Tidur Otomatis</span>
+              <span class="text-[11px] text-slate-400">Berdering saat alokasi tidur dinamis (6 jam) berakhir.</span>
+            </div>
+            <input type="checkbox" id="alarm-ring-on-wakeup" checked class="custom-checkbox h-4 w-4 rounded accent-indigo-500 cursor-pointer">
+          </div>
+
+        </div>
+
+        <!-- Tombol Aksi Kontrol HP -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-slate-700/80">
+          <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+            <button onclick="window.app.saveAlarmSettings()" class="w-full sm:w-auto px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <span>Simpan Aturan Alarm HP</span>
+            </button>
+            <button onclick="window.app.syncPhoneAlarms()" class="w-full sm:w-auto px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer" title="Paksa HP Samsung menarik jadwal terbaru">
+              <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Sinkronkan ke HP</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+            <button onclick="window.app.testDeviceAlarm()" class="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer" title="Kirim sinyal uji coba alarm ke HP Samsung">
+              <svg class="w-4 h-4 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+              <span>Tes Alarm di HP</span>
+            </button>
+            <a href="/download/AuraDeskAlarm.apk" download class="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition-all flex items-center justify-center gap-1.5 cursor-pointer" title="Unduh installer APK Android untuk HP Samsung">
+              <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Unduh APK v1.1</span>
+            </a>
+          </div>
+        </div>
+
       </div>
 
       <!-- Grid Pengaturan Notifikasi -->

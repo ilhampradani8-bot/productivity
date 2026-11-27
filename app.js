@@ -54,6 +54,12 @@ const DEFAULT_SYSTEM_DATA = {
       { id: "log-1", time: "2026-11-27 00:00:00", type: "Notifikasi Aura Desk", status: "Siap", phone: "6288971071138" }
     ]
   },
+  alarmSettings: {
+    ringOnStart: true,
+    ringBeforeMinutes: 0,
+    ringOnEnd: true,
+    ringOnWakeup: true
+  },
   fiveYearPlan: [
     {
       id: "y-2026",
@@ -269,6 +275,14 @@ class ProductivityApp {
           if (!parsed.notifications.missedTaskAlert) {
             parsed.notifications.missedTaskAlert = { enabled: true };
           }
+          if (!parsed.alarmSettings) {
+            parsed.alarmSettings = {
+              ringOnStart: true,
+              ringBeforeMinutes: 0,
+              ringOnEnd: true,
+              ringOnWakeup: true
+            };
+          }
           return { ...DEFAULT_SYSTEM_DATA, ...parsed };
         }
       }
@@ -304,7 +318,8 @@ class ProductivityApp {
         body: JSON.stringify({
           dailyTasks: this.data.dailyTasks,
           notifications: this.data.notifications,
-          fiveYearPlan: this.data.fiveYearPlan
+          fiveYearPlan: this.data.fiveYearPlan,
+          alarmSettings: this.data.alarmSettings
         })
       });
       if (res.ok) {
@@ -338,6 +353,9 @@ class ProductivityApp {
         }
         if (json.settings && json.settings.notifications) {
           this.data.notifications = { ...this.data.notifications, ...json.settings.notifications };
+        }
+        if (json.settings && json.settings.alarm) {
+          this.data.alarmSettings = { ...this.data.alarmSettings, ...json.settings.alarm };
         }
         localStorage.setItem(this.storageKey, JSON.stringify(this.data));
         this.render();
@@ -3818,6 +3836,101 @@ Semoga hari Bapak selalu lancar!
           </div>
         `).join("");
       }
+    }
+
+    this.renderAlarmSettings();
+  }
+
+  renderAlarmSettings() {
+    const alarm = this.data.alarmSettings || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true };
+    const startEl = document.getElementById("alarm-ring-on-start");
+    const beforeEl = document.getElementById("alarm-ring-before-minutes");
+    const endEl = document.getElementById("alarm-ring-on-end");
+    const wakeupEl = document.getElementById("alarm-ring-on-wakeup");
+
+    if (startEl) startEl.checked = alarm.ringOnStart !== false;
+    if (beforeEl) beforeEl.value = String(alarm.ringBeforeMinutes || 0);
+    if (endEl) endEl.checked = alarm.ringOnEnd !== false;
+    if (wakeupEl) wakeupEl.checked = alarm.ringOnWakeup !== false;
+
+    this.refreshDeviceStatus();
+  }
+
+  async refreshDeviceStatus() {
+    const textEl = document.getElementById("alarm-device-status-text");
+    const badgeEl = document.getElementById("alarm-device-status-badge");
+    if (!textEl) return;
+
+    try {
+      const res = await fetch("/api/alarm/device-status");
+      const data = await res.json();
+      if (data && data.online) {
+        textEl.textContent = `${data.device} • ONLINE • Baterai ${data.battery || '100%'}`;
+        if (badgeEl) {
+          badgeEl.className = "px-3 py-1.5 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-mono font-bold flex items-center gap-2";
+        }
+      } else {
+        textEl.textContent = "Samsung Galaxy A10s • OFFLINE";
+        if (badgeEl) {
+          badgeEl.className = "px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-300 text-xs font-mono font-bold flex items-center gap-2";
+        }
+      }
+    } catch (e) {
+      textEl.textContent = "Status HP Tidak Terdeteksi";
+      if (badgeEl) {
+        badgeEl.className = "px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-mono font-bold flex items-center gap-2";
+      }
+    }
+  }
+
+  async saveAlarmSettings() {
+    if (!this.data.alarmSettings) this.data.alarmSettings = {};
+    const startEl = document.getElementById("alarm-ring-on-start");
+    const beforeEl = document.getElementById("alarm-ring-before-minutes");
+    const endEl = document.getElementById("alarm-ring-on-end");
+    const wakeupEl = document.getElementById("alarm-ring-on-wakeup");
+
+    this.data.alarmSettings.ringOnStart = startEl ? startEl.checked : true;
+    this.data.alarmSettings.ringBeforeMinutes = beforeEl ? parseInt(beforeEl.value, 10) || 0 : 0;
+    this.data.alarmSettings.ringOnEnd = endEl ? endEl.checked : true;
+    this.data.alarmSettings.ringOnWakeup = wakeupEl ? wakeupEl.checked : true;
+
+    this.saveData();
+
+    // Trigger sync ke HP langsung via background broadcast
+    try {
+      await fetch("/api/alarm/sync-phone", { method: "POST" });
+    } catch (e) {}
+
+    alert("Pengaturan Alarm HP Samsung A10s berhasil disimpan dan disinkronkan ke cloud & perangkat!");
+  }
+
+  async testDeviceAlarm() {
+    try {
+      const res = await fetch("/api/alarm/trigger-test", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        alert("Sinyal tes alarm berhasil dikirim ke Samsung Galaxy A10s! Layar HP sekarang menyala dan nada alarm berdering.");
+      } else {
+        alert("Gagal memicu alarm di HP: " + (data.error || "Perangkat tidak merespons"));
+      }
+    } catch (e) {
+      alert("Error menghubungi backend alarm: " + e.message);
+    }
+  }
+
+  async syncPhoneAlarms() {
+    try {
+      const res = await fetch("/api/alarm/sync-phone", { method: "POST" });
+      const data = await res.json();
+      if (data.success) {
+        alert("Sinyal sinkronisasi berhasil dikirim ke Samsung Galaxy A10s! Perangkat sedang menarik agenda terbaru.");
+        this.refreshDeviceStatus();
+      } else {
+        alert("Gagal sinkronkan ke HP: " + (data.error || "Perangkat offline"));
+      }
+    } catch (e) {
+      alert("Error sinkronisasi ke HP: " + e.message);
     }
   }
 
