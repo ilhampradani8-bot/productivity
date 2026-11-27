@@ -127,6 +127,137 @@ async function pollD1NotificationQueue() {
 // Jalankan polling setiap 6 detik
 setInterval(pollD1NotificationQueue, 6000);
 
+function getJakartaTimeInfo() {
+  const d = new Date();
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Jakarta',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  const parts = formatter.formatToParts(d);
+  let y = '', m = '', day = '', hour = 0, min = 0;
+  for (const p of parts) {
+    if (p.type === 'year') y = p.value;
+    if (p.type === 'month') m = p.value;
+    if (p.type === 'day') day = p.value;
+    if (p.type === 'hour') hour = parseInt(p.value, 10);
+    if (p.type === 'minute') min = parseInt(p.value, 10);
+  }
+  const timeStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+  return {
+    dateStr: `${y}-${m}-${day}`,
+    timeStr,
+    hour,
+    min,
+    currentMins: hour * 60 + min
+  };
+}
+
+// Background Worker: Memeriksa agenda terlewat secara real-time 24/7 di server
+async function checkServerMissedTasks() {
+  try {
+    const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+    if (!fs.existsSync(cacheFile)) return;
+
+    let localData = null;
+    try {
+      localData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+    } catch (e) {
+      return;
+    }
+
+    if (!localData || !localData.dailyTasks) return;
+    const notifSettings = localData.notifications || {};
+    if (notifSettings.missedTaskAlert && notifSettings.missedTaskAlert.enabled === false) {
+      return;
+    }
+
+    const targetPhone = notifSettings.targetPhone || TARGET_PHONE;
+    const { dateStr, currentMins } = getJakartaTimeInfo();
+
+    let hasUpdates = false;
+
+    for (const task of localData.dailyTasks) {
+      if (task.deletedDates && task.deletedDates.includes(dateStr)) continue;
+
+      let applies = false;
+      if (!task.recurrence || task.recurrence === "none") {
+        applies = (task.date === dateStr);
+      } else if (task.recurrence === "daily") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) applies = true;
+      } else if (task.recurrence === "weekdays") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow >= 1 && dow <= 5) applies = true;
+        }
+      } else if (task.recurrence === "yearly") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          applies = (dateStr.slice(5) === task.date.slice(5));
+        }
+      }
+
+      if (!applies) continue;
+
+      let isDone = (task.status === "done");
+      let isCancelled = (task.status === "cancelled");
+      if (task.recurrence && task.recurrence !== "none") {
+        isDone = task.completedDates && task.completedDates.includes(dateStr);
+        isCancelled = task.cancelledDates && task.cancelledDates.includes(dateStr);
+      }
+
+      if (isDone || isCancelled) continue;
+
+      // Cek apakah sudah lewat batas waktu (timeEnd + 15 menit)
+      const taskEndMins = timeToMins(task.timeEnd || task.timeStart || "23:59");
+      if (currentMins >= taskEndMins + 15) {
+        if (!task.alertSentDates) task.alertSentDates = [];
+        if (task.alertSentDates.includes(dateStr)) continue;
+
+        // Jika lewat lebih dari 120 menit (misal jadwal masa lampau), jangan spam mendadak
+        if (currentMins > taskEndMins + 120) {
+          task.alertSentDates.push(dateStr);
+          hasUpdates = true;
+          continue;
+        }
+
+        task.alertSentDates.push(dateStr);
+        hasUpdates = true;
+
+        const message = 
+`Halo Pak Ilham Pradani, mohon izin menginfokan ya Pak 🙏
+
+Jadwal Bapak *"${task.title}"* yang dialokasikan pukul *${task.timeStart} - ${task.timeEnd} WIB* sepertinya sudah berakhir.
+
+Silakan dicek dan dicoret ya Pak jadwalnya di dashboard apabila pekerjaannya sudah selesai sebelum rekap jam 12.00 nanti.
+
+Apabila agenda ini berhalangan atau batal, Bapak bisa langsung klik tombol "Batal" dan cantumkan kendalanya di https://productivity.ilhampradani.me ya Pak.
+
+Semoga hari Bapak selalu produktif!
+*Aura Desk*`;
+
+        console.log(`[Realtime Scheduler] Mengirimkan alert agenda terlewat tepat waktu: "${task.title}" ke ${targetPhone}`);
+        await sendWhatsAppMessage(targetPhone, message);
+        break; // 1 notifikasi per putaran agar tertib
+      }
+    }
+
+    if (hasUpdates) {
+      fs.writeFileSync(cacheFile, JSON.stringify(localData, null, 2), 'utf8');
+    }
+  } catch (err) {
+    console.error('[Realtime Scheduler Error]:', err.message);
+  }
+}
+
+// Jalankan scheduler agenda terlewat setiap 30 detik (24/7 di background)
+setInterval(checkServerMissedTasks, 30000);
+setTimeout(checkServerMissedTasks, 2000);
+
 const server = http.createServer(async (req, res) => {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -407,8 +538,74 @@ Salam hormat,
     return;
   }
 
-  // API: Sync dengan Cloudflare D1
+  // API: Sync dengan Cloudflare D1 & Simpan ke Cache Lokal
+  if (pathname === '/api/sync' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', async () => {
+      try {
+        const parsed = JSON.parse(body || '{}');
+        const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+        
+        let currentData = {};
+        if (fs.existsSync(cacheFile)) {
+          try { currentData = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
+        }
+        if (parsed.dailyTasks) currentData.dailyTasks = parsed.dailyTasks;
+        if (parsed.notifications) currentData.notifications = parsed.notifications;
+        if (parsed.fiveYearPlan) currentData.fiveYearPlan = parsed.fiveYearPlan;
+        
+        fs.writeFileSync(cacheFile, JSON.stringify(currentData, null, 2), 'utf8');
+
+        // Sync ke D1 secara async di background
+        if (parsed.dailyTasks && parsed.dailyTasks.length > 0) {
+          (async () => {
+            try {
+              for (const t of parsed.dailyTasks) {
+                const escapedTitle = (t.title || 'Agenda').replace(/'/g, "''");
+                const escapedNote = (t.note || '').replace(/'/g, "''");
+                const compDates = JSON.stringify(t.completedDates || []).replace(/'/g, "''");
+                const delDates = JSON.stringify(t.deletedDates || []).replace(/'/g, "''");
+                const rawJson = JSON.stringify(t).replace(/'/g, "''");
+                const sql = `INSERT OR REPLACE INTO tasks (id, title, time_start, time_end, target_date, recurrence, validity_type, status, completed_dates, deleted_dates, note, has_second_session, session2_start, session2_end, raw_json, updated_at) VALUES ('${t.id}', '${escapedTitle}', '${t.timeStart || ''}', '${t.timeEnd || ''}', '${t.date || ''}', '${t.recurrence || 'none'}', '${t.validityType || 'until_completed'}', '${t.status || 'todo'}', '${compDates}', '${delDates}', '${escapedNote}', ${t.hasSecondSession ? 1 : 0}, '${t.session2Start || ''}', '${t.session2End || ''}', '${rawJson}', datetime('now'));`;
+                await queryD1(sql);
+              }
+              if (parsed.notifications) {
+                const notifVal = JSON.stringify(parsed.notifications).replace(/'/g, "''");
+                await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('notifications', '${notifVal}', datetime('now'));`);
+              }
+            } catch (err) {
+              console.warn('[D1 Sync Background Error]:', err.message);
+            }
+          })();
+        }
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true }));
+      } catch (err) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: false, error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // API: Sync dengan Cloudflare D1 & Cache Lokal
   if (pathname === '/api/sync' && req.method === 'GET') {
+    const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+    if (fs.existsSync(cacheFile)) {
+      try {
+        const localData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          success: true,
+          tasks: localData.dailyTasks || [],
+          settings: { notifications: localData.notifications || {} },
+          fiveYearPlan: localData.fiveYearPlan || []
+        }));
+      } catch (e) {}
+    }
+
     const d1Data = await queryD1("SELECT * FROM tasks ORDER BY time_start ASC; SELECT * FROM settings;");
     if (d1Data && d1Data.success && d1Data.result) {
       const tasks = d1Data.result[0]?.results || [];

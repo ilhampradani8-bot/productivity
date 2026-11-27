@@ -1277,8 +1277,10 @@ class ProductivityApp {
     const tasks = this.getTasksForDate(today);
 
     for (const t of tasks) {
-      if (this.isTaskMissed(t, today) && !t.missedAlertSent) {
+      if (!t.alertSentDates) t.alertSentDates = [];
+      if (this.isTaskMissed(t, today) && !t.missedAlertSent && !t.alertSentDates.includes(today)) {
         t.missedAlertSent = true;
+        t.alertSentDates.push(today);
         this.saveData();
         const phone = this.data.notifications.targetPhone || "6288971071138";
         const message = 
