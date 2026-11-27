@@ -306,6 +306,7 @@ class ProductivityApp {
     this.clockPeriod = "day";
     this.isClockDragging = false;
     this.editingTaskId = null;
+    this.taskScheduleMode = "once";
 
     // Missed Task Reason Evaluation State
     this.evaluatingTaskId = null;
@@ -439,6 +440,7 @@ class ProductivityApp {
     this.bindAutocompleteEvents();
     this.initTaskDate();
     this.initValidityPreset();
+    this.setTaskScheduleMode("once");
     this.render();
     this.checkTimeCollision();
     this.checkMissedTasksAndAlert();
@@ -508,6 +510,9 @@ class ProductivityApp {
     if (!modal) return;
     modal.classList.remove("hidden");
     document.body.classList.add("overflow-hidden");
+    if (!this.editingTaskId) {
+      this.setTaskScheduleMode("once");
+    }
     if (presetDate) {
       const input = document.getElementById("task-target-date");
       if (input) {
@@ -1018,7 +1023,13 @@ class ProductivityApp {
       if (s1Start && item.timeStart) s1Start.value = item.timeStart;
       if (s1End && item.timeEnd) s1End.value = item.timeEnd;
       if (noteInput && item.note) noteInput.value = item.note;
-      if (recSelect && item.recurrence) recSelect.value = item.recurrence;
+      if (item.recurrence && item.recurrence !== "none") {
+        this.setTaskScheduleMode("recurring");
+        if (recSelect) recSelect.value = item.recurrence;
+      } else {
+        this.setTaskScheduleMode("once");
+        if (recSelect) recSelect.value = "none";
+      }
 
       if (dropdown) dropdown.classList.add("hidden");
       this.checkTimeCollision();
@@ -1796,7 +1807,71 @@ Semoga hari Bapak selalu lancar!
     this.checkTimeCollision();
   }
 
+  setTaskScheduleMode(mode = "once") {
+    this.taskScheduleMode = mode;
+    const btnOnce = document.getElementById("btn-mode-once");
+    const btnRecurring = document.getElementById("btn-mode-recurring");
+    const dateTitle = document.getElementById("section-date-title");
+    const bannerOnce = document.getElementById("banner-once-mode");
+    const recurrenceSection = document.getElementById("container-recurrence-section");
+    const recSelect = document.getElementById("task-recurrence");
+
+    if (mode === "once") {
+      if (btnOnce) {
+        btnOnce.className = "flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow-sm cursor-pointer";
+      }
+      if (btnRecurring) {
+        btnRecurring.className = "flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 bg-transparent cursor-pointer";
+      }
+      if (dateTitle) {
+        dateTitle.textContent = "TANGGAL PELAKSANAAN (SEKALI SAJA)";
+      }
+      if (bannerOnce) {
+        bannerOnce.classList.remove("hidden");
+      }
+      if (recurrenceSection) {
+        recurrenceSection.classList.add("hidden");
+      }
+      if (recSelect) {
+        recSelect.value = "none";
+      }
+    } else {
+      // mode recurring
+      if (btnOnce) {
+        btnOnce.className = "flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 bg-transparent cursor-pointer";
+      }
+      if (btnRecurring) {
+        btnRecurring.className = "flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow-sm cursor-pointer";
+      }
+      if (dateTitle) {
+        dateTitle.textContent = "TANGGAL MULAI BERLAKU (BERULANG)";
+      }
+      if (bannerOnce) {
+        bannerOnce.classList.add("hidden");
+      }
+      if (recurrenceSection) {
+        recurrenceSection.classList.remove("hidden");
+      }
+      if (recSelect) {
+        if (!recSelect.value || recSelect.value === "none") {
+          recSelect.value = "daily";
+        }
+      }
+      this.handleValidityPresetChange();
+    }
+  }
+
   handleRecurrenceChange() {
+    const recSelect = document.getElementById("task-recurrence");
+    if (recSelect) {
+      if (recSelect.value === "none") {
+        this.setTaskScheduleMode("once");
+      } else {
+        if (this.taskScheduleMode !== "recurring") {
+          this.setTaskScheduleMode("recurring");
+        }
+      }
+    }
     this.handleValidityPresetChange();
   }
 
@@ -2360,9 +2435,17 @@ Semoga hari Bapak selalu lancar!
     if (s2StartEl) s2StartEl.value = task.session2Start || "19:30";
     if (s2EndEl) s2EndEl.value = task.session2End || "20:30";
 
-    if (recEl) recEl.value = task.recurrence || "none";
-    if (presetEl) presetEl.value = task.validityType || "until_completed";
-    if (untilEl) untilEl.value = task.validUntil || "";
+    if (task.recurrence && task.recurrence !== "none") {
+      this.setTaskScheduleMode("recurring");
+      if (recEl) recEl.value = task.recurrence;
+      if (presetEl) presetEl.value = task.validityType || "until_completed";
+      if (untilEl) untilEl.value = task.validUntil || "";
+    } else {
+      this.setTaskScheduleMode("once");
+      if (recEl) recEl.value = "none";
+      if (presetEl) presetEl.value = "until_completed";
+      if (untilEl) untilEl.value = "";
+    }
     if (noteEl) noteEl.value = task.note || "";
 
     if (submitTextEl) {
@@ -2389,6 +2472,7 @@ Semoga hari Bapak selalu lancar!
       this.onTaskDateChange();
     }
 
+    this.setTaskScheduleMode("once");
     this.toggleSession2UI();
     this.initValidityPreset();
     this.checkTimeCollision();
@@ -2956,9 +3040,10 @@ Salam hangat,
         const hasSecondSession = toggleS2 ? toggleS2.checked : false;
         const session2Start = document.getElementById("task-session2-start") ? document.getElementById("task-session2-start").value : "";
         const session2End = document.getElementById("task-session2-end") ? document.getElementById("task-session2-end").value : "";
-        const recurrence = document.getElementById("task-recurrence") ? document.getElementById("task-recurrence").value : "none";
-        const validityPreset = document.getElementById("task-validity-preset") ? document.getElementById("task-validity-preset").value : "until_completed";
-        const validUntil = document.getElementById("task-valid-until") ? document.getElementById("task-valid-until").value : "";
+        const isOnce = this.taskScheduleMode === "once";
+        const recurrence = isOnce ? "none" : (document.getElementById("task-recurrence") ? document.getElementById("task-recurrence").value : "none");
+        const validityPreset = isOnce ? "until_completed" : (document.getElementById("task-validity-preset") ? document.getElementById("task-validity-preset").value : "until_completed");
+        const validUntil = isOnce ? "" : (document.getElementById("task-valid-until") ? document.getElementById("task-valid-until").value : "");
         const note = document.getElementById("task-note") ? document.getElementById("task-note").value : "";
 
         this.addTask({
