@@ -1567,7 +1567,6 @@ Semoga hari Bapak selalu lancar!
       if (t.timeStart) {
         const s1 = this.timeToMinutes(t.timeStart);
         const e1 = this.timeToMinutes(t.timeEnd || t.timeStart);
-        // Agenda yang menyeberang tengah malam (misal 22:00 - 02:00)
         const effEnd1 = (e1 < s1) ? (1440 + e1) : e1;
         if (maxEnd === null || effEnd1 > maxEnd) {
           maxEnd = effEnd1;
@@ -1585,33 +1584,7 @@ Semoga hari Bapak selalu lancar!
       }
     });
 
-    // 2. Tentukan jam mulai tidur (sleepStart)
-    // - Jika ada tugas sore/malam/lembur (selesai >= 16:00 / 960 menit), tidur mulai tepat setelah tugas terakhir selesai.
-    // - Jika seluruh agenda hari ini selesai di pagi/siang (misal subuh 05:00 - 06:00), jam tidur default malam dimulai pukul 23:00.
-    // - Jika tidak ada agenda sama sekali, jam tidur default pukul 23:00.
-    let sleepStart = 1380; // 23:00
-    let isOvernight = true;
-
-    if (maxEnd !== null && maxEnd >= 960) {
-      if (maxEnd < 1440) {
-        sleepStart = maxEnd;
-        isOvernight = true;
-      } else {
-        // Lembur melewati tengah malam (misal selesai 01:30 atau 02:00)
-        sleepStart = maxEnd - 1440;
-        isOvernight = false;
-      }
-    } else if (maxEnd !== null && maxEnd < 960) {
-      lastTaskTitle = "Malam Standar (23:00)";
-      sleepStart = 1380;
-      isOvernight = true;
-    } else {
-      lastTaskTitle = "Malam Standar";
-      sleepStart = 1380;
-      isOvernight = true;
-    }
-
-    // 3. Cari jam mulai agenda paling awal esok hari (nextMorningStart)
+    // 2. Cari jam mulai agenda paling awal esok hari (nextMorningStart)
     let earliestMorning = null;
     let nextMorningTitle = "";
 
@@ -1634,7 +1607,41 @@ Semoga hari Bapak selalu lancar!
       nextMorningTitle = "Agenda Pagi Esok (05:00)";
     }
 
-    // 4. Hitung durasi tidur aktual (selisih dari selesainya tugas terakhir ke agenda pagi esok)
+    // 3. Standar Waktu Tidur Produktif Eksekutif: 6 Jam (360 menit)
+    // Jam tidur ideal dihitung mundur 6 jam dari jam bangun esok pagi:
+    // Misal: Bangun 05:00 (300 menit) -> Jam tidur ideal: 23:00 WIB (1380 menit)
+    let idealSleepStart = sleepEnd - 360;
+    if (idealSleepStart < 0) {
+      idealSleepStart += 1440;
+    }
+
+    let sleepStart = idealSleepStart;
+    let isOvernight = (sleepStart > sleepEnd);
+    let isOverridden = false;
+
+    // 4. Evaluasi lembur malam:
+    // Jika tugas terakhir selesai lewat jam tidur ideal (misal lembur lewat jam 23:00),
+    // maka jam tidur bergeser menyesuaikan selesainya lembur.
+    // Jika tugas terakhir selesai sore/malam awal (misal 17:30, 18:00, atau 19:30),
+    // jam tidur TETAP dimulai jam 23:00 (waktu 19:30 - 23:00 adalah waktu fleksibel/pribadi/keluarga).
+    if (maxEnd !== null) {
+      if (maxEnd >= 1440) {
+        // Lembur selesai dini hari (misal 01:00)
+        const earlyEnd = maxEnd - 1440;
+        if (earlyEnd < sleepEnd) {
+          sleepStart = earlyEnd;
+          isOvernight = false;
+          isOverridden = true;
+        }
+      } else if (maxEnd > idealSleepStart) {
+        // Lembur selesai antara jam 23:00 dan 24:00
+        sleepStart = maxEnd;
+        isOvernight = true;
+        isOverridden = true;
+      }
+    }
+
+    // 5. Hitung durasi tidur aktual
     let durationMinutes = 0;
     if (isOvernight) {
       durationMinutes = (1440 - sleepStart) + sleepEnd;
@@ -1642,33 +1649,23 @@ Semoga hari Bapak selalu lancar!
       durationMinutes = Math.max(0, sleepEnd - sleepStart);
     }
 
-    // 5. Cari jam subuh hari berjalan untuk bar 24 jam visual
-    let todayDawn = null;
-    todayTasks.forEach(t => {
-      if (t.timeStart) {
-        const s = this.timeToMinutes(t.timeStart);
-        if (s >= 180 && s <= 720) {
-          if (todayDawn === null || s < todayDawn) todayDawn = s;
-        }
-      }
-    });
-    const todayDawnEnd = todayDawn !== null ? todayDawn : 300; // default 05:00
-
     const durationHours = parseFloat((durationMinutes / 60).toFixed(1));
     const cleanHours = String(durationHours).endsWith(".0") ? parseInt(durationHours, 10) : durationHours;
-    const isOverridden = durationMinutes < 360; // Ditandai menyesuaikan jika kurang dari standar 6 jam karena lembur
 
     let overrideReason = "";
     if (isOverridden) {
-      overrideReason = `Waktu tidur disesuaikan (${cleanHours} Jam) karena agenda terakhir "${lastTaskTitle}" selesai larut (${this.minutesToTime(sleepStart)}) menjelang agenda pagi "${nextMorningTitle}" (${this.minutesToTime(sleepEnd)}). Fleksibel dapat ditimpa agenda kerja.`;
+      overrideReason = `Waktu tidur disesuaikan (${cleanHours} Jam) karena lembur agenda "${lastTaskTitle}" selesai pukul ${this.minutesToTime(sleepStart)} WIB menjelang agenda pagi "${nextMorningTitle}" (${this.minutesToTime(sleepEnd)} WIB). Fleksibel dapat ditimpa agenda kerja.`;
     } else {
-      overrideReason = `Otomatis dialokasikan dari selesainya tugas terakhir "${lastTaskTitle}" (${this.minutesToTime(sleepStart)}) hingga agenda pertama esok hari "${nextMorningTitle}" (${this.minutesToTime(sleepEnd)}). Fleksibel dapat ditimpa jika ada jadwal tambahan.`;
+      const eveningNote = (maxEnd !== null && maxEnd < idealSleepStart) 
+        ? ` Sisa waktu dari selesainya tugas "${lastTaskTitle}" (${this.minutesToTime(maxEnd)} WIB) hingga 23:00 WIB adalah waktu fleksibel pribadi & keluarga.` 
+        : "";
+      overrideReason = `Alokasi tidur standar 6 Jam (${this.minutesToTime(sleepStart)} - ${this.minutesToTime(sleepEnd)} WIB).${eveningNote} Fleksibel dapat ditimpa jika ada jadwal tambahan.`;
     }
 
     return {
       startMins: sleepStart,
       endMins: sleepEnd,
-      todayDawnEnd,
+      todayDawnEnd: 300,
       durationHours: cleanHours,
       durationMinutes,
       isOvernight,
