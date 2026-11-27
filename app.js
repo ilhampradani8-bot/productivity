@@ -1422,137 +1422,142 @@ Semoga hari Bapak selalu lancar!
     });
   }
 
+  getNextDateString(dateStr) {
+    const parts = dateStr.split("-");
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    const dt = new Date(y, m, d);
+    dt.setDate(dt.getDate() + 1);
+    const ny = dt.getFullYear();
+    const nm = String(dt.getMonth() + 1).padStart(2, "0");
+    const nd = String(dt.getDate()).padStart(2, "0");
+    return `${ny}-${nm}-${nd}`;
+  }
+
   // ===================== DYNAMIC AUTO-SLEEP RECOVERY ENGINE =====================
   calculateDynamicSleep(targetDate) {
-    const DEFAULT_SLEEP = 360; // Standar 6 Jam
-    const tasks = this.getTasksForDate(targetDate).filter(t => !t.isCancelled && !this.isSleepTask(t));
+    const todayTasks = this.getTasksForDate(targetDate).filter(t => !t.isCancelled && !this.isSleepTask(t));
+    const nextDate = this.getNextDateString(targetDate);
+    const nextDayTasks = this.getTasksForDate(nextDate).filter(t => !t.isCancelled && !this.isSleepTask(t));
 
-    if (!tasks || tasks.length === 0) {
-      return {
-        startMins: 1380, // 23:00
-        endMins: 300,    // 05:00
-        durationHours: 6,
-        durationMinutes: DEFAULT_SLEEP,
-        isOvernight: true,
-        isOverridden: false,
-        overrideReason: ""
-      };
-    }
+    // 1. Cari batas selesai agenda paling terakhir pada hari berjalan
+    let maxEnd = null;
+    let lastTaskTitle = "";
 
-    let overnightEnd = null;
-    let overnightTitle = "";
-    let lateEveningEnd = null;
-    let lateEveningTitle = "";
-    let daytimeEnd = null;
-    let daytimeTitle = "";
-    let earliestMorningStart = null;
-    let earliestMorningTitle = "";
-
-    tasks.forEach(t => {
+    todayTasks.forEach(t => {
       if (t.timeStart) {
-        const s = this.timeToMinutes(t.timeStart);
-        let e = this.timeToMinutes(t.timeEnd || t.timeStart);
-
-        // Cari agenda pagi/subuh pertama (07:00 - 12:00)
-        if (s >= 420 && s <= 720) {
-          if (earliestMorningStart === null || s < earliestMorningStart) {
-            earliestMorningStart = s;
-            earliestMorningTitle = t.title;
-          }
-        }
-
-        if (e < s) {
-          // Agenda lintas tengah malam (misal 23:00 - 04:30)
-          if (overnightEnd === null || e > overnightEnd) {
-            overnightEnd = e;
-            overnightTitle = t.title;
-          }
-        } else if (s < 420 && e <= 450) {
-          // Agenda subuh dini hari (misal 01:00 - 04:30)
-          if (overnightEnd === null || e > overnightEnd) {
-            overnightEnd = e;
-            overnightTitle = t.title;
-          }
-        } else if (e >= 1200) {
-          // Agenda malam (20:00 - 24:00)
-          if (lateEveningEnd === null || e > lateEveningEnd) {
-            lateEveningEnd = e;
-            lateEveningTitle = t.title;
-          }
-        } else {
-          // Agenda siang/sore (selesai sebelum 20:00)
-          if (daytimeEnd === null || e > daytimeEnd) {
-            daytimeEnd = e;
-            daytimeTitle = t.title;
-          }
+        const s1 = this.timeToMinutes(t.timeStart);
+        const e1 = this.timeToMinutes(t.timeEnd || t.timeStart);
+        // Agenda yang menyeberang tengah malam (misal 22:00 - 02:00)
+        const effEnd1 = (e1 < s1) ? (1440 + e1) : e1;
+        if (maxEnd === null || effEnd1 > maxEnd) {
+          maxEnd = effEnd1;
+          lastTaskTitle = t.title;
         }
       }
-
       if (t.hasSecondSession && t.session2Start) {
         const s2 = this.timeToMinutes(t.session2Start);
-        let e2 = this.timeToMinutes(t.session2End || t.session2Start);
-        if (e2 >= 1200) {
-          if (lateEveningEnd === null || e2 > lateEveningEnd) {
-            lateEveningEnd = e2;
-            lateEveningTitle = `${t.title} (Sesi 2)`;
+        const e2 = this.timeToMinutes(t.session2End || t.session2Start);
+        const effEnd2 = (e2 < s2) ? (1440 + e2) : e2;
+        if (maxEnd === null || effEnd2 > maxEnd) {
+          maxEnd = effEnd2;
+          lastTaskTitle = `${t.title} (Sesi 2)`;
+        }
+      }
+    });
+
+    // 2. Tentukan jam mulai tidur (sleepStart)
+    // - Jika ada tugas sore/malam/lembur (selesai >= 16:00 / 960 menit), tidur mulai tepat setelah tugas terakhir selesai.
+    // - Jika seluruh agenda hari ini selesai di pagi/siang (misal subuh 05:00 - 06:00), jam tidur default malam dimulai pukul 23:00.
+    // - Jika tidak ada agenda sama sekali, jam tidur default pukul 23:00.
+    let sleepStart = 1380; // 23:00
+    let isOvernight = true;
+
+    if (maxEnd !== null && maxEnd >= 960) {
+      if (maxEnd < 1440) {
+        sleepStart = maxEnd;
+        isOvernight = true;
+      } else {
+        // Lembur melewati tengah malam (misal selesai 01:30 atau 02:00)
+        sleepStart = maxEnd - 1440;
+        isOvernight = false;
+      }
+    } else if (maxEnd !== null && maxEnd < 960) {
+      lastTaskTitle = "Malam Standar (23:00)";
+      sleepStart = 1380;
+      isOvernight = true;
+    } else {
+      lastTaskTitle = "Malam Standar";
+      sleepStart = 1380;
+      isOvernight = true;
+    }
+
+    // 3. Cari jam mulai agenda paling awal esok hari (nextMorningStart)
+    let earliestMorning = null;
+    let nextMorningTitle = "";
+
+    nextDayTasks.forEach(t => {
+      if (t.timeStart) {
+        const s = this.timeToMinutes(t.timeStart);
+        // Agenda pagi/subuh (antara 03:00 hingga 12:00)
+        if (s >= 180 && s <= 720) {
+          if (earliestMorning === null || s < earliestMorning) {
+            earliestMorning = s;
+            nextMorningTitle = t.title;
           }
         }
       }
     });
 
-    let sleepStart = 1380; // Default 23:00
-    let isOverridden = false;
-    let overrideReason = "";
-    let actualDuration = DEFAULT_SLEEP;
-    let nominalEnd = (sleepStart + DEFAULT_SLEEP) % 1440;
-
-    if (overnightEnd !== null) {
-      // Selesai subuh! Tidur langsung mulai setelah tugas subuh/lintas malam ini selesai
-      sleepStart = overnightEnd;
-      nominalEnd = (sleepStart + DEFAULT_SLEEP) % 1440;
-
-      const morningTarget = earliestMorningStart !== null ? earliestMorningStart : 450; // default 07:30
-      if (morningTarget > sleepStart) {
-        const gap = morningTarget - sleepStart;
-        if (gap < DEFAULT_SLEEP) {
-          actualDuration = Math.max(60, gap); // minimal 1 jam jika mepet
-          nominalEnd = morningTarget;
-          isOverridden = true;
-          const hr = (actualDuration / 60).toFixed(1).replace(".0", "");
-          overrideReason = `Ditimpa agenda "${earliestMorningTitle || 'Pagi'}" (${hr} jam)`;
-        }
-      }
-    } else if (lateEveningEnd !== null) {
-      // Selesai malam (misal 21:30 atau 23:30)
-      sleepStart = lateEveningEnd;
-      nominalEnd = (sleepStart + DEFAULT_SLEEP) % 1440;
-
-      const morningTarget = earliestMorningStart !== null ? earliestMorningStart : 450;
-      const totalAvailable = (1440 - sleepStart) + morningTarget;
-      if (totalAvailable < DEFAULT_SLEEP) {
-        actualDuration = Math.max(60, totalAvailable);
-        nominalEnd = morningTarget;
-        isOverridden = true;
-        const hr = (actualDuration / 60).toFixed(1).replace(".0", "");
-        overrideReason = `Ditimpa agenda "${earliestMorningTitle || 'Pagi'}" (${hr} jam)`;
-      }
-    } else {
-      // Selesai sore (misal 17:30) -> default tidur 23:00 - 05:00 (6 jam)
-      sleepStart = 1380;
-      nominalEnd = 300;
+    // Default bangun esok hari adalah pukul 05:00 (300 menit) jika belum ada agenda esok pagi
+    const sleepEnd = earliestMorning !== null ? earliestMorning : 300;
+    if (!nextMorningTitle) {
+      nextMorningTitle = "Agenda Pagi Esok (05:00)";
     }
 
-    const durationHours = parseFloat((actualDuration / 60).toFixed(1));
+    // 4. Hitung durasi tidur aktual (selisih dari selesainya tugas terakhir ke agenda pagi esok)
+    let durationMinutes = 0;
+    if (isOvernight) {
+      durationMinutes = (1440 - sleepStart) + sleepEnd;
+    } else {
+      durationMinutes = Math.max(0, sleepEnd - sleepStart);
+    }
+
+    // 5. Cari jam subuh hari berjalan untuk bar 24 jam visual
+    let todayDawn = null;
+    todayTasks.forEach(t => {
+      if (t.timeStart) {
+        const s = this.timeToMinutes(t.timeStart);
+        if (s >= 180 && s <= 720) {
+          if (todayDawn === null || s < todayDawn) todayDawn = s;
+        }
+      }
+    });
+    const todayDawnEnd = todayDawn !== null ? todayDawn : 300; // default 05:00
+
+    const durationHours = parseFloat((durationMinutes / 60).toFixed(1));
     const cleanHours = String(durationHours).endsWith(".0") ? parseInt(durationHours, 10) : durationHours;
+    const isOverridden = durationMinutes < 360; // Ditandai menyesuaikan jika kurang dari standar 6 jam karena lembur
+
+    let overrideReason = "";
+    if (isOverridden) {
+      overrideReason = `Waktu tidur disesuaikan (${cleanHours} Jam) karena agenda terakhir "${lastTaskTitle}" selesai larut (${this.minutesToTime(sleepStart)}) menjelang agenda pagi "${nextMorningTitle}" (${this.minutesToTime(sleepEnd)}). Fleksibel dapat ditimpa agenda kerja.`;
+    } else {
+      overrideReason = `Otomatis dialokasikan dari selesainya tugas terakhir "${lastTaskTitle}" (${this.minutesToTime(sleepStart)}) hingga agenda pertama esok hari "${nextMorningTitle}" (${this.minutesToTime(sleepEnd)}). Fleksibel dapat ditimpa jika ada jadwal tambahan.`;
+    }
 
     return {
       startMins: sleepStart,
-      endMins: nominalEnd,
+      endMins: sleepEnd,
+      todayDawnEnd,
       durationHours: cleanHours,
-      durationMinutes: actualDuration,
-      isOvernight: nominalEnd < sleepStart,
+      durationMinutes,
+      isOvernight,
       isOverridden,
-      overrideReason
+      overrideReason,
+      lastTaskTitle,
+      nextMorningTitle
     };
   }
 
@@ -1599,10 +1604,11 @@ Semoga hari Bapak selalu lancar!
             isSleep: true,
             isDynamicSleep: true
           });
-          if (dyn.endMins > 0) {
+          const dawnEnd = dyn.todayDawnEnd !== undefined ? dyn.todayDawnEnd : dyn.endMins;
+          if (dawnEnd > 0) {
             intervals.push({
               start: 0,
-              end: dyn.endMins,
+              end: dawnEnd,
               title: `Waktu Istirahat & Tidur Otomatis (${dyn.durationHours} Jam)`,
               taskId: "auto-sleep-dawn",
               session: 1,
@@ -2345,11 +2351,11 @@ Semoga hari Bapak selalu lancar!
               <div class="flex items-center gap-1.5 flex-wrap">
                 <span class="font-bold text-purple-900 font-mono text-[11px] sm:text-xs">ALOKASI TIDUR OTOMATIS: ${sStr} - ${eStr} WIB</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${dynSleep.isOverridden ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-purple-100 text-purple-800 border border-purple-200'}">
-                  ${dynSleep.durationHours} Jam ${dynSleep.isOverridden ? '• Menyesuaikan Agenda' : '• Terjadwal 6 Jam'}
+                  ${dynSleep.durationHours} Jam ${dynSleep.isOverridden ? '• Menyesuaikan Lembur' : '• Istirahat & Pemulihan'}
                 </span>
               </div>
               <p class="text-[10px] sm:text-[11px] text-purple-800/80 mt-0.5 break-words">
-                ${dynSleep.isOverridden ? dynSleep.overrideReason : 'Otomatis dihitung 6 jam setelah tugas terakhir selesai. Fleksibel dapat ditimpa agenda kerja.'}
+                ${dynSleep.overrideReason}
               </p>
             </div>
           </div>
@@ -2898,12 +2904,14 @@ Semoga hari Bapak selalu lancar!
       }
     });
 
-    // Baseline pemulihan & tidur: jika belum input jadwal tidur manual, hitung dinamis 6 jam setelah tugas terakhir (dapat ditimpa agenda pagi)
+    // Baseline pemulihan & tidur: jika belum input jadwal tidur manual, hitung dinamis dari tugas terakhir sampai agenda pagi esok
     let effectiveSleepMinutes = sleepMinutes;
     let autoSleepInfo = null;
     if (sleepMinutes === 0) {
       autoSleepInfo = this.calculateDynamicSleep(dateStr);
-      effectiveSleepMinutes = autoSleepInfo.durationMinutes;
+      const dawnMins = autoSleepInfo.todayDawnEnd || 300;
+      const nightMins = autoSleepInfo.isOvernight ? Math.max(0, 1440 - autoSleepInfo.startMins) : Math.max(0, autoSleepInfo.endMins - autoSleepInfo.startMins);
+      effectiveSleepMinutes = Math.min(1440, Math.max(0, dawnMins + nightMins));
     }
     const totalAllocatedMinutes = Math.min(1440, workMinutes + effectiveSleepMinutes);
     const flexibleMinutes = Math.max(0, 1440 - totalAllocatedMinutes);
