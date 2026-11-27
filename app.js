@@ -117,18 +117,19 @@ const DEFAULT_SYSTEM_DATA = {
     {
       id: "t-1",
       date: "2026-11-26",
-      timeStart: "07:30",
-      timeEnd: "08:30",
+      timeStart: "05:00",
+      timeEnd: "06:00",
       hasSecondSession: false,
       session2Start: "",
       session2End: "",
-      title: "Executive Morning Routine & Review Agenda Harian",
-      note: "Briefing mandiri & penetapan fokus non-negotiables",
+      title: "Executive Morning Routine, (Sholat, Olahraga, Prepare)",
+      note: "prepare mental",
       recurrence: "daily",
-      validityType: "3_years",
-      validUntil: "2029-11-26",
+      validityType: "until_completed",
+      validUntil: "",
       status: "done",
-      completedDates: ["2026-11-26"],
+      completedDates: ["2026-11-26", "2026-11-27"],
+      alertSentDates: ["2026-11-26", "2026-11-27"],
       deletedDates: []
     },
     {
@@ -346,7 +347,18 @@ class ProductivityApp {
             this.data.dailyTasks.push(ct);
           } else {
             const lt = localMap.get(ct.id);
-            if (ct.updated_at && (!lt.updated_at || ct.updated_at > lt.updated_at)) {
+            // Union merge completedDates: Sekali dicoret di device manapun, tetap tercatat selesai!
+            if (ct.completedDates && Array.isArray(ct.completedDates)) {
+              lt.completedDates = Array.from(new Set([...(lt.completedDates || []), ...ct.completedDates]));
+            }
+            if (ct.deletedDates && Array.isArray(ct.deletedDates)) {
+              lt.deletedDates = Array.from(new Set([...(lt.deletedDates || []), ...ct.deletedDates]));
+            }
+            if (ct.alertSentDates && Array.isArray(ct.alertSentDates)) {
+              lt.alertSentDates = Array.from(new Set([...(lt.alertSentDates || []), ...ct.alertSentDates]));
+            }
+            // Update properti jika cloud lebih baru atau local belum punya timestamp
+            if (!lt.updated_at || (ct.updated_at && ct.updated_at >= lt.updated_at)) {
               Object.assign(lt, ct);
             }
           }
@@ -377,8 +389,10 @@ class ProductivityApp {
     this.setTaskScheduleMode("once");
     this.render();
     this.checkTimeCollision();
-    this.checkMissedTasksAndAlert();
-    this.syncWithCloud();
+    // Sinkronisasi cloud dahulu sebelum mengecek missed alert agar status coret ter-update
+    this.syncWithCloud().then(() => {
+      this.checkMissedTasksAndAlert();
+    });
     this.fetchMeetingRequests();
   }
 
@@ -1286,17 +1300,39 @@ class ProductivityApp {
 
   // ===================== WA MISSED TASK ALERT TRIGGER =====================
   async checkMissedTasksAndAlert() {
-    if (!this.data.notifications.missedTaskAlert || !this.data.notifications.missedTaskAlert.enabled) return;
+    if (!this.data.notifications || !this.data.notifications.missedTaskAlert) return;
+    if (this.data.notifications.missedTaskAlert.enabled === false) return;
 
     const today = this.getTodayDateString();
     const tasks = this.getTasksForDate(today);
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
 
     for (const t of tasks) {
-      if (!t.alertSentDates) t.alertSentDates = [];
-      if (this.isTaskMissed(t, today) && !t.missedAlertSent && !t.alertSentDates.includes(today)) {
-        t.missedAlertSent = true;
-        t.alertSentDates.push(today);
+      // Dapatkan referensi objek asli di dailyTasks agar mutasi alertSentDates tersimpan persisten
+      const orig = this.data.dailyTasks.find(x => x.id === t.id);
+      if (!orig) continue;
+      if (!orig.alertSentDates) orig.alertSentDates = [];
+
+      // Jika sudah dicoret (selesai), dibatalkan, atau agenda tidur, jangan kirim alert
+      const isCompleted = t.isDone || orig.status === "done" || (orig.completedDates && orig.completedDates.includes(today));
+      if (isCompleted || t.isCancelled || this.isSleepTask(t)) continue;
+      if (orig.alertSentDates.includes(today)) continue;
+
+      if (this.isTaskMissed(t, today)) {
+        const taskEndMins = this.timeToMinutes(t.timeEnd || t.timeStart || "23:59");
+        // Batasi toleransi 120 menit: jika lewat lebih dari 2 jam lalu, jangan spam WA mendadak
+        if (currentMins > taskEndMins + 120) {
+          orig.alertSentDates.push(today);
+          this.saveData();
+          continue;
+        }
+
+        orig.alertSentDates.push(today);
+        orig.missedAlertSent = true;
         this.saveData();
+        this.pushToCloud();
+
         const phone = this.data.notifications.targetPhone || "6288971071138";
         const message = 
 `Halo Pak ${this.data.profile.name}, mohon izin menginfokan ya Pak.
@@ -2773,6 +2809,8 @@ Semoga hari Bapak selalu lancar!
     const t = this.data.dailyTasks.find(item => item.id === id);
     if (!t) return;
 
+    t.updated_at = new Date().toISOString();
+
     if (!t.recurrence || t.recurrence === "none") {
       t.status = t.status === "done" ? "todo" : "done";
     } else {
@@ -2782,11 +2820,19 @@ Semoga hari Bapak selalu lancar!
         t.completedDates.splice(idx, 1);
       } else {
         t.completedDates.push(targetDate);
+        t.status = "done";
       }
+    }
+
+    if (!t.alertSentDates) t.alertSentDates = [];
+    if (!t.alertSentDates.includes(targetDate)) {
+      t.alertSentDates.push(targetDate);
     }
 
     this.saveData();
     this.render();
+    // Kirim sinkronisasi instan ke server & Cloudflare D1
+    this.pushToCloud();
   }
 
   deleteTask(id, targetDate) {

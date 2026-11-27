@@ -351,6 +351,33 @@ Salam hormat,
 
     if (method === "POST") {
       const body = await request.json();
+
+      // Handle single task action (e.g. from Android App or Quick API)
+      if (body.action === 'markDone' || body.action === 'completeTask') {
+        const taskId = body.taskId || body.id;
+        const now = new Date();
+        const dateStr = body.date || now.toISOString().split("T")[0];
+
+        const taskRow = await db.prepare("SELECT * FROM tasks WHERE id = ?").bind(taskId).first();
+        if (taskRow) {
+          let compDates = [];
+          try { compDates = JSON.parse(taskRow.completed_dates || "[]"); } catch {}
+          if (!compDates.includes(dateStr)) compDates.push(dateStr);
+          
+          let raw = {};
+          try { raw = JSON.parse(taskRow.raw_json || "{}"); } catch {}
+          raw.status = "done";
+          raw.completedDates = compDates;
+          raw.updated_at = now.toISOString();
+
+          await db.prepare(`
+            UPDATE tasks SET status = 'done', completed_dates = ?, raw_json = ?, updated_at = datetime('now') WHERE id = ?
+          `).bind(JSON.stringify(compDates), JSON.stringify(raw), taskId).run();
+
+          return jsonResponse({ success: true, taskId, status: "done", date: dateStr });
+        }
+      }
+
       const dailyTasks = body.dailyTasks || [];
       const notifications = body.notifications || {};
       const fiveYearPlan = body.fiveYearPlan || [];

@@ -605,11 +605,58 @@ Salam hormat,
         const parsed = JSON.parse(body || '{}');
         const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
         
-        let currentData = {};
+        let currentData = { dailyTasks: [], notifications: {}, fiveYearPlan: [], alarmSettings: {} };
         if (fs.existsSync(cacheFile)) {
           try { currentData = JSON.parse(fs.readFileSync(cacheFile, 'utf8')); } catch (e) {}
         }
-        if (parsed.dailyTasks) currentData.dailyTasks = parsed.dailyTasks;
+        if (!currentData.dailyTasks) currentData.dailyTasks = [];
+
+        // Handle single task action (e.g. from Android App "Selesai & Catat di Database ✓")
+        if (parsed.action === 'markDone' || parsed.action === 'completeTask') {
+          const taskId = parsed.taskId || parsed.id;
+          const { dateStr } = getJakartaTimeInfo();
+          const targetDate = parsed.date || dateStr;
+
+          const task = currentData.dailyTasks.find(t => t.id === taskId);
+          if (task) {
+            task.updated_at = new Date().toISOString();
+            task.status = "done";
+            if (!task.completedDates) task.completedDates = [];
+            if (!task.completedDates.includes(targetDate)) {
+              task.completedDates.push(targetDate);
+            }
+            if (!task.alertSentDates) task.alertSentDates = [];
+            if (!task.alertSentDates.includes(targetDate)) {
+              task.alertSentDates.push(targetDate);
+            }
+          }
+
+          fs.writeFileSync(cacheFile, JSON.stringify(currentData, null, 2), 'utf8');
+
+          // Async D1 update
+          (async () => {
+            try {
+              if (task) {
+                const compDates = JSON.stringify(task.completedDates || []).replace(/'/g, "''");
+                const rawJson = JSON.stringify(task).replace(/'/g, "''");
+                await queryD1(`UPDATE tasks SET status = 'done', completed_dates = '${compDates}', raw_json = '${rawJson}', updated_at = datetime('now') WHERE id = '${task.id}';`);
+              }
+            } catch (err) {
+              console.warn('[D1 markDone Error]:', err.message);
+            }
+          })();
+
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ success: true, taskId, status: 'done', date: targetDate }));
+        }
+
+        if (parsed.dailyTasks && Array.isArray(parsed.dailyTasks)) {
+          const nowIso = new Date().toISOString();
+          parsed.dailyTasks.forEach(t => {
+            if (!t.updated_at) t.updated_at = nowIso;
+          });
+          currentData.dailyTasks = parsed.dailyTasks;
+        }
         if (parsed.notifications) currentData.notifications = parsed.notifications;
         if (parsed.fiveYearPlan) currentData.fiveYearPlan = parsed.fiveYearPlan;
         if (parsed.alarmSettings) currentData.alarmSettings = parsed.alarmSettings;

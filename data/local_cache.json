@@ -16,7 +16,7 @@
       "time": "21:00"
     },
     "missedTaskAlert": {
-      "enabled": true
+      "enabled": false
     },
     "logs": [
       {
@@ -293,6 +293,11 @@
         "2026-11-26",
         "2026-11-27"
       ],
+      "alertSentDates": [
+        "2026-11-26",
+        "2026-11-27"
+      ],
+      "updated_at": "2026-11-27T08:54:20.273Z",
       "deletedDates": [
         "2026-11-26"
       ]
@@ -401,5 +406,11 @@
       ],
       "deletedDates": []
     }
-  ]
+  ],
+  "alarmSettings": {
+    "ringOnStart": true,
+    "ringBeforeMinutes": 0,
+    "ringOnEnd": true,
+    "ringOnWakeup": true
+  }
 }
