@@ -5,6 +5,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -13,6 +14,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -49,6 +51,20 @@ public class MainActivity extends Activity {
     public static final String KEY_LAST_SYNC = "last_sync";
     public static final String KEY_OFFLINE_ACTIONS = "offline_actions";
     public static final String DEFAULT_SERVER_URL = "https://productivity.ilhampradani.me/api/sync";
+
+    public static int getBatteryLevel(Context context) {
+        try {
+            Intent batteryIntent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            if (batteryIntent != null) {
+                int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+                int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+                if (level >= 0 && scale > 0) {
+                    return (int) ((level / (float) scale) * 100);
+                }
+            }
+        } catch (Exception ignored) {}
+        return 88;
+    }
 
     // Auto-sync interval: 25 seconds when activity is active
     private static final long AUTO_SYNC_INTERVAL_MS = 25000;
@@ -629,6 +645,9 @@ public class MainActivity extends Activity {
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
                     conn.setRequestProperty("Content-Type", "application/json");
+                    conn.setRequestProperty("User-Agent", "AuraDeskAlarm/2.0 (Samsung Galaxy A10s SM-A107F)");
+                    conn.setRequestProperty("X-Device-Id", "Samsung-A10s");
+                    conn.setRequestProperty("X-Battery-Level", getBatteryLevel(MainActivity.this) + "%");
                     conn.setDoOutput(true);
                     conn.setConnectTimeout(6000);
                     conn.setReadTimeout(6000);
@@ -739,6 +758,9 @@ public class MainActivity extends Activity {
                     URL url = new URL(DEFAULT_SERVER_URL);
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("GET");
+                    conn.setRequestProperty("User-Agent", "AuraDeskAlarm/2.0 (Samsung Galaxy A10s SM-A107F)");
+                    conn.setRequestProperty("X-Device-Id", "Samsung-A10s");
+                    conn.setRequestProperty("X-Battery-Level", getBatteryLevel(context) + "%");
                     conn.setConnectTimeout(7000);
                     conn.setReadTimeout(7000);
 

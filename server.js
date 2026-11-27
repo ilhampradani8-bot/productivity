@@ -376,8 +376,34 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // API: Status Perangkat Alarm (Samsung Galaxy A10s via ADB)
+  // API: Status Perangkat Alarm (Samsung Galaxy A10s via Cloud Heartbeat & ADB)
   if (pathname === '/api/alarm/device-status' && req.method === 'GET') {
+    const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+    let cloudOnline = false;
+    let cloudHb = null;
+    if (fs.existsSync(cacheFile)) {
+      try {
+        const localData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        cloudHb = localData.device_heartbeat;
+        if (cloudHb && cloudHb.timestamp && (Date.now() - cloudHb.timestamp < 30 * 60 * 1000)) {
+          cloudOnline = true;
+        }
+      } catch (e) {}
+    }
+
+    if (cloudOnline && cloudHb) {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        online: true,
+        device: cloudHb.device || 'Samsung Galaxy A10s (SM-A107F)',
+        endpoint: 'Cloudflare D1 Real-time Sync',
+        state: 'online',
+        battery: cloudHb.battery || '88%',
+        lastSeen: cloudHb.last_sync || new Date().toISOString()
+      }));
+    }
+
+    // Fallback: periksa ADB lokal jika sedang dicolok USB/port 5555
     exec('adb -s 127.0.0.1:5555 get-state && adb -s 127.0.0.1:5555 shell dumpsys battery', (err, stdout) => {
       const output = stdout || '';
       const isOnline = output.includes('device');
@@ -772,6 +798,27 @@ Salam hormat,
 
   // API: Sync dengan Cloudflare D1 & Cache Lokal
   if (pathname === '/api/sync' && req.method === 'GET') {
+    const deviceId = req.headers['x-device-id'] || req.headers['user-agent'] || '';
+    const isSamsung = (deviceId.includes('Samsung') || deviceId.includes('A10s') || deviceId.includes('SM-A107F') || deviceId.includes('Dalvik'));
+    if (isSamsung || req.headers['x-device-id']) {
+      const battery = req.headers['x-battery-level'] || '88%';
+      const hb = {
+        online: true,
+        device: 'Samsung Galaxy A10s (SM-A107F)',
+        battery: battery,
+        last_sync: new Date().toISOString(),
+        timestamp: Date.now()
+      };
+      const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+      if (fs.existsSync(cacheFile)) {
+        try {
+          const localData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+          localData.device_heartbeat = hb;
+          fs.writeFileSync(cacheFile, JSON.stringify(localData, null, 2), 'utf8');
+        } catch (e) {}
+      }
+    }
+
     const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
     if (fs.existsSync(cacheFile)) {
       try {

@@ -273,6 +273,25 @@
   },
   "dailyTasks": [
     {
+      "id": "t-1795782808734",
+      "date": "2026-11-29",
+      "timeStart": "12:15",
+      "timeEnd": "13:15",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "Ke bobolu",
+      "note": "abis zhuhur",
+      "label": "mkaan di luar",
+      "recurrence": "none",
+      "validityType": "until_completed",
+      "validUntil": "",
+      "status": "todo",
+      "completedDates": [],
+      "deletedDates": [],
+      "updated_at": "2026-11-27T12:33:31.199Z"
+    },
+    {
       "id": "t-1795782702119",
       "date": "2026-11-28",
       "timeStart": "15:00",
@@ -289,7 +308,7 @@
       "status": "todo",
       "completedDates": [],
       "deletedDates": [],
-      "updated_at": "2026-11-27T12:31:44.756Z"
+      "updated_at": "2026-11-27T12:33:31.199Z"
     },
     {
       "id": "t-1795781221676",
@@ -502,7 +521,19 @@
       "id": "lbl-1795782692223",
       "name": "cpns",
       "color": "slate"
+    },
+    {
+      "id": "lbl-1795782802403",
+      "name": "mkaan di luar",
+      "color": "indigo"
     }
   ],
-  "customDailyOrder": {}
+  "customDailyOrder": {},
+  "device_heartbeat": {
+    "online": true,
+    "device": "Samsung Galaxy A10s (SM-A107F)",
+    "battery": "88%",
+    "last_sync": "2026-11-27T12:37:06.993Z",
+    "timestamp": 1795783026994
+  }
 }
