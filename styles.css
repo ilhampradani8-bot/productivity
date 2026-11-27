@@ -366,7 +366,6 @@ body {
   #modal-clock-picker > div,
   #modal-missed-reason > div,
   #modal-cancel-task > div,
-  #modal-add-task > div,
   #modal-edit-5y-year > div,
   #modal-edit-5y-step > div,
   #modal-dashboard-lock > div,
@@ -377,6 +376,26 @@ body {
     margin: 8px auto !important;
     max-height: 94vh !important;
     width: 95% !important;
+  }
+
+  /* Modal Add Task Mobile Bottom-Sheet (Non-clipping 3-tier layout) */
+  #modal-add-task {
+    align-items: flex-end !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+
+  #modal-add-task > div {
+    padding: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 90dvh !important;
+    max-height: 90dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
   }
 
   /* Analog Clock Radial Plate compact sizing */

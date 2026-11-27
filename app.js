@@ -443,6 +443,7 @@ class ProductivityApp {
     const modal = document.getElementById("modal-add-task");
     if (!modal) return;
     modal.classList.remove("hidden");
+    modal.classList.add("flex");
     document.body.classList.add("overflow-hidden");
     if (!this.editingTaskId) {
       this.setTaskScheduleMode("once");
@@ -463,6 +464,7 @@ class ProductivityApp {
     const modal = document.getElementById("modal-add-task");
     if (!modal) return;
     modal.classList.add("hidden");
+    modal.classList.remove("flex");
     document.body.classList.remove("overflow-hidden");
     if (this.editingTaskId) {
       this.cancelEdit();
