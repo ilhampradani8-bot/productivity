@@ -537,8 +537,9 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/test-upcoming-reminder' && req.method === 'POST') {
     try {
       const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
-      let sampleTask = { title: "Uji Coba Pengingat Agenda Eksekutif", timeStart: "09:00", timeEnd: "10:30", note: "Pengingat otomatis dari Web Productivity" };
+      const { dateStr } = getJakartaTimeInfo();
       let targetPhone = TARGET_PHONE;
+      let sampleTask = null;
 
       if (fs.existsSync(cacheFile)) {
         try {
@@ -546,21 +547,31 @@ const server = http.createServer(async (req, res) => {
           if (localData.notifications && localData.notifications.targetPhone) {
             targetPhone = localData.notifications.targetPhone;
           }
-          if (localData.dailyTasks && localData.dailyTasks.length > 0) {
-            const found = localData.dailyTasks.find(t => t.status !== 'done' && t.status !== 'cancelled' && !isSleepTask(t));
-            if (found) sampleTask = found;
+          if (localData.dailyTasks && Array.isArray(localData.dailyTasks)) {
+            // WAJIB HANYA MENCARI AGENDA HARI INI SECARA KETAT!
+            sampleTask = localData.dailyTasks.find(t => 
+              isTaskApplicableForDate(t, dateStr) && 
+              t.status !== 'done' && 
+              t.status !== 'cancelled' && 
+              !isSleepTask(t)
+            );
           }
         } catch (e) {}
       }
 
-      const timeRange = `${sampleTask.timeStart || '09:00'} - ${sampleTask.timeEnd || '10:00'} WIB`;
-      const testMsg = 
-`Halo Pak Ilham Pradani, S.H., mohon izin menyampaikan pengingat agenda kerja Bapak:
+      const title = sampleTask ? sampleTask.title : "Simulasi Uji Coba Pengingat Web";
+      const timeRange = sampleTask && sampleTask.timeStart ? `${sampleTask.timeStart} - ${sampleTask.timeEnd || 'Selesai'} WIB` : "10:00 - 11:30 WIB";
+      const note = sampleTask && sampleTask.note ? sampleTask.note : "Uji coba format notifikasi pengingat agenda web";
 
-[PENGINGAT AGENDA]: *${sampleTask.title}*
-[JADWAL]: *${timeRange}*
-${sampleTask.note ? `[CATATAN]: "${sampleTask.note}"\n` : ''}
-Agenda kerja dijadwalkan dimulai dalam 10 menit ke depan. Pengingat otomatis terverifikasi aktif dari web.
+      const testMsg = 
+`[SIMULASI UJI COBA PENGINGAT WA]
+Halo Pak Ilham Pradani, S.H., ini adalah pesan verifikasi sistem notifikasi web:
+
+[AGENDA HARI INI]: *${title}*
+[WAKTU]: *${timeRange}*
+[CATATAN]: "${note}"
+
+Status: Jalur pengingat agenda WhatsApp dari web ke bot lokal terhubung lancar dan aktif.
 Dashboard: https://productivity.ilhampradani.me
 
 Salam hormat,
@@ -568,7 +579,7 @@ Salam hormat,
 
       const botData = await sendWhatsAppMessage(targetPhone, testMsg);
       res.writeHead(botData.success ? 200 : 500, { 'Content-Type': 'application/json' });
-      return res.end(JSON.stringify({ success: botData.success, targetPhone, task: sampleTask.title, botResponse: botData }));
+      return res.end(JSON.stringify({ success: botData.success, targetPhone, task: title, date: dateStr, botResponse: botData }));
     } catch (err) {
       res.writeHead(500, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ success: false, error: err.message }));

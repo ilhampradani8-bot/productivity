@@ -5440,26 +5440,28 @@ Semoga hari Bapak selalu lancar!
 
   async sendTestUpcomingTaskWA() {
     const phone = this.data.notifications?.targetPhone || "6288971071138";
-    const tasks = this.getTasksForDate(this.selectedDate);
-    const activeTask = tasks.find(t => !t.isDone && !t.isCancelled && !this.isSleepTask(t)) || tasks[0];
+    const todayStr = this.getTodayDateString();
+    const tasksToday = this.getTasksForDate(todayStr);
+    const activeTask = tasksToday.find(t => !t.isDone && !t.isCancelled && !this.isSleepTask(t));
 
-    const taskTitle = activeTask ? activeTask.title : "Uji Coba Pengingat Agenda Eksekutif";
-    const timeRange = activeTask && activeTask.timeStart ? `${activeTask.timeStart} - ${activeTask.timeEnd || 'Selesai'} WIB` : "09:00 - 10:30 WIB";
-    const note = activeTask && activeTask.note ? activeTask.note : "Pengingat otomatis dari Web Productivity";
+    const taskTitle = activeTask ? activeTask.title : "Simulasi Uji Coba Pengingat Web";
+    const timeRange = activeTask && activeTask.timeStart ? `${activeTask.timeStart} - ${activeTask.timeEnd || 'Selesai'} WIB` : "10:00 - 11:30 WIB";
+    const note = activeTask && activeTask.note ? activeTask.note : "Uji coba format notifikasi pengingat agenda web";
 
     const message = 
-`Halo Pak ${this.data.profile.name}, mohon izin menyampaikan pengingat agenda kerja Bapak:
+`[SIMULASI UJI COBA PENGINGAT WA]
+Halo Pak ${this.data.profile.name}, ini adalah pesan verifikasi sistem notifikasi web:
 
-[PENGINGAT AGENDA]: *${taskTitle}*
-[JADWAL]: *${timeRange}*
+[AGENDA HARI INI]: *${taskTitle}*
+[WAKTU]: *${timeRange}*
 ${note ? `[CATATAN]: "${note}"\n` : ''}
-Agenda kerja dijadwalkan dimulai dalam 10 menit ke depan. Pengingat otomatis terverifikasi aktif dari web.
+Status: Jalur pengingat agenda WhatsApp dari web ke bot lokal terhubung lancar dan aktif.
 Dashboard: https://productivity.ilhampradani.me
 
 Salam hormat,
 *Aura Desk*`;
 
-    await this.dispatchWAMessage(phone, message, "Uji Coba Pengingat Agenda", false);
+    await this.dispatchWAMessage(phone, message, "Simulasi Uji Coba Pengingat", false);
   }
 
   async sendTestNotification() {

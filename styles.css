@@ -43,21 +43,33 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f1f5f9;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
 /* Smooth status badge pulses */
 @keyframes onlinePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.15); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.7;
+    transform: scale(1.15);
+  }
 }
 
 .wa-pulse {
@@ -325,8 +337,13 @@ body {
 }
 
 @keyframes pulseConflict {
-  0% { opacity: 0.6; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Google-form Style Card in Classic White */
@@ -397,6 +414,7 @@ body {
 
 /* ================= MOBILE RESPONSIVENESS OPTIMIZATIONS ================= */
 @media (max-width: 640px) {
+
   /* Input tap-target & font scaling prevents auto-zoom on mobile browsers */
   input[type="text"],
   input[type="time"],
@@ -433,14 +451,14 @@ body {
   }
 
   /* Compact Modal Dialogs on Mobile */
-  #modal-clock-picker > div,
-  #modal-missed-reason > div,
-  #modal-cancel-task > div,
-  #modal-edit-5y-year > div,
-  #modal-edit-5y-step > div,
-  #modal-dashboard-lock > div,
-  #modal-user-guide > div,
-  #modal-audit-sync > div {
+  #modal-clock-picker>div,
+  #modal-missed-reason>div,
+  #modal-cancel-task>div,
+  #modal-edit-5y-year>div,
+  #modal-edit-5y-step>div,
+  #modal-dashboard-lock>div,
+  #modal-user-guide>div,
+  #modal-audit-sync>div {
     padding: 14px 14px !important;
     border-radius: 18px !important;
     margin: 8px auto !important;
@@ -455,7 +473,7 @@ body {
     padding: 0 !important;
   }
 
-  #modal-add-task > div {
+  #modal-add-task>div {
     padding: 0 !important;
     border-radius: 24px 24px 0 0 !important;
     margin: 0 !important;
@@ -590,4 +608,3 @@ body {
   opacity: 0.3;
   pointer-events: none;
 }
-

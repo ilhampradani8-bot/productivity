@@ -611,13 +611,14 @@ Salam hormat,
   if (path === "/api/test-upcoming-reminder" && method === "POST") {
     const phone = "6288971071138";
     const testMsg = 
-`Halo Pak Ilham Pradani, S.H., mohon izin menyampaikan pengingat agenda kerja Bapak:
+`[SIMULASI UJI COBA PENGINGAT WA]
+Halo Pak Ilham Pradani, S.H., ini adalah pesan verifikasi sistem notifikasi web:
 
-[PENGINGAT AGENDA]: *Uji Coba Pengingat Agenda Eksekutif*
-[JADWAL]: *09:00 - 10:30 WIB*
-[CATATAN]: "Pengingat otomatis dari Web Productivity"
+[AGENDA]: *Simulasi Uji Coba Pengingat Web*
+[JADWAL HARI INI]: *10:00 - 11:30 WIB*
+[CATATAN]: "Uji coba format notifikasi pengingat agenda web"
 
-Agenda kerja dijadwalkan dimulai dalam 10 menit ke depan. Pengingat otomatis terverifikasi aktif dari web.
+Status: Jalur antrean Cloudflare D1 ke bot WhatsApp lokal terhubung lancar dan aktif.
 Dashboard: https://productivity.ilhampradani.me
 
 Salam hormat,
