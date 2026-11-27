@@ -4522,7 +4522,7 @@ Semoga hari Bapak selalu lancar!
       const res = await fetch("/api/alarm/trigger-test", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        this.showToast("Sinyal tes alarm berhasil dikirim ke Samsung Galaxy A10s!", "success");
+        this.showToast(data.message || "Sinyal tes alarm berhasil dikirim ke Samsung Galaxy A10s!", "success");
       } else {
         this.showToast("Gagal memicu alarm di HP: " + (data.error || "Perangkat tidak merespons"), "error");
       }
@@ -4533,10 +4533,13 @@ Semoga hari Bapak selalu lancar!
 
   async syncPhoneAlarms() {
     try {
+      // 1. Dorong dan pastikan seluruh jadwal terbaru di browser tersimpan ke Cloudflare D1
+      await this.pushToCloud();
+
       const res = await fetch("/api/alarm/sync-phone", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        this.showToast("Sinyal sinkronisasi berhasil dikirim ke Samsung Galaxy A10s!", "success");
+        this.showToast(data.message || "Sinyal sinkronisasi berhasil dikirim ke Samsung Galaxy A10s!", "success");
         this.refreshDeviceStatus();
       } else {
         this.showToast("Gagal sinkronkan ke HP: " + (data.error || "Perangkat offline"), "error");

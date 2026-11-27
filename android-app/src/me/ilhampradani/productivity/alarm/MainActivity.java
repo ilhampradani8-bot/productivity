@@ -781,6 +781,31 @@ public class MainActivity extends Activity {
                         JSONObject settings = res.optJSONObject("settings");
                         alarmConf = settings != null ? settings.optJSONObject("alarm") : null;
                         networkSuccess = true;
+
+                        // Periksa sinyal uji coba alarm dari Web Dashboard (Cloud Remote Trigger)
+                        if (settings != null) {
+                            JSONObject testSignal = settings.optJSONObject("alarm_test_signal");
+                            if (testSignal != null) {
+                                long trigTime = testSignal.optLong("timestamp", 0);
+                                SharedPreferences sPrefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+                                long lastHandled = sPrefs.getLong("last_handled_test_signal", 0);
+                                if (trigTime > 0 && trigTime > lastHandled && (System.currentTimeMillis() - trigTime) < 90000) {
+                                    sPrefs.edit().putLong("last_handled_test_signal", trigTime).apply();
+                                    try {
+                                        Intent serviceIntent = new Intent(context, AlarmSoundService.class);
+                                        serviceIntent.setAction(AlarmSoundService.ACTION_START);
+                                        serviceIntent.putExtra(AlarmSoundService.EXTRA_TITLE, "Uji Coba Alarm dari Web Dashboard");
+                                        serviceIntent.putExtra(AlarmSoundService.EXTRA_TIME, "Sekarang WIB");
+                                        serviceIntent.putExtra(AlarmSoundService.EXTRA_TASK_ID, "cloud-test");
+                                        if (Build.VERSION.SDK_INT >= 26) {
+                                            context.startForegroundService(serviceIntent);
+                                        } else {
+                                            context.startService(serviceIntent);
+                                        }
+                                    } catch (Exception ignoredService) {}
+                                }
+                            }
+                        }
                     }
                 } catch (Exception ignored) {}
 

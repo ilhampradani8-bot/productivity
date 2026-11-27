@@ -324,10 +324,13 @@
       "recurrence": "none",
       "validityType": "until_completed",
       "validUntil": "",
-      "status": "todo",
+      "status": "done",
       "completedDates": [],
       "deletedDates": [],
-      "updated_at": "2026-11-27T12:07:04.244Z"
+      "updated_at": "2026-11-27T12:54:46.435Z",
+      "alertSentDates": [
+        "2026-11-27"
+      ]
     },
     {
       "id": "t-1",
@@ -433,13 +436,17 @@
       "recurrence": "daily",
       "validityType": "1_year",
       "validUntil": "2027-11-26",
-      "status": "todo",
+      "status": "done",
       "completedDates": [
-        "2026-11-26"
+        "2026-11-26",
+        "2026-11-27"
       ],
       "deletedDates": [],
-      "updated_at": "2026-11-27T09:19:46.393Z",
-      "label": ""
+      "updated_at": "2026-11-27T12:54:44.724Z",
+      "label": "",
+      "alertSentDates": [
+        "2026-11-27"
+      ]
     },
     {
       "id": "t-1795759310132",
@@ -486,9 +493,9 @@
     }
   ],
   "alarmSettings": {
-    "ringOnStart": true,
+    "ringOnStart": false,
     "ringBeforeMinutes": 0,
-    "ringOnEnd": true,
+    "ringOnEnd": false,
     "ringOnWakeup": true
   },
   "labels": [
@@ -533,7 +540,16 @@
     "online": true,
     "device": "Samsung Galaxy A10s (SM-A107F)",
     "battery": "88%",
-    "last_sync": "2026-11-27T12:43:38.529Z",
-    "timestamp": 1795783418530
+    "last_sync": "2026-11-27T12:56:27.323Z",
+    "timestamp": 1795784187323
+  },
+  "sync_signal": {
+    "sync_at": "2026-11-27T12:56:32.847Z",
+    "timestamp": 1795784192847
+  },
+  "alarm_test_signal": {
+    "triggered_at": "2026-11-27T12:56:33.034Z",
+    "timestamp": 1795784193034,
+    "task_title": "Uji Coba Alarm dari Web"
   }
 }

@@ -346,6 +346,34 @@ Salam hormat,
     });
   }
 
+  // 4c. Trigger Test Alarm ke HP Samsung via Cloud Edge
+  if (path === "/api/alarm/trigger-test" && method === "POST") {
+    const nowIso = new Date().toISOString();
+    const payload = JSON.stringify({ triggered_at: nowIso, timestamp: Date.now(), task_title: "Uji Coba Alarm dari Web" });
+    await db.prepare("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('alarm_test_signal', ?, datetime('now'))")
+      .bind(payload)
+      .run();
+    return jsonResponse({
+      success: true,
+      channel: "cloud_d1",
+      message: "Sinyal uji coba alarm berhasil dikirim ke Cloudflare Edge! HP Samsung akan berdering saat menyinkronkan data."
+    });
+  }
+
+  // 4d. Memicu Sinkronisasi Jadwal & Alarm ke HP Samsung via Cloud Edge
+  if (path === "/api/alarm/sync-phone" && method === "POST") {
+    const nowIso = new Date().toISOString();
+    const payload = JSON.stringify({ sync_at: nowIso, timestamp: Date.now() });
+    await db.prepare("INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('sync_signal', ?, datetime('now'))")
+      .bind(payload)
+      .run();
+    return jsonResponse({
+      success: true,
+      channel: "cloud_d1",
+      message: "Jadwal & aturan alarm berhasil disinkronkan ke Database Cloud! HP Samsung otomatis menarik pembaruan."
+    });
+  }
+
   // 5. Sync All Data (Full Bundle)
   if (path === "/api/sync") {
     // Tangkap heartbeat telemetri perangkat Android
