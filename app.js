@@ -546,6 +546,7 @@ class ProductivityApp {
   updateMeetingBadge() {
     const pendingCount = this.meetingRequests.filter(m => m.status === "pending").length;
     const navBadge = document.getElementById("nav-meetings-count");
+    const drawerBadge = document.getElementById("drawer-meetings-count");
     const viewBadge = document.getElementById("meetings-pending-count-badge");
     
     if (navBadge) {
@@ -554,6 +555,14 @@ class ProductivityApp {
         navBadge.classList.remove("hidden");
       } else {
         navBadge.classList.add("hidden");
+      }
+    }
+    if (drawerBadge) {
+      if (pendingCount > 0) {
+        drawerBadge.textContent = pendingCount;
+        drawerBadge.classList.remove("hidden");
+      } else {
+        drawerBadge.classList.add("hidden");
       }
     }
     if (viewBadge) {
@@ -775,7 +784,10 @@ class ProductivityApp {
       const now = new Date();
       const clockEl = document.getElementById("header-clock");
       const dateEl = document.getElementById("header-date");
-      if (clockEl) clockEl.textContent = now.toLocaleTimeString("id-ID") + " WIB";
+      const drawerClockEl = document.getElementById("drawer-live-clock");
+      const clockStr = now.toLocaleTimeString("id-ID") + " WIB";
+      if (clockEl) clockEl.textContent = clockStr;
+      if (drawerClockEl) drawerClockEl.textContent = clockStr;
       if (dateEl) {
         const opts = { weekday: "short", day: "numeric", month: "short", year: "numeric" };
         dateEl.textContent = now.toLocaleDateString("id-ID", opts);
@@ -783,6 +795,28 @@ class ProductivityApp {
     };
     update();
     setInterval(update, 1000);
+  }
+
+  toggleMobileNav(forceClose = false) {
+    const drawer = document.getElementById("mobile-nav-drawer");
+    const iconOpen = document.getElementById("hamburger-icon-open");
+    const iconClose = document.getElementById("hamburger-icon-close");
+    if (!drawer) return;
+
+    if (forceClose || !drawer.classList.contains("hidden")) {
+      drawer.classList.add("hidden");
+      if (iconOpen) iconOpen.classList.remove("hidden");
+      if (iconClose) iconClose.classList.add("hidden");
+    } else {
+      drawer.classList.remove("hidden");
+      if (iconOpen) iconOpen.classList.add("hidden");
+      if (iconClose) iconClose.classList.remove("hidden");
+    }
+  }
+
+  switchTabFromDrawer(tab) {
+    this.switchTab(tab);
+    this.toggleMobileNav(true);
   }
 
   switchTab(tab) {
@@ -794,6 +828,15 @@ class ProductivityApp {
       } else {
         el.classList.remove("bg-indigo-600", "text-white", "shadow-sm");
         el.classList.add("text-slate-600");
+      }
+    });
+
+    // Update Drawer Tab Highlight
+    document.querySelectorAll("[data-drawer-tab]").forEach(el => {
+      if (el.dataset.drawerTab === tab) {
+        el.className = "drawer-pill flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 transition-all cursor-pointer text-left";
+      } else {
+        el.className = "drawer-pill flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all cursor-pointer text-left";
       }
     });
 
@@ -1254,7 +1297,7 @@ class ProductivityApp {
         this.saveData();
         const phone = this.data.notifications.targetPhone || "6288971071138";
         const message = 
-`Halo Pak ${this.data.profile.name}, mohon izin menginfokan ya Pak 🙏
+`Halo Pak ${this.data.profile.name}, mohon izin menginfokan ya Pak.
 
 Jadwal Bapak *"${t.title}"* yang dialokasikan pukul *${t.timeStart} - ${t.timeEnd} WIB* sepertinya sudah berakhir.
 
@@ -1265,7 +1308,7 @@ Apabila agenda ini berhalangan atau batal, Bapak bisa langsung klik tombol "Bata
 Semoga hari Bapak selalu produktif!
 *Aura Desk*`;
 
-        await this.dispatchWAMessage(phone, message, `Pengingat: ${t.title}`);
+        await this.dispatchWAMessage(phone, message, `Pengingat: ${t.title}`, true);
         break; // Batasi 1 alert per turn agar tidak spam
       }
     }
@@ -1274,7 +1317,7 @@ Semoga hari Bapak selalu produktif!
   async sendTestMissedTaskWA() {
     const phone = this.data.notifications.targetPhone || "6288971071138";
     const message = 
-`Halo Pak ${this.data.profile.name}, mohon izin menginfokan ya Pak 🙏
+`Halo Pak ${this.data.profile.name}, mohon izin menginfokan ya Pak.
 
 Jadwal Bapak *"Uji Coba Pengingat Agenda"* yang dialokasikan pukul *09:00 - 10:30 WIB* sepertinya sudah berakhir.
 
@@ -1285,7 +1328,7 @@ Apabila agenda ini berhalangan atau batal, Bapak bisa langsung klik tombol "Bata
 Semoga hari Bapak selalu lancar!
 *Aura Desk*`;
 
-    await this.dispatchWAMessage(phone, message, "Tes Pengingat Coret Jadwal");
+    await this.dispatchWAMessage(phone, message, "Tes Pengingat Coret Jadwal", false);
   }
 
   // Mengambil seluruh agenda yang berlaku untuk tanggal tertentu
@@ -1658,7 +1701,7 @@ Semoga hari Bapak selalu lancar!
       const left = (occ.start / 1440) * 100;
       const width = Math.max(1, ((occ.end - occ.start) / 1440) * 100);
       const sleepClass = occ.isSleep ? " sleep" : "";
-      const prefix = occ.isSleep ? "🌙 " : "";
+      const prefix = occ.isSleep ? "[Tidur] " : "";
       html += `
         <div class="timeline-slot-occupied${sleepClass}" style="left: ${left.toFixed(2)}%; width: ${width.toFixed(2)}%;" title="${prefix}${this.escapeHtml(occ.title)} (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})"></div>
       `;
@@ -2393,7 +2436,7 @@ Semoga hari Bapak selalu lancar!
             ${task.isCancelled ? '' : isDone ? `
               <button onclick="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] sm:text-xs font-semibold transition-all cursor-pointer shadow-sm" title="Klik untuk membatalkan status selesai">
                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                <span>Selesai ✓</span>
+                <span>Selesai</span>
               </button>
             ` : `
               <button onclick="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] sm:text-xs font-semibold shadow-sm transition-all cursor-pointer">
@@ -2915,10 +2958,10 @@ Semoga hari Bapak selalu lancar!
     }
 
     if (collisions.length === 0) {
-      alert("✅ SEMPURNA: Tidak ada konflik waktu di bulan ini! Seluruh alokasi agenda 24 jam bebas bentrok.");
+      alert("SEMPURNA: Tidak ada konflik waktu di bulan ini! Seluruh alokasi agenda 24 jam bebas bentrok.");
     } else {
       const msg = collisions.map(c => `• Tanggal ${c.date}: "${c.t1}" bertabrakan dengan "${c.t2}"`).join("\n");
-      alert(`⚠️ DITEMUKAN ${collisions.length} KONFLIK WAKTU:\n\n${msg}\n\nSilakan sesuaikan jam di Agenda Harian.`);
+      alert(`DITEMUKAN ${collisions.length} KONFLIK WAKTU:\n\n${msg}\n\nSilakan sesuaikan jam di Agenda Harian.`);
     }
   }
 
@@ -3285,7 +3328,7 @@ Semoga hari Bapak selalu lancar!
             const isTopSleep = this.isSleepTask(topTask);
             previewHtml = `
               <div class="truncate text-slate-700 text-[11px] font-medium">
-                <span class="font-mono text-[10px] text-slate-500 font-semibold">[${topTask.timeStart || '00:00'}]</span> ${isTopSleep ? '🌙 ' : ''}${this.escapeHtml(topTask.title)}
+                <span class="font-mono text-[10px] text-slate-500 font-semibold">[${topTask.timeStart || '00:00'}]</span> ${isTopSleep ? '<svg class="w-3 h-3 text-purple-600 inline mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>' : ''}${this.escapeHtml(topTask.title)}
               </div>
               ${item.tasks.length > 1 ? `<span class="text-[10px] text-slate-400 block">+${item.tasks.length - 1} agenda lainnya</span>` : ''}
             `;
@@ -3309,8 +3352,8 @@ Semoga hari Bapak selalu lancar!
                     <span class="text-xs sm:text-sm font-black font-mono ${ratioColor}">
                       ${item.cleanHours}<span class="text-[9px] sm:text-xs font-bold text-slate-400">/24 Jam</span>
                     </span>
-                    <span class="text-[9px] sm:text-[10px] font-mono text-purple-600 font-semibold flex items-center gap-0.5" title="Waktu Pemulihan & Tidur: ${item.sleepHours} Jam">
-                      🌙 ${item.sleepHours}h
+                    <span class="text-[9px] sm:text-[10px] font-mono text-purple-600 font-semibold flex items-center gap-1" title="Waktu Pemulihan & Tidur: ${item.sleepHours} Jam">
+                      <svg class="w-3 h-3 text-purple-600 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg> ${item.sleepHours}h
                     </span>
                   </div>
                   <div class="w-full h-1 sm:h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
@@ -3959,7 +4002,7 @@ Semoga hari Bapak selalu lancar!
     const phone = this.data.notifications.targetPhone || "6288971071138";
     const nowStr = new Date().toLocaleTimeString("id-ID");
     const message = 
-`Halo Pak ${this.data.profile.name}, salam hangat! 👋
+`Halo Pak ${this.data.profile.name}, salam hangat!
 
 Notifikasi asisten pribadi Bapak berhasil terhubung lancar pada pukul ${nowStr} WIB.
 Mulai saat ini, pengingat jadwal kerja, briefing pagi, dan rekap malam akan kami sampaikan langsung ke nomor WhatsApp ini ya Pak.
@@ -3969,7 +4012,7 @@ Asisten siap membantu Bapak menjaga produktivitas setiap hari.
 Salam hormat,
 *Aura Desk*`;
 
-    await this.dispatchWAMessage(phone, message, "Tes Notifikasi");
+    await this.dispatchWAMessage(phone, message, "Tes Notifikasi", false);
   }
 
   async sendDailyBriefingToWA() {
@@ -3991,7 +4034,7 @@ Salam hormat,
     }
 
     const message = 
-`Selamat pagi Pak ${this.data.profile.name}, semoga hari ini menyenangkan dan penuh berkah! ✨
+`Selamat pagi Pak ${this.data.profile.name}, semoga hari ini menyenangkan dan penuh berkah!
 
 Berikut rangkuman jadwal agenda kerja Bapak untuk hari ini (${this.selectedDate}):
 
@@ -4003,7 +4046,7 @@ Asisten siap mendampingi dan mengingatkan setiap sesi kerja Bapak. Tetap semanga
 Salam hormat,
 *Aura Desk*`;
 
-    await this.dispatchWAMessage(phone, message, "Briefing Pagi");
+    await this.dispatchWAMessage(phone, message, "Briefing Pagi", false);
   }
 
   async sendEveningRecapToWA() {
@@ -4018,11 +4061,11 @@ Salam hormat,
     }
 
     const message = 
-`Selamat malam Pak ${this.data.profile.name}, mohon izin menyampaikan rekap jadwal hari ini ya Pak 🙏
+`Selamat malam Pak ${this.data.profile.name}, mohon izin menyampaikan rekap jadwal hari ini ya Pak.
 
 Dari total ${m.total} agenda yang direncanakan:
-✅ Berhasil diselesaikan: *${m.done} agenda* (${m.pct}%)
-${m.cancelled > 0 ? `🚫 Dibatalkan: *${m.cancelled} agenda*\n` : ''}${m.total - m.done > 0 ? `⏳ Belum dicoret: *${m.total - m.done} agenda*` : `🌟 Luar biasa Pak, seluruh agenda hari ini tuntas terselesaikan 100%!`}
+[SELESAI] Berhasil diselesaikan: *${m.done} agenda* (${m.pct}%)
+${m.cancelled > 0 ? `[BATAL] Dibatalkan: *${m.cancelled} agenda*\n` : ''}${m.total - m.done > 0 ? `[TODO] Belum dicoret: *${m.total - m.done} agenda*` : `Luar biasa Pak, seluruh agenda hari ini tuntas terselesaikan 100%!`}
 ${pendingLines}
 ${m.total - m.done > 0 ? `Bagi agenda yang sudah terlaksana, jangan lupa dicek dan dicoret sebelum jam 12.00 malam ya Pak agar rekap harian Bapak tercatat sempurna.\n` : ''}
 Selamat beristirahat dengan tenang Pak Ilham, sampai jumpa di jadwal esok hari!
@@ -4030,7 +4073,7 @@ Selamat beristirahat dengan tenang Pak Ilham, sampai jumpa di jadwal esok hari!
 Salam hormat,
 *Aura Desk*`;
 
-    await this.dispatchWAMessage(phone, message, "Rekap Malam");
+    await this.dispatchWAMessage(phone, message, "Rekap Malam", false);
   }
 
   async sendTaskToWA(taskId) {
@@ -4042,21 +4085,21 @@ Salam hormat,
     const time2 = task.hasSecondSession && task.session2Start ? ` dan sesi malam (${task.session2Start} - ${task.session2End} WIB)` : '';
 
     const message = 
-`Halo Pak ${this.data.profile.name}, mohon izin mengingatkan jadwal ya Pak 🙏
+`Halo Pak ${this.data.profile.name}, mohon izin mengingatkan jadwal ya Pak.
 
-📌 Agenda: *${task.title}*
-⏰ Waktu: *${time1}*${time2}
-${task.note ? `📝 Catatan dari Bapak: "${task.note}"\n` : ''}
+[AGENDA]: *${task.title}*
+[WAKTU]: *${time1}*${time2}
+${task.note ? `[CATATAN]: "${task.note}"\n` : ''}
 Jangan sampai terlewat ya Pak. Semoga urusan dan kegiatannya berjalan lancar!
 Jika sudah selesai nanti, silakan dicoret di dashboard web ya Pak.
 
 Salam hangat,
 *Aura Desk*`;
 
-    await this.dispatchWAMessage(phone, message, `Pengingat: ${task.title}`);
+    await this.dispatchWAMessage(phone, message, `Pengingat: ${task.title}`, false);
   }
 
-  async dispatchWAMessage(phone, message, label) {
+  async dispatchWAMessage(phone, message, label, silent = false) {
     const targetPhone = phone || this.data.notifications?.targetPhone || "6288971071138";
     try {
       const res = await fetch("/api/send-wa", {
@@ -4079,16 +4122,20 @@ Salam hangat,
         if (this.data.notifications.logs.length > 20) this.data.notifications.logs.pop();
         this.saveData();
 
-        alert(`${label} berhasil dikirim ke WhatsApp (${targetPhone})!`);
+        if (!silent) {
+          alert(`${label} berhasil dikirim ke WhatsApp (${targetPhone})!`);
+        }
         if (this.activeTab === "notifications") this.renderNotificationsView();
       } else {
         throw new Error(data.error || "Gagal mengirim notifikasi");
       }
     } catch (err) {
       console.warn("Direct bot failed, fallback to Web WhatsApp:", err);
-      const waUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
-      window.open(waUrl, "_blank");
-      alert(`Pesan notifikasi dibuka langsung via WhatsApp.`);
+      if (!silent) {
+        const waUrl = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
+        window.open(waUrl, "_blank");
+        alert(`Pesan notifikasi dibuka langsung via WhatsApp.`);
+      }
     }
   }
 

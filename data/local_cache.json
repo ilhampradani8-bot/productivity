@@ -20,16 +20,9 @@
     },
     "logs": [
       {
-        "id": "log-1795768009028",
-        "time": "2026-11-27 15.26.49",
-        "type": "Pengingat: Executive Morning Routine & Review Agenda Harian",
-        "status": "Terkirim",
-        "phone": "6288971071138"
-      },
-      {
-        "id": "log-1795767608295",
-        "time": "2026-11-27 15.20.08",
-        "type": "Pengingat: Executive Morning Routine & Review Agenda Harian",
+        "id": "log-1795768868539",
+        "time": "2026-11-27 15.41.08",
+        "type": "Pengingat: Executive Morning Routine, (Sholat, Olahraga, Prepare)",
         "status": "Terkirim",
         "phone": "6288971071138"
       },
@@ -44,67 +37,191 @@
   },
   "fiveYearPlan": [
     {
-      "id": "y-2026",
+      "id": "y1-2026",
       "year": 2026,
-      "title": "",
+      "title": "Tahun 1: Konsolidasi Infrastruktur, AI Telemetri & Skalabilitas",
+      "theme": "Infrastruktur & Ekosistem Mandiri",
+      "overallProgress": 75,
       "quarters": [
         {
-          "id": "q-2026",
-          "quarter": "2026",
-          "focus": "",
-          "steps": []
+          "id": "y1-q1",
+          "quarter": "Q1 2026",
+          "focus": "Migrasi & Stabilisasi Host UTM & Serverless Edge",
+          "status": "completed",
+          "progress": 100,
+          "steps": [
+            {
+              "id": "s101",
+              "title": "Setup Workstation UTM 64GB RAM & Cloudflare Tunnel",
+              "done": true,
+              "note": "Tunnel vps-utm & SSH passwordless aktif"
+            },
+            {
+              "id": "s102",
+              "title": "Migrasi logger Telegram ke Serverless Cloudflare Edge",
+              "done": true,
+              "note": "Edge D1 persistence 100% online"
+            }
+          ]
+        },
+        {
+          "id": "y1-q2",
+          "quarter": "Q2 2026",
+          "focus": "Pengembangan AI Trade & Engine Model Pembelajaran",
+          "status": "completed",
+          "progress": 100,
+          "steps": [
+            {
+              "id": "s104",
+              "title": "Riset arsitektur ensemble ML (LightGBM + XGBoost + CatBoost)",
+              "done": true,
+              "note": "Pengujian baseline selesai"
+            },
+            {
+              "id": "s105",
+              "title": "Integrasi telemetri sinyal ke bot WhatsApp",
+              "done": true,
+              "note": "Notifikasi real-time terhubung"
+            }
+          ]
+        },
+        {
+          "id": "y1-q3",
+          "quarter": "Q3 2026",
+          "focus": "Ekosistem Web & Platform SirkelHub & MallDigital",
+          "status": "completed",
+          "progress": 100,
+          "steps": [
+            {
+              "id": "s107",
+              "title": "Arsitektur UI solid & integrasi DOKU Production API",
+              "done": true,
+              "note": "Payment gateway live"
+            },
+            {
+              "id": "s108",
+              "title": "Pemisahan peran WhatsApp Bot Toko Reimal vs Asisten CPNS",
+              "done": true,
+              "note": "Group Shield isolasi 100% aktif"
+            }
+          ]
+        },
+        {
+          "id": "y1-q4",
+          "quarter": "Q4 2026",
+          "focus": "Eksekusi Sistem Produktivitas Eksekutif & Review Tahunan",
+          "status": "in_progress",
+          "progress": 85,
+          "steps": [
+            {
+              "id": "s109",
+              "title": "Peluncuran dashboard Sekretaris Pribadi productivity.ilhampradani.me",
+              "done": true,
+              "note": "Aplikasi live & terintegrasi Cloudflare Tunnel"
+            },
+            {
+              "id": "s110",
+              "title": "Integrasi gateway notifikasi WhatsApp 24/7",
+              "done": true,
+              "note": "Panggilan pesan bot langsung"
+            }
+          ]
         }
       ]
     },
     {
-      "id": "y-2027",
+      "id": "y2-2027",
       "year": 2027,
-      "title": "",
+      "title": "Tahun 2: Ekspansi Komersial & Otomasi AI Skala Menengah",
+      "theme": "Komersialisasi & Efisiensi Operasional",
+      "overallProgress": 15,
       "quarters": [
         {
-          "id": "q-2027",
-          "quarter": "2027",
-          "focus": "",
-          "steps": []
+          "id": "y2-q1",
+          "quarter": "Q1 2027",
+          "focus": "Otomasi Penjualan & Sistem Pelanggan SaaS",
+          "status": "pending",
+          "progress": 25,
+          "steps": [
+            {
+              "id": "s201",
+              "title": "Rilis platform API terkelola untuk klien eksternal",
+              "done": false,
+              "note": "Sistem billing otomatis"
+            }
+          ]
         }
       ]
     },
     {
-      "id": "y-2028",
+      "id": "y3-2028",
       "year": 2028,
-      "title": "",
+      "title": "Tahun 3: Diversifikasi Ekosistem & Pematangan Produk Korporat",
+      "theme": "Otonomi & Standar Industri",
+      "overallProgress": 0,
       "quarters": [
         {
-          "id": "q-2028",
-          "quarter": "2028",
-          "focus": "",
-          "steps": []
+          "id": "y3-q1",
+          "quarter": "Sepanjang 2028",
+          "focus": "Solusi AI Enterprise & Pembentukan Holding Unit Digital",
+          "status": "pending",
+          "progress": 0,
+          "steps": [
+            {
+              "id": "s301",
+              "title": "Peluncuran suite automasi proses bisnis cerdas",
+              "done": false,
+              "note": "Segmen korporat"
+            }
+          ]
         }
       ]
     },
     {
-      "id": "y-2029",
+      "id": "y4-2029",
       "year": 2029,
-      "title": "",
+      "title": "Tahun 4: Skala Regional & Kepemimpinan Pasar",
+      "theme": "Pengaruh Regional & Ekosistem Terdistribusi",
+      "overallProgress": 0,
       "quarters": [
         {
-          "id": "q-2029",
-          "quarter": "2029",
-          "focus": "",
-          "steps": []
+          "id": "y4-q1",
+          "quarter": "Sepanjang 2029",
+          "focus": "Deployment Node Edge Global",
+          "status": "pending",
+          "progress": 0,
+          "steps": [
+            {
+              "id": "s401",
+              "title": "Deployment node edge global sub-5ms",
+              "done": false,
+              "note": "Jaringan regional"
+            }
+          ]
         }
       ]
     },
     {
-      "id": "y-2030",
+      "id": "y5-2030",
       "year": 2030,
-      "title": "",
+      "title": "Tahun 5: Kebebasan Finansial Penuh, Warisan Ekosistem & Legacy",
+      "theme": "Keberlanjutan & Kebebasan Waktu Eksekutif",
+      "overallProgress": 0,
       "quarters": [
         {
-          "id": "q-2030",
-          "quarter": "2030",
-          "focus": "",
-          "steps": []
+          "id": "y5-q1",
+          "quarter": "Sepanjang 2030",
+          "focus": "Operasional Berjalan 100% Otonom & Fokus Riset Masa Depan",
+          "status": "pending",
+          "progress": 0,
+          "steps": [
+            {
+              "id": "s501",
+              "title": "Operasional mandiri tanpa intervensi harian",
+              "done": false,
+              "note": "Sistem otonom mandiri"
+            }
+          ]
         }
       ]
     }
@@ -142,25 +259,42 @@
   },
   "dailyTasks": [
     {
-      "id": "t-1",
-      "date": "2026-11-26",
-      "timeStart": "07:30",
-      "timeEnd": "08:30",
+      "id": "t-1795759310132",
+      "date": "2026-11-29",
+      "timeStart": "15:00",
+      "timeEnd": "16:30",
       "hasSecondSession": false,
       "session2Start": "",
       "session2End": "",
-      "title": "Executive Morning Routine & Review Agenda Harian",
-      "note": "Briefing mandiri & penetapan fokus non-negotiables",
+      "title": "UJIAN UAS UT",
+      "note": "UJIAN UAS EXAM BROWSER, HUKUM BISNIS",
+      "recurrence": "none",
+      "validityType": "until_completed",
+      "validUntil": "",
+      "status": "todo",
+      "completedDates": [],
+      "deletedDates": []
+    },
+    {
+      "id": "t-1",
+      "date": "2026-11-26",
+      "timeStart": "05:00",
+      "timeEnd": "06:00",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "Executive Morning Routine, (Sholat, Olahraga, Prepare)",
+      "note": "prepare mental",
       "recurrence": "daily",
-      "validityType": "3_years",
-      "validUntil": "2029-11-26",
+      "validityType": "until_completed",
+      "validUntil": "",
       "status": "done",
       "completedDates": [
-        "2026-11-26"
-      ],
-      "deletedDates": [],
-      "alertSentDates": [
+        "2026-11-26",
         "2026-11-27"
+      ],
+      "deletedDates": [
+        "2026-11-26"
       ]
     },
     {
@@ -173,17 +307,61 @@
       "session2End": "",
       "title": "Pemeriksaan Telemetri Workstation UTM & Health Check Proxy",
       "note": "Verifikasi kestabilan usque proxy & memory footprint",
-      "recurrence": "daily",
-      "validityType": "3_years",
-      "validUntil": "2029-11-26",
+      "recurrence": "none",
+      "validityType": "until_completed",
+      "validUntil": "",
       "status": "done",
       "completedDates": [
         "2026-11-26"
       ],
-      "deletedDates": [],
-      "alertSentDates": [
-        "2026-11-27"
+      "deletedDates": [
+        "2026-11-26",
+        "2026-11-27",
+        "2026-11-28"
       ]
+    },
+    {
+      "id": "t-5",
+      "date": "2026-11-26",
+      "timeStart": "16:30",
+      "timeEnd": "17:30",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "Sesi Pembelajaran Mandiri & Review Materi Teknis",
+      "note": "Baca modul materi strategis 60 menit",
+      "recurrence": "daily",
+      "validityType": "1_year",
+      "validUntil": "2027-11-26",
+      "status": "todo",
+      "completedDates": [
+        "2026-11-26"
+      ],
+      "deletedDates": []
+    },
+    {
+      "id": "t-1795711864119",
+      "title": "[Pertemuan] Prof. Dr. Ir. Budi Santoso - Konsultasi Hukum & Keamanan Siber",
+      "time_start": "10:00",
+      "time_end": "11:30",
+      "target_date": "2026-11-28",
+      "recurrence": "none",
+      "duration_years": null,
+      "validity_type": null,
+      "status": "todo",
+      "completed_dates": null,
+      "deleted_dates": null,
+      "missed_reasons": null,
+      "note": "Moda: virtual. Klien: Prof. Dr. Ir. Budi Santoso (6281298765432). Catatan: Diskusi audit forensik dan tata kelola kepatuhan sistem AI eksekutif.",
+      "has_second_session": null,
+      "session2_start": null,
+      "session2_end": null,
+      "raw_json": null,
+      "updated_at": "2026-11-26 16:51:03",
+      "hasSecondSession": false,
+      "validityType": "until_completed",
+      "completedDates": [],
+      "deletedDates": []
     },
     {
       "id": "t-3",
@@ -221,64 +399,6 @@
       "completedDates": [
         "2026-11-26"
       ],
-      "deletedDates": []
-    },
-    {
-      "id": "t-5",
-      "date": "2026-11-26",
-      "timeStart": "16:30",
-      "timeEnd": "17:30",
-      "hasSecondSession": false,
-      "session2Start": "",
-      "session2End": "",
-      "title": "Sesi Pembelajaran Mandiri & Review Materi Teknis",
-      "note": "Baca modul materi strategis 60 menit",
-      "recurrence": "daily",
-      "validityType": "1_year",
-      "validUntil": "2027-11-26",
-      "status": "todo",
-      "completedDates": [],
-      "deletedDates": []
-    },
-    {
-      "id": "t-1795759310132",
-      "date": "2026-11-29",
-      "timeStart": "15:00",
-      "timeEnd": "16:30",
-      "hasSecondSession": false,
-      "session2Start": "",
-      "session2End": "",
-      "title": "UJIAN UAS UT",
-      "note": "UJIAN UAS EXAM BROWSER, HUKUM BISNIS",
-      "recurrence": "none",
-      "validityType": "until_completed",
-      "validUntil": "",
-      "status": "todo",
-      "completedDates": [],
-      "deletedDates": []
-    },
-    {
-      "id": "t-1795711864119",
-      "title": "[Pertemuan] Prof. Dr. Ir. Budi Santoso - Konsultasi Hukum & Keamanan Siber",
-      "time_start": "10:00",
-      "time_end": "11:30",
-      "target_date": "2026-11-28",
-      "recurrence": "none",
-      "duration_years": null,
-      "validity_type": null,
-      "status": "todo",
-      "completed_dates": null,
-      "deleted_dates": null,
-      "missed_reasons": null,
-      "note": "Moda: virtual. Klien: Prof. Dr. Ir. Budi Santoso (6281298765432). Catatan: Diskusi audit forensik dan tata kelola kepatuhan sistem AI eksekutif.",
-      "has_second_session": null,
-      "session2_start": null,
-      "session2_end": null,
-      "raw_json": null,
-      "updated_at": "2026-11-26 16:51:03",
-      "hasSecondSession": false,
-      "validityType": "until_completed",
-      "completedDates": [],
       "deletedDates": []
     }
   ]
