@@ -31,14 +31,14 @@ const ICONS = {
 };
 
 const LABEL_COLORS = {
-  indigo: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
-  purple: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
-  emerald: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-  amber: { bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-300" },
-  sky: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200" },
-  rose: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
-  cyan: { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200" },
-  slate: { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300" }
+  indigo: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200", hex: "#4f46e5" },
+  purple: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", hex: "#9333ea" },
+  emerald: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", hex: "#059669" },
+  amber: { bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-300", hex: "#d97706" },
+  sky: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200", hex: "#0284c7" },
+  rose: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200", hex: "#e11d48" },
+  cyan: { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200", hex: "#0891b2" },
+  slate: { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300", hex: "#475569" }
 };
 
 const DEFAULT_LABELS = [
@@ -515,6 +515,8 @@ class ProductivityApp {
     }
     const titleInput = document.getElementById("task-title");
     if (titleInput) setTimeout(() => titleInput.focus(), 150);
+    this.renderTimelineRulers();
+    this.setTimelineZoom(this.timelineZoomMode || "fit");
     this.checkTimeCollision();
   }
 
@@ -969,7 +971,154 @@ class ProductivityApp {
     return `${m} menit`;
   }
 
-  // ===================== CLICKABLE 24-HOUR TIMELINE =====================
+  // ===================== PRECISION 24-HOUR TIMELINE & ZOOM =====================
+  formatHourAmPm(h) {
+    if (h === 0 || h === 24) return "12 AM";
+    if (h === 12) return "12 PM";
+    if (h < 12) return `${h} AM`;
+    return `${h - 12} PM`;
+  }
+
+  renderTimelineRulers() {
+    const rulerTop = document.getElementById("timeline-ruler-top");
+    const rulerBottom = document.getElementById("timeline-ruler-bottom");
+    if (!rulerTop || !rulerBottom) return;
+
+    let topHtml = "";
+    let bottomHtml = "";
+
+    for (let h = 0; h <= 24; h++) {
+      const leftPct = (h / 24) * 100;
+      const amPm = this.formatHourAmPm(h);
+      const isMajor = h % 3 === 0 || h === 12 || h === 0 || h === 24;
+      const h24 = String(h === 24 ? 24 : h).padStart(2, "0") + ":00";
+
+      // Top Tick & AM/PM Label
+      topHtml += `
+        <div class="timeline-ruler-tick" style="left: ${leftPct.toFixed(2)}%;">
+          <span class="block ${isMajor ? 'text-indigo-700 font-bold' : 'text-slate-600 font-medium'} text-[9px] leading-tight">${amPm}</span>
+          <div class="w-[1px] h-1.5 ${isMajor ? 'bg-indigo-400' : 'bg-slate-300'} mx-auto mt-0.5"></div>
+        </div>
+      `;
+
+      // Bottom Tick & 24h Label
+      bottomHtml += `
+        <div class="timeline-ruler-tick" style="left: ${leftPct.toFixed(2)}%;">
+          <div class="w-[1px] h-1.5 ${isMajor ? 'bg-indigo-300' : 'bg-slate-200'} mx-auto mb-0.5"></div>
+          <span class="block text-[8px] text-slate-400 font-mono leading-tight">${h24}</span>
+        </div>
+      `;
+    }
+
+    rulerTop.innerHTML = topHtml;
+    rulerBottom.innerHTML = bottomHtml;
+  }
+
+  setTimelineZoom(mode) {
+    this.timelineZoomMode = mode;
+    const canvas = document.getElementById("timeline-canvas");
+    const bar = document.getElementById("timeline-24h-bar");
+    const btnFit = document.getElementById("btn-zoom-fit");
+    const btn2x = document.getElementById("btn-zoom-2x");
+    const btn3x = document.getElementById("btn-zoom-3x");
+
+    if (!canvas || !bar) return;
+
+    [btnFit, btn2x, btn3x].forEach(b => {
+      if (b) {
+        b.classList.remove("bg-indigo-600", "text-white");
+        b.classList.add("bg-white", "text-slate-700");
+      }
+    });
+
+    if (mode === "2x") {
+      canvas.style.width = "1440px";
+      bar.style.height = "48px";
+      if (btn2x) {
+        btn2x.classList.remove("bg-white", "text-slate-700");
+        btn2x.classList.add("bg-indigo-600", "text-white");
+      }
+      setTimeout(() => this.scrollToCurrentTaskTime(), 50);
+    } else if (mode === "3x") {
+      canvas.style.width = "2160px";
+      bar.style.height = "56px";
+      if (btn3x) {
+        btn3x.classList.remove("bg-white", "text-slate-700");
+        btn3x.classList.add("bg-indigo-600", "text-white");
+      }
+      setTimeout(() => this.scrollToCurrentTaskTime(), 50);
+    } else {
+      // mode === "fit"
+      canvas.style.width = "100%";
+      bar.style.height = "38px";
+      if (btnFit) {
+        btnFit.classList.remove("bg-white", "text-slate-700");
+        btnFit.classList.add("bg-indigo-600", "text-white");
+      }
+    }
+
+    this.renderTimelineRulers();
+    this.checkTimeCollision();
+  }
+
+  scrollToCurrentTaskTime() {
+    const s1StartEl = document.getElementById("task-start-time");
+    const viewport = document.getElementById("timeline-scroll-viewport");
+    const canvas = document.getElementById("timeline-canvas");
+    if (!s1StartEl || !viewport || !canvas) return;
+
+    const startMins = this.timeToMinutes(s1StartEl.value || "09:00");
+    const ratio = startMins / 1440;
+    const targetScroll = (ratio * canvas.offsetWidth) - (viewport.offsetWidth / 3);
+    viewport.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
+  }
+
+  onTimelineMouseMove(e) {
+    const bar = document.getElementById("timeline-24h-bar");
+    const cursor = document.getElementById("timeline-cursor-line");
+    const clockTip = document.getElementById("timeline-hover-clock");
+    const textTip = document.getElementById("timeline-hover-tip");
+    if (!bar) return;
+
+    const rect = bar.getBoundingClientRect();
+    const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const x = clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, x / rect.width));
+    const rawMins = ratio * 1440;
+    
+    let snapped = Math.round(rawMins / 15) * 15;
+    if (snapped >= 1440) snapped = 1425;
+
+    const snappedLeft = (snapped / 1440) * 100;
+    if (cursor) {
+      cursor.classList.remove("hidden");
+      cursor.style.left = `${snappedLeft.toFixed(2)}%`;
+    }
+
+    const h = Math.floor(snapped / 60);
+    const m = snapped % 60;
+    const amPmStr = this.formatHourAmPm(h);
+    const time24 = this.minutesToTime(snapped);
+    const displayHour = (h % 12) === 0 ? 12 : (h % 12);
+    const labelAmPm = `${displayHour}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
+
+    if (clockTip) {
+      clockTip.textContent = `${labelAmPm} (${time24} WIB)`;
+    }
+    if (textTip) {
+      textTip.textContent = `Klik untuk set jam mulai ke ${labelAmPm} (${time24} WIB)`;
+    }
+  }
+
+  onTimelineMouseLeave() {
+    const cursor = document.getElementById("timeline-cursor-line");
+    const clockTip = document.getElementById("timeline-hover-clock");
+    const textTip = document.getElementById("timeline-hover-tip");
+    if (cursor) cursor.classList.add("hidden");
+    if (clockTip) clockTip.textContent = "--:--";
+    if (textTip) textTip.textContent = "Arahkan kursor atau klik pada peta waktu untuk isi jam instan";
+  }
+
   onTimelineClick(e) {
     const bar = document.getElementById("timeline-24h-bar");
     if (!bar) return;
@@ -1887,14 +2036,35 @@ Semoga hari Bapak selalu lancar!
       if (submitBtn) submitBtn.disabled = false;
     }
 
+    let gridHtml = "";
+    // 1. Grid Garis Vertikal Tiap Jam (1 sampai 23)
+    for (let h = 1; h < 24; h++) {
+      const leftPct = (h / 24) * 100;
+      gridHtml += `<div class="timeline-hour-line" style="left: ${leftPct.toFixed(2)}%;"></div>`;
+    }
+    // 2. Grid Setengah Jam (:30)
+    for (let h = 0; h < 24; h++) {
+      const leftPct = ((h + 0.5) / 24) * 100;
+      gridHtml += `<div class="timeline-half-hour-line" style="left: ${leftPct.toFixed(2)}%;"></div>`;
+    }
+    // 3. Garis Penunjuk Waktu Sekarang (WIB)
+    const now = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    const nowLeft = (nowMins / 1440) * 100;
+    gridHtml += `<div class="timeline-now-line" style="left: ${nowLeft.toFixed(2)}%;" title="Waktu Sekarang: ${this.minutesToTime(nowMins)} WIB"></div>`;
+    // 4. Garis Interaktif Kursor
+    gridHtml += `<div id="timeline-cursor-line" class="timeline-cursor-line hidden"></div>`;
+
     let html = "";
     occupied.forEach(occ => {
       const left = (occ.start / 1440) * 100;
-      const width = Math.max(1, ((occ.end - occ.start) / 1440) * 100);
+      const width = Math.max(0.8, ((occ.end - occ.start) / 1440) * 100);
       const sleepClass = occ.isSleep ? " sleep" : "";
       const prefix = occ.isSleep ? "[Tidur] " : "";
       html += `
-        <div class="timeline-slot-occupied${sleepClass}" style="left: ${left.toFixed(2)}%; width: ${width.toFixed(2)}%;" title="${prefix}${this.escapeHtml(occ.title)} (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})"></div>
+        <div class="timeline-slot-occupied${sleepClass}" style="left: ${left.toFixed(2)}%; width: ${width.toFixed(2)}%;" title="${prefix}${this.escapeHtml(occ.title)} (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})">
+          <span class="timeline-slot-title">${this.escapeHtml(occ.title)}</span>
+        </div>
       `;
     });
 
@@ -1927,7 +2097,8 @@ Semoga hari Bapak selalu lancar!
       `;
     }
 
-    barEl.innerHTML = html;
+    barEl.innerHTML = gridHtml + html;
+    this.renderTimelineRulers();
   }
 
   pickNextFreeSlot(requestedDurationMinutes = 60) {
@@ -2536,6 +2707,261 @@ Semoga hari Bapak selalu lancar!
     else if (this.activeTab === "roadmap") this.renderRoadmapView();
     else if (this.activeTab === "history") this.renderHistoryView();
     else if (this.activeTab === "notifications") this.renderNotificationsView();
+    else if (this.activeTab === "settings") this.renderSettingsView();
+  }
+
+  // ===================== PENGATURAN LABEL & CRUD TABEL =====================
+  renderSettingsView() {
+    const tableBody = document.getElementById("labels-table-body");
+    const countBadge = document.getElementById("settings-labels-count-badge");
+    const countText = document.getElementById("table-labels-count-text");
+    const colorPickerGrid = document.getElementById("label-color-picker-grid");
+
+    if (!this.data.labels || !Array.isArray(this.data.labels) || this.data.labels.length === 0) {
+      this.data.labels = [...DEFAULT_LABELS];
+    }
+
+    if (countBadge) countBadge.textContent = `${this.data.labels.length} Label Aktif`;
+    if (countText) countText.textContent = `${this.data.labels.length} Label Terdaftar`;
+
+    // Render Color Picker Grid jika belum ada isi
+    if (colorPickerGrid && colorPickerGrid.children.length === 0) {
+      let colorHtml = "";
+      Object.keys(LABEL_COLORS).forEach((cKey, idx) => {
+        const c = LABEL_COLORS[cKey];
+        const isChecked = idx === 0 ? "checked" : "";
+        colorHtml += `
+          <label class="cursor-pointer flex items-center gap-1.5 p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+            <input type="radio" name="label-color-choice" value="${cKey}" ${isChecked} onchange="window.app.updateLabelPreview()" class="text-indigo-600 focus:ring-indigo-500">
+            <span class="w-3 h-3 rounded-full flex-shrink-0" style="background-color: ${c.hex}"></span>
+            <span class="text-[10px] font-mono capitalize text-slate-700 truncate">${cKey}</span>
+          </label>
+        `;
+      });
+      colorPickerGrid.innerHTML = colorHtml;
+      
+      const nameInput = document.getElementById("label-form-name");
+      if (nameInput) {
+        nameInput.addEventListener("input", () => this.updateLabelPreview());
+      }
+    }
+
+    this.updateLabelPreview();
+
+    // Render Tabel CRUD Label
+    if (tableBody) {
+      if (this.data.labels.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="py-8 text-center text-slate-400 font-mono text-xs">
+              Belum ada label. Silakan tambahkan label baru melalui formulir di samping.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let rowsHtml = "";
+      this.data.labels.forEach((lbl) => {
+        const colorScheme = LABEL_COLORS[lbl.color] || LABEL_COLORS.slate;
+        const usageCount = this.data.dailyTasks.filter(t => t.label === lbl.name || t.label === lbl.id).length;
+
+        rowsHtml += `
+          <tr class="hover:bg-slate-50 transition-colors">
+            <td class="py-3 px-3">
+              <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${colorScheme.bg} ${colorScheme.text} border ${colorScheme.border} inline-flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full flex-shrink-0" style="background-color: ${colorScheme.hex}"></span>
+                <span>${this.escapeHtml(lbl.name)}</span>
+              </span>
+            </td>
+            <td class="py-3 px-3 font-semibold text-slate-800">
+              ${this.escapeHtml(lbl.name)}
+            </td>
+            <td class="py-3 px-3">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${usageCount > 0 ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-500'} font-mono">
+                ${usageCount} Agenda
+              </span>
+            </td>
+            <td class="py-3 px-3 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button type="button" onclick="window.app.editLabel('${lbl.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-medium cursor-pointer transition-colors shadow-2xs">
+                  Ubah
+                </button>
+                <button type="button" onclick="window.app.deleteLabel('${lbl.id}')" class="px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-medium cursor-pointer transition-colors shadow-2xs">
+                  Hapus
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      tableBody.innerHTML = rowsHtml;
+    }
+  }
+
+  updateLabelPreview() {
+    const previewBadge = document.getElementById("label-preview-badge");
+    const nameInput = document.getElementById("label-form-name");
+    const selectedRadio = document.querySelector('input[name="label-color-choice"]:checked');
+    if (!previewBadge) return;
+
+    const name = (nameInput && nameInput.value.trim()) || "Pratinjau Label";
+    const colorKey = (selectedRadio && selectedRadio.value) || "indigo";
+    const colorScheme = LABEL_COLORS[colorKey] || LABEL_COLORS.slate;
+
+    previewBadge.className = `px-3 py-1 rounded-full text-xs font-semibold ${colorScheme.bg} ${colorScheme.text} border ${colorScheme.border} inline-flex items-center gap-1.5`;
+    previewBadge.innerHTML = `
+      <span class="w-2 h-2 rounded-full" style="background-color: ${colorScheme.hex}"></span>
+      <span>${this.escapeHtml(name)}</span>
+    `;
+  }
+
+  saveLabelForm(e) {
+    if (e) e.preventDefault();
+    const idInput = document.getElementById("label-form-id");
+    const nameInput = document.getElementById("label-form-name");
+    const selectedRadio = document.querySelector('input[name="label-color-choice"]:checked');
+    
+    if (!nameInput || !nameInput.value.trim()) {
+      alert("Nama label tidak boleh kosong!");
+      return;
+    }
+
+    const trimmed = nameInput.value.trim();
+    const chosenColor = (selectedRadio && selectedRadio.value) || "indigo";
+    const targetId = idInput ? idInput.value : "";
+
+    if (!this.data.labels) this.data.labels = [...DEFAULT_LABELS];
+
+    if (targetId) {
+      // Mode Edit Label Eksisting
+      const existing = this.data.labels.find(l => l.id === targetId);
+      if (existing) {
+        const oldName = existing.name;
+        existing.name = trimmed;
+        existing.color = chosenColor;
+
+        // Perbarui semua agenda yang menggunakan nama lama
+        if (oldName !== trimmed) {
+          this.data.dailyTasks.forEach(t => {
+            if (t.label === oldName || t.label === targetId) {
+              t.label = trimmed;
+            }
+          });
+        }
+        this.showToast(`Label "${trimmed}" berhasil diperbarui!`, "success");
+      }
+    } else {
+      // Mode Tambah Label Baru
+      const duplicate = this.data.labels.find(l => l.name.toLowerCase() === trimmed.toLowerCase());
+      if (duplicate) {
+        alert(`Label dengan nama "${trimmed}" sudah ada!`);
+        return;
+      }
+      this.data.labels.push({
+        id: "lbl-" + Date.now(),
+        name: trimmed,
+        color: chosenColor
+      });
+      this.showToast(`Label baru "${trimmed}" berhasil ditambahkan!`, "success");
+    }
+
+    this.saveData();
+    this.pushToCloud();
+    this.cancelEditLabel();
+    this.renderSettingsView();
+    this.renderLabelDropdowns();
+  }
+
+  editLabel(id) {
+    if (!this.data.labels) return;
+    const lbl = this.data.labels.find(l => l.id === id);
+    if (!lbl) return;
+
+    const idInput = document.getElementById("label-form-id");
+    const nameInput = document.getElementById("label-form-name");
+    const titleEl = document.getElementById("form-label-title");
+    const btnCancel = document.getElementById("btn-cancel-edit-label");
+    const btnSubmitText = document.getElementById("btn-submit-label-text");
+
+    if (idInput) idInput.value = lbl.id;
+    if (nameInput) {
+      nameInput.value = lbl.name;
+      nameInput.focus();
+    }
+    if (titleEl) {
+      titleEl.innerHTML = `
+        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        <span>UBAH LABEL: ${this.escapeHtml(lbl.name)}</span>
+      `;
+    }
+    if (btnCancel) btnCancel.classList.remove("hidden");
+    if (btnSubmitText) btnSubmitText.textContent = "Simpan Perubahan Label";
+
+    // Pilih radio warna yang sesuai
+    const radio = document.querySelector(`input[name="label-color-choice"][value="${lbl.color}"]`);
+    if (radio) radio.checked = true;
+
+    this.updateLabelPreview();
+  }
+
+  cancelEditLabel() {
+    const idInput = document.getElementById("label-form-id");
+    const nameInput = document.getElementById("label-form-name");
+    const titleEl = document.getElementById("form-label-title");
+    const btnCancel = document.getElementById("btn-cancel-edit-label");
+    const btnSubmitText = document.getElementById("btn-submit-label-text");
+
+    if (idInput) idInput.value = "";
+    if (nameInput) nameInput.value = "";
+    if (titleEl) {
+      titleEl.innerHTML = `
+        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        <span>TAMBAH LABEL BARU</span>
+      `;
+    }
+    if (btnCancel) btnCancel.classList.add("hidden");
+    if (btnSubmitText) btnSubmitText.textContent = "Simpan Label";
+
+    this.updateLabelPreview();
+  }
+
+  deleteLabel(id) {
+    if (!this.data.labels) return;
+    const lbl = this.data.labels.find(l => l.id === id);
+    if (!lbl) return;
+
+    const usedTasks = this.data.dailyTasks.filter(t => t.label === lbl.name || t.label === lbl.id);
+    let confirmMsg = `Hapus label "${lbl.name}"?`;
+    if (usedTasks.length > 0) {
+      confirmMsg += `\n\nCatatan: Ada ${usedTasks.length} agenda yang menggunakan label ini. Agenda tersebut akan dialihkan menjadi tanpa label.`;
+    }
+
+    if (!confirm(confirmMsg)) return;
+
+    // Hapus referensi label pada agenda
+    usedTasks.forEach(t => {
+      t.label = "";
+    });
+
+    this.data.labels = this.data.labels.filter(l => l.id !== id);
+    this.saveData();
+    this.pushToCloud();
+    this.cancelEditLabel();
+    this.renderSettingsView();
+    this.renderLabelDropdowns();
+    this.showToast(`Label "${lbl.name}" berhasil dihapus.`, "info");
+  }
+
+  resetLabelsToDefault() {
+    if (!confirm("Apakah Anda yakin ingin memulihkan 5 label default standar sistem?")) return;
+    this.data.labels = [...DEFAULT_LABELS];
+    this.saveData();
+    this.pushToCloud();
+    this.cancelEditLabel();
+    this.renderSettingsView();
+    this.renderLabelDropdowns();
+    this.showToast("Daftar label berhasil dipulihkan ke standar bawaan!", "success");
   }
 
   // ===================== LABEL & REORDER SYSTEM =====================
@@ -2568,36 +2994,6 @@ Semoga hari Bapak selalu lancar!
       optionsHtml += `<option value="${this.escapeHtml(selectedName)}" selected>[${this.escapeHtml(selectedName)}] (Kustom)</option>`;
     }
     sel.innerHTML = optionsHtml;
-  }
-
-  handleLabelSelectChange() {
-    const sel = document.getElementById("task-label-select");
-    if (!sel) return;
-    if (sel.value === "__NEW__") {
-      this.promptCreateCustomLabel();
-    }
-  }
-
-  promptCreateCustomLabel() {
-    const name = window.prompt("Masukkan nama label baru (misal: 'Belajar CPNS', 'Proyek CAC', 'Rapat Bisnis'):");
-    if (!name || !name.trim()) return;
-    const trimmed = name.trim();
-    if (!this.data.labels) this.data.labels = [...DEFAULT_LABELS];
-    
-    let existing = this.data.labels.find(l => l.name.toLowerCase() === trimmed.toLowerCase());
-    if (!existing) {
-      const colorKeys = Object.keys(LABEL_COLORS);
-      const chosenColor = colorKeys[Math.floor(Math.random() * colorKeys.length)] || "indigo";
-      existing = {
-        id: "lbl-" + Date.now(),
-        name: trimmed,
-        color: chosenColor
-      };
-      this.data.labels.push(existing);
-      this.saveData();
-      this.showToast(`Label "${trimmed}" berhasil dibuat!`, "success");
-    }
-    this.renderLabelDropdowns(existing.name);
   }
 
   moveTaskPosition(taskId, delta) {
