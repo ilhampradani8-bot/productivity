@@ -245,6 +245,10 @@
                 <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
               <button id="btn-nav-today" class="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-indigo-700 font-semibold cursor-pointer text-xs">Hari Ini</button>
+              <button type="button" onclick="window.app.resetDailyOrder()" title="Reset urutan sesuai jam mulai kronologis" class="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium cursor-pointer text-xs flex items-center gap-1 shadow-2xs">
+                <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span>Urut Jam</span>
+              </button>
             </div>
 
             <div class="flex items-center gap-2">
@@ -252,8 +256,8 @@
             </div>
           </div>
 
-          <!-- List Agenda Harian -->
-          <div id="daily-task-container" class="space-y-2">
+          <!-- List Agenda Harian (Scrollable dengan Urutan Nomor 1, 2, 3) -->
+          <div id="daily-task-container" class="space-y-2.5 max-h-[75vh] overflow-y-auto pr-1 overscroll-contain">
             <!-- Rendered by app.js -->
           </div>
         </div>
@@ -1152,7 +1156,29 @@
           </div>
         </div>
 
-        <!-- 7. Catatan Tambahan -->
+        <!-- 7. Label & Kategori Alarm (Kustom Mandiri) -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-slate-800 font-mono flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              <span>LABEL & KATEGORI ALARM</span>
+            </label>
+            <button type="button" onclick="window.app.promptCreateCustomLabel()" class="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer">
+              <span>+ Buat Label Sendiri</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="task-label-select" onchange="window.app.handleLabelSelectChange()" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 shadow-sm font-medium">
+              <!-- Rendered via JS -->
+            </select>
+            <button type="button" onclick="window.app.promptCreateCustomLabel()" class="px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold flex items-center gap-1 cursor-pointer flex-shrink-0 shadow-2xs">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <span>+ Label Baru</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 8. Catatan Tambahan -->
         <div>
           <input type="text" id="task-note" placeholder="Tambahkan catatan instruksi kerja atau link pendukung (opsional)..." 
             class="w-full bg-white border border-slate-300 rounded-lg px-3.5 py-2 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600 shadow-sm">
@@ -1432,6 +1458,6 @@
     </div>
   </footer>
 
-  <script src="./app.js?v=20261127_05"></script>
+  <script src="./app.js?v=20261127_06"></script>
 </body>
 </html>

@@ -660,6 +660,8 @@ Salam hormat,
         if (parsed.notifications) currentData.notifications = parsed.notifications;
         if (parsed.fiveYearPlan) currentData.fiveYearPlan = parsed.fiveYearPlan;
         if (parsed.alarmSettings) currentData.alarmSettings = parsed.alarmSettings;
+        if (parsed.labels) currentData.labels = parsed.labels;
+        if (parsed.customDailyOrder) currentData.customDailyOrder = parsed.customDailyOrder;
         
         fs.writeFileSync(cacheFile, JSON.stringify(currentData, null, 2), 'utf8');
 
@@ -689,6 +691,14 @@ Salam hormat,
               const alarmVal = JSON.stringify(parsed.alarmSettings).replace(/'/g, "''");
               await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('alarm', '${alarmVal}', datetime('now'));`);
             }
+            if (parsed.labels) {
+              const labelsVal = JSON.stringify(parsed.labels).replace(/'/g, "''");
+              await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('labels', '${labelsVal}', datetime('now'));`);
+            }
+            if (parsed.customDailyOrder) {
+              const orderVal = JSON.stringify(parsed.customDailyOrder).replace(/'/g, "''");
+              await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('customDailyOrder', '${orderVal}', datetime('now'));`);
+            }
           } catch (err) {
             console.warn('[D1 Sync Background Error]:', err.message);
           }
@@ -716,7 +726,9 @@ Salam hormat,
           tasks: localData.dailyTasks || [],
           settings: {
             notifications: localData.notifications || {},
-            alarm: localData.alarmSettings || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true }
+            alarm: localData.alarmSettings || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true },
+            labels: localData.labels || [],
+            customDailyOrder: localData.customDailyOrder || {}
           },
           fiveYearPlan: localData.fiveYearPlan || []
         }));
@@ -739,7 +751,9 @@ Salam hormat,
         }),
         settings: {
           notifications: settingsMap.notifications || {},
-          alarm: settingsMap.alarm || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true }
+          alarm: settingsMap.alarm || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true },
+          labels: settingsMap.labels || [],
+          customDailyOrder: settingsMap.customDailyOrder || {}
         },
         fiveYearPlan: settingsMap.fiveYearPlan || []
       }));

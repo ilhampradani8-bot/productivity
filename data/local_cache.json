@@ -17,7 +17,30 @@
     },
     "missedTaskAlert": {
       "enabled": false
-    }
+    },
+    "logs": [
+      {
+        "id": "log-1795771181141",
+        "time": "2026-11-27 16.19.41",
+        "type": "Briefing Pagi",
+        "status": "Terkirim",
+        "phone": "6288971071138"
+      },
+      {
+        "id": "log-1795768868539",
+        "time": "2026-11-27 15.41.08",
+        "type": "Pengingat: Executive Morning Routine, (Sholat, Olahraga, Prepare)",
+        "status": "Terkirim",
+        "phone": "6288971071138"
+      },
+      {
+        "id": "log-1",
+        "time": "2026-11-27 00:00:00",
+        "type": "Notifikasi Aura Desk",
+        "status": "Siap",
+        "phone": "6288971071138"
+      }
+    ]
   },
   "fiveYearPlan": [
     {
@@ -257,7 +280,8 @@
       "validUntil": "",
       "status": "todo",
       "completedDates": [],
-      "deletedDates": []
+      "deletedDates": [],
+      "updated_at": "2026-11-27T09:19:46.393Z"
     },
     {
       "id": "t-1",
@@ -277,14 +301,14 @@
         "2026-11-26",
         "2026-11-27"
       ],
+      "deletedDates": [
+        "2026-11-26"
+      ],
       "alertSentDates": [
         "2026-11-26",
         "2026-11-27"
       ],
-      "updated_at": "2026-11-27T08:54:20.273Z",
-      "deletedDates": [
-        "2026-11-26"
-      ]
+      "updated_at": "2026-11-27T08:54:20.273Z"
     },
     {
       "id": "t-2",
@@ -307,7 +331,8 @@
         "2026-11-26",
         "2026-11-27",
         "2026-11-28"
-      ]
+      ],
+      "updated_at": "2026-11-27T09:19:46.393Z"
     },
     {
       "id": "t-5",
@@ -326,7 +351,8 @@
       "completedDates": [
         "2026-11-26"
       ],
-      "deletedDates": []
+      "deletedDates": [],
+      "updated_at": "2026-11-27T09:19:46.393Z"
     },
     {
       "id": "t-1795711864119",
@@ -369,7 +395,8 @@
       "completedDates": [
         "2026-11-26"
       ],
-      "deletedDates": []
+      "deletedDates": [],
+      "updated_at": "2026-11-27T09:19:46.393Z"
     },
     {
       "id": "t-4",
@@ -388,7 +415,8 @@
       "completedDates": [
         "2026-11-26"
       ],
-      "deletedDates": []
+      "deletedDates": [],
+      "updated_at": "2026-11-27T09:19:46.393Z"
     }
   ],
   "alarmSettings": {
@@ -396,5 +424,33 @@
     "ringBeforeMinutes": 0,
     "ringOnEnd": true,
     "ringOnWakeup": true
-  }
+  },
+  "labels": [
+    {
+      "id": "lbl-1",
+      "name": "Eksekutif & Prioritas",
+      "color": "indigo"
+    },
+    {
+      "id": "lbl-2",
+      "name": "Ujian & Studi",
+      "color": "emerald"
+    },
+    {
+      "id": "lbl-3",
+      "name": "Sistem & Dev",
+      "color": "sky"
+    },
+    {
+      "id": "lbl-4",
+      "name": "Finansial & Bisnis",
+      "color": "amber"
+    },
+    {
+      "id": "lbl-5",
+      "name": "Istirahat & Pribadi",
+      "color": "purple"
+    }
+  ],
+  "customDailyOrder": {}
 }

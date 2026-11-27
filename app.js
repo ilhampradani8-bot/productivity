@@ -30,12 +30,33 @@ const ICONS = {
   plus: `<svg class="w-3.5 h-3.5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>`
 };
 
+const LABEL_COLORS = {
+  indigo: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
+  purple: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+  emerald: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  amber: { bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-300" },
+  sky: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200" },
+  rose: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+  cyan: { bg: "bg-cyan-50", text: "text-cyan-700", border: "border-cyan-200" },
+  slate: { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300" }
+};
+
+const DEFAULT_LABELS = [
+  { id: "lbl-1", name: "Eksekutif & Prioritas", color: "indigo" },
+  { id: "lbl-2", name: "Ujian & Studi", color: "emerald" },
+  { id: "lbl-3", name: "Sistem & Dev", color: "sky" },
+  { id: "lbl-4", name: "Finansial & Bisnis", color: "amber" },
+  { id: "lbl-5", name: "Istirahat & Pribadi", color: "purple" }
+];
+
 const DEFAULT_SYSTEM_DATA = {
   profile: {
     name: "Ilham Pradani, S.H.",
     role: "Founder & Tech Architect",
     secretaryName: "Aura Executive Desk"
   },
+  labels: DEFAULT_LABELS,
+  customDailyOrder: {},
   notifications: {
     enabled: true,
     targetPhone: "6288971071138",
@@ -285,6 +306,12 @@ class ProductivityApp {
               ringOnWakeup: true
             };
           }
+          if (!parsed.labels || !Array.isArray(parsed.labels) || parsed.labels.length === 0) {
+            parsed.labels = [...DEFAULT_LABELS];
+          }
+          if (!parsed.customDailyOrder || typeof parsed.customDailyOrder !== "object") {
+            parsed.customDailyOrder = {};
+          }
           return { ...DEFAULT_SYSTEM_DATA, ...parsed };
         }
       }
@@ -321,7 +348,9 @@ class ProductivityApp {
           dailyTasks: this.data.dailyTasks,
           notifications: this.data.notifications,
           fiveYearPlan: this.data.fiveYearPlan,
-          alarmSettings: this.data.alarmSettings
+          alarmSettings: this.data.alarmSettings,
+          labels: this.data.labels,
+          customDailyOrder: this.data.customDailyOrder
         })
       });
       if (res.ok) {
@@ -371,6 +400,12 @@ class ProductivityApp {
         }
         if (json.settings && json.settings.alarm) {
           this.data.alarmSettings = { ...this.data.alarmSettings, ...json.settings.alarm };
+        }
+        if (json.settings && json.settings.labels && Array.isArray(json.settings.labels) && json.settings.labels.length > 0) {
+          this.data.labels = json.settings.labels;
+        }
+        if (json.settings && json.settings.customDailyOrder && typeof json.settings.customDailyOrder === "object") {
+          this.data.customDailyOrder = { ...(this.data.customDailyOrder || {}), ...json.settings.customDailyOrder };
         }
         if (json.fiveYearPlan && Array.isArray(json.fiveYearPlan) && json.fiveYearPlan.length > 0) {
           this.data.fiveYearPlan = json.fiveYearPlan;
@@ -467,6 +502,7 @@ class ProductivityApp {
     document.body.classList.add("overflow-hidden");
     if (!this.editingTaskId) {
       this.setTaskScheduleMode("once");
+      this.renderLabelDropdowns();
     }
     if (presetDate) {
       const input = document.getElementById("task-target-date");
@@ -512,6 +548,9 @@ class ProductivityApp {
     if (endEl) endEl.value = endStr;
     if (recEl) recEl.value = "daily";
     if (noteEl) noteEl.value = `Alokasi istirahat & pemulihan energi fisik/kognitif (${dyn.durationHours} Jam, fleksibel dapat ditimpa agenda kerja).`;
+    this.renderLabelDropdowns("Istirahat & Pribadi");
+    const labelSel = document.getElementById("task-label-select");
+    if (labelSel) labelSel.value = "Istirahat & Pribadi";
     if (toggleS2 && toggleS2.checked) {
       toggleS2.checked = false;
       this.toggleSession2UI();
@@ -2299,6 +2338,185 @@ Semoga hari Bapak selalu lancar!
     else if (this.activeTab === "notifications") this.renderNotificationsView();
   }
 
+  // ===================== LABEL & REORDER SYSTEM =====================
+  getLabelInfo(labelKey) {
+    if (!labelKey) return null;
+    const labels = this.data.labels || DEFAULT_LABELS;
+    const found = labels.find(l => l.name === labelKey || l.id === labelKey);
+    if (found) {
+      const colorScheme = LABEL_COLORS[found.color] || LABEL_COLORS.slate;
+      return { ...found, ...colorScheme };
+    }
+    return {
+      id: "custom-" + labelKey,
+      name: labelKey,
+      color: "slate",
+      ...LABEL_COLORS.slate
+    };
+  }
+
+  renderLabelDropdowns(selectedName = "") {
+    const sel = document.getElementById("task-label-select");
+    if (!sel) return;
+    const labels = this.data.labels || DEFAULT_LABELS;
+    let optionsHtml = `<option value="">-- Tanpa Label Khusus --</option>`;
+    labels.forEach(l => {
+      const isSelected = selectedName && (selectedName === l.name || selectedName === l.id);
+      optionsHtml += `<option value="${this.escapeHtml(l.name)}" ${isSelected ? 'selected' : ''}>[${this.escapeHtml(l.name)}]</option>`;
+    });
+    if (selectedName && !labels.some(l => l.name === selectedName)) {
+      optionsHtml += `<option value="${this.escapeHtml(selectedName)}" selected>[${this.escapeHtml(selectedName)}] (Kustom)</option>`;
+    }
+    sel.innerHTML = optionsHtml;
+  }
+
+  handleLabelSelectChange() {
+    const sel = document.getElementById("task-label-select");
+    if (!sel) return;
+    if (sel.value === "__NEW__") {
+      this.promptCreateCustomLabel();
+    }
+  }
+
+  promptCreateCustomLabel() {
+    const name = window.prompt("Masukkan nama label baru (misal: 'Belajar CPNS', 'Proyek CAC', 'Rapat Bisnis'):");
+    if (!name || !name.trim()) return;
+    const trimmed = name.trim();
+    if (!this.data.labels) this.data.labels = [...DEFAULT_LABELS];
+    
+    let existing = this.data.labels.find(l => l.name.toLowerCase() === trimmed.toLowerCase());
+    if (!existing) {
+      const colorKeys = Object.keys(LABEL_COLORS);
+      const chosenColor = colorKeys[Math.floor(Math.random() * colorKeys.length)] || "indigo";
+      existing = {
+        id: "lbl-" + Date.now(),
+        name: trimmed,
+        color: chosenColor
+      };
+      this.data.labels.push(existing);
+      this.saveData();
+      this.showToast(`Label "${trimmed}" berhasil dibuat!`, "success");
+    }
+    this.renderLabelDropdowns(existing.name);
+  }
+
+  moveTaskPosition(taskId, delta) {
+    const dateKey = this.selectedDate;
+    let currentTasks = this.getTasksForDate(dateKey);
+    if (currentTasks.length <= 1) return;
+
+    const taskIds = currentTasks.map(t => t.id);
+    let order = (this.data.customDailyOrder && this.data.customDailyOrder[dateKey]) ? [...this.data.customDailyOrder[dateKey]] : [];
+
+    if (order.length === 0 || !taskIds.every(id => order.includes(id))) {
+      currentTasks.sort((a, b) => {
+        const mA = this.timeToMinutes(a.timeStart || "23:59");
+        const mB = this.timeToMinutes(b.timeStart || "23:59");
+        if (mA !== mB) return mA - mB;
+        const eA = this.timeToMinutes(a.timeEnd || "23:59");
+        const eB = this.timeToMinutes(b.timeEnd || "23:59");
+        return eA - eB;
+      });
+      order = currentTasks.map(t => t.id);
+    } else {
+      order = order.filter(id => taskIds.includes(id));
+      taskIds.forEach(id => {
+        if (!order.includes(id)) order.push(id);
+      });
+    }
+
+    const currentIndex = order.indexOf(taskId);
+    if (currentIndex === -1) return;
+
+    const newIndex = currentIndex + delta;
+    if (newIndex < 0 || newIndex >= order.length) return;
+
+    const temp = order[currentIndex];
+    order[currentIndex] = order[newIndex];
+    order[newIndex] = temp;
+
+    if (!this.data.customDailyOrder) this.data.customDailyOrder = {};
+    this.data.customDailyOrder[dateKey] = order;
+
+    this.saveData();
+    this.renderDailyView();
+  }
+
+  resetDailyOrder() {
+    const dateKey = this.selectedDate;
+    if (this.data.customDailyOrder && this.data.customDailyOrder[dateKey]) {
+      delete this.data.customDailyOrder[dateKey];
+      this.saveData();
+      this.renderDailyView();
+      this.showToast("Urutan agenda direset sesuai jam mulai (kronologis).", "info");
+    } else {
+      this.showToast("Agenda sudah berurutan berdasarkan jam mulai.", "info");
+    }
+  }
+
+  onTaskDragStart(e, taskId) {
+    e.dataTransfer.setData("text/plain", taskId);
+    e.dataTransfer.effectAllowed = "move";
+    const el = document.getElementById(`daily-card-${taskId}`);
+    if (el) el.classList.add("dragging");
+  }
+
+  onTaskDragEnd(e, taskId) {
+    const el = document.getElementById(`daily-card-${taskId}`);
+    if (el) el.classList.remove("dragging");
+    document.querySelectorAll(".daily-task-card").forEach(c => c.classList.remove("drag-over"));
+  }
+
+  onTaskDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const card = e.currentTarget;
+    if (card && !card.classList.contains("dragging")) {
+      card.classList.add("drag-over");
+    }
+  }
+
+  onTaskDragLeave(e) {
+    const card = e.currentTarget;
+    if (card) {
+      card.classList.remove("drag-over");
+    }
+  }
+
+  onTaskDrop(e, targetTaskId) {
+    e.preventDefault();
+    const sourceTaskId = e.dataTransfer.getData("text/plain");
+    document.querySelectorAll(".daily-task-card").forEach(c => c.classList.remove("drag-over"));
+    if (!sourceTaskId || sourceTaskId === targetTaskId) return;
+
+    const dateKey = this.selectedDate;
+    let currentTasks = this.getTasksForDate(dateKey);
+    const taskIds = currentTasks.map(t => t.id);
+
+    let order = (this.data.customDailyOrder && this.data.customDailyOrder[dateKey]) ? [...this.data.customDailyOrder[dateKey]] : [];
+    if (order.length === 0 || !taskIds.every(id => order.includes(id))) {
+      currentTasks.sort((a, b) => this.timeToMinutes(a.timeStart || "23:59") - this.timeToMinutes(b.timeStart || "23:59"));
+      order = currentTasks.map(t => t.id);
+    } else {
+      order = order.filter(id => taskIds.includes(id));
+      taskIds.forEach(id => { if (!order.includes(id)) order.push(id); });
+    }
+
+    const srcIndex = order.indexOf(sourceTaskId);
+    const tgtIndex = order.indexOf(targetTaskId);
+    if (srcIndex === -1 || tgtIndex === -1) return;
+
+    order.splice(srcIndex, 1);
+    order.splice(tgtIndex, 0, sourceTaskId);
+
+    if (!this.data.customDailyOrder) this.data.customDailyOrder = {};
+    this.data.customDailyOrder[dateKey] = order;
+
+    this.saveData();
+    this.renderDailyView();
+    this.showToast("Posisi agenda berhasil dipindahkan!", "success");
+  }
+
   // ===================== DAILY VIEW =====================
   renderDailyView() {
     const list = document.getElementById("daily-task-container");
@@ -2311,15 +2529,32 @@ Semoga hari Bapak selalu lancar!
       tasks = tasks.filter(t => t.title.toLowerCase().includes(q) || (t.note && t.note.toLowerCase().includes(q)));
     }
 
-    // STRICT CHRONOLOGICAL AUTO-SORTING (Waktu Mulai Ascending)
-    tasks.sort((a, b) => {
-      const mA = this.timeToMinutes(a.timeStart || "23:59");
-      const mB = this.timeToMinutes(b.timeStart || "23:59");
-      if (mA !== mB) return mA - mB;
-      const eA = this.timeToMinutes(a.timeEnd || "23:59");
-      const eB = this.timeToMinutes(b.timeEnd || "23:59");
-      return eA - eB;
-    });
+    // CHECK FOR CUSTOM DAILY ORDER (NOMOR 1, 2, 3...) DENGAN FALLBACK KRONOLOGIS
+    const dateKey = this.selectedDate;
+    const customOrder = (this.data.customDailyOrder && this.data.customDailyOrder[dateKey]) ? this.data.customDailyOrder[dateKey] : null;
+
+    if (customOrder && Array.isArray(customOrder) && customOrder.length > 0) {
+      tasks.sort((a, b) => {
+        const idxA = customOrder.indexOf(a.id);
+        const idxB = customOrder.indexOf(b.id);
+        if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+        if (idxA !== -1) return -1;
+        if (idxB !== -1) return 1;
+        const mA = this.timeToMinutes(a.timeStart || "23:59");
+        const mB = this.timeToMinutes(b.timeStart || "23:59");
+        return mA - mB;
+      });
+    } else {
+      // STRICT CHRONOLOGICAL AUTO-SORTING (Waktu Mulai Ascending)
+      tasks.sort((a, b) => {
+        const mA = this.timeToMinutes(a.timeStart || "23:59");
+        const mB = this.timeToMinutes(b.timeStart || "23:59");
+        if (mA !== mB) return mA - mB;
+        const eA = this.timeToMinutes(a.timeEnd || "23:59");
+        const eB = this.timeToMinutes(b.timeEnd || "23:59");
+        return eA - eB;
+      });
+    }
 
     // Check Missed Tasks without Reason for Banner
     const unaddressedMissed = this.getMissedTasksWithoutReason(this.selectedDate);
@@ -2377,7 +2612,7 @@ Semoga hari Bapak selalu lancar!
       return;
     }
 
-    const taskCardsHtml = tasks.map(task => {
+    const taskCardsHtml = tasks.map((task, idx) => {
       const isDone = task.isDone;
       const isMissed = this.isTaskMissed(task, this.selectedDate);
       const dur1 = this.formatDuration(task.timeStart, task.timeEnd);
@@ -2395,6 +2630,20 @@ Semoga hari Bapak selalu lancar!
         recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Setiap ${days[d.getDay()]}</span></span>`;
       } else if (task.recurrence === "yearly") {
         recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-cyan-50 text-cyan-700 border border-cyan-200">${ICONS.repeat} <span>Tiap Tahun</span></span>`;
+      }
+
+      // Label Badge
+      let labelBadgeHtml = "";
+      if (task.label) {
+        const lblInfo = this.getLabelInfo(task.label);
+        if (lblInfo) {
+          labelBadgeHtml = `
+            <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-mono px-2 py-0.5 rounded-md ${lblInfo.bg} ${lblInfo.text} border ${lblInfo.border} font-semibold shadow-2xs">
+              <svg class="w-2.5 h-2.5 sm:w-3 sm:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              <span>${this.escapeHtml(lblInfo.name)}</span>
+            </span>
+          `;
+        }
       }
 
       // Cancellation badge
@@ -2429,7 +2678,14 @@ Semoga hari Bapak selalu lancar!
       }
 
       return `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all ${
+        <div id="daily-card-${task.id}" 
+             draggable="true" 
+             ondragstart="window.app.onTaskDragStart(event, '${task.id}')"
+             ondragend="window.app.onTaskDragEnd(event, '${task.id}')"
+             ondragover="window.app.onTaskDragOver(event)"
+             ondragleave="window.app.onTaskDragLeave(event)"
+             ondrop="window.app.onTaskDrop(event, '${task.id}')"
+             class="daily-task-card flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all ${
           task.isCancelled
             ? "bg-rose-50/20 border-rose-200/60 opacity-75"
             : isDone 
@@ -2437,6 +2693,27 @@ Semoga hari Bapak selalu lancar!
               : "bg-white hover:bg-slate-50/50 border-slate-200 shadow-sm"
         }">
           <div class="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
+            <!-- SEQUENCE NUMBER & REORDER CONTROLS (1, 2, 3...) -->
+            <div class="flex flex-col items-center justify-center gap-0.5 flex-shrink-0 mr-0.5 sm:mr-1 select-none">
+              <button type="button" 
+                      onclick="window.app.moveTaskPosition('${task.id}', -1)" 
+                      title="Pindah ke Atas" 
+                      ${idx === 0 ? 'disabled' : ''} 
+                      class="p-0.5 text-slate-400 hover:text-indigo-600 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors leading-none">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7"/></svg>
+              </button>
+              <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-slate-100 border border-slate-200/90 flex items-center justify-center text-[10px] sm:text-xs font-mono font-bold text-slate-700 shadow-2xs cursor-grab" title="Urutan #${idx + 1} (Klik panah atau drag kartu untuk geser)">
+                ${idx + 1}
+              </span>
+              <button type="button" 
+                      onclick="window.app.moveTaskPosition('${task.id}', 1)" 
+                      title="Pindah ke Bawah" 
+                      ${idx === tasks.length - 1 ? 'disabled' : ''} 
+                      class="p-0.5 text-slate-400 hover:text-indigo-600 disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer transition-colors leading-none">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+            </div>
+
             ${task.isCancelled ? `
               <div class="w-5 h-5 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-600 flex-shrink-0 mt-0.5 sm:mt-0" title="Agenda ini dibatalkan">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2467,6 +2744,7 @@ Semoga hari Bapak selalu lancar!
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-1.5 flex-wrap mb-0.5 sm:mb-1">
                 ${recurrenceBadge}
+                ${labelBadgeHtml}
                 ${cancelBadgeHtml}
                 ${missedBadgeHtml}
               </div>
@@ -2697,6 +2975,7 @@ Semoga hari Bapak selalu lancar!
         task.validityType = formData.validityType || "until_completed";
         task.validUntil = formData.validUntil || "";
         task.note = formData.note ? formData.note.trim() : "";
+        task.label = formData.label ? formData.label.trim() : "";
       }
       this.editingTaskId = null;
       const submitTextEl = document.getElementById("btn-save-task-text");
@@ -2714,6 +2993,7 @@ Semoga hari Bapak selalu lancar!
         session2End: formData.hasSecondSession ? formData.session2End : "",
         title: formData.title.trim(),
         note: formData.note ? formData.note.trim() : "",
+        label: formData.label ? formData.label.trim() : "",
         recurrence: formData.recurrence || "none",
         validityType: formData.validityType || "until_completed",
         validUntil: formData.validUntil || "",
@@ -2785,6 +3065,7 @@ Semoga hari Bapak selalu lancar!
       if (untilEl) untilEl.value = "";
     }
     if (noteEl) noteEl.value = task.note || "";
+    this.renderLabelDropdowns(task.label || "");
 
     if (submitTextEl) {
       submitTextEl.innerHTML = `${ICONS.save} <span>Simpan Perubahan Agenda</span>`;
@@ -2811,6 +3092,7 @@ Semoga hari Bapak selalu lancar!
     }
 
     this.setTaskScheduleMode("once");
+    this.renderLabelDropdowns("");
     this.toggleSession2UI();
     this.initValidityPreset();
     this.checkTimeCollision();
@@ -4409,6 +4691,8 @@ Salam hangat,
         const validityPreset = isOnce ? "until_completed" : (document.getElementById("task-validity-preset") ? document.getElementById("task-validity-preset").value : "until_completed");
         const validUntil = isOnce ? "" : (document.getElementById("task-valid-until") ? document.getElementById("task-valid-until").value : "");
         const note = document.getElementById("task-note") ? document.getElementById("task-note").value : "";
+        const labelSelect = document.getElementById("task-label-select");
+        const label = labelSelect ? labelSelect.value : "";
 
         this.addTask({
           date,
@@ -4421,7 +4705,8 @@ Salam hangat,
           recurrence,
           validityType: validityPreset,
           validUntil,
-          note
+          note,
+          label
         });
 
         if (document.getElementById("task-title")) document.getElementById("task-title").value = "";

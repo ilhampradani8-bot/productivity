@@ -433,3 +433,50 @@ body {
     font-size: 11px !important;
   }
 }
+
+/* Custom Scroll & Drag-Drop Reorder Utilities */
+.daily-task-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.daily-task-card.dragging {
+  opacity: 0.45 !important;
+  transform: scale(0.98);
+}
+
+.daily-task-card.drag-over {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
+}
+
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grab:active {
+  cursor: grabbing;
+}
+
+/* Custom Scroll & Drag-Drop Reorder Utilities */
+.daily-task-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.daily-task-card.dragging {
+  opacity: 0.45;
+  transform: scale(0.98);
+}
+
+.daily-task-card.drag-over {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
+}
+
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-grab:active {
+  cursor: grabbing;
+}
+

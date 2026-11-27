@@ -348,6 +348,8 @@ Salam hormat,
         settings: {
           notifications: settingsMap.notifications || {},
           alarm: settingsMap.alarm || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true },
+          labels: settingsMap.labels || [],
+          customDailyOrder: settingsMap.customDailyOrder || {},
           fiveYearPlan: settingsMap.fiveYearPlan || []
         },
         fiveYearPlan: settingsMap.fiveYearPlan || []
@@ -387,6 +389,8 @@ Salam hormat,
       const notifications = body.notifications;
       const fiveYearPlan = body.fiveYearPlan;
       const alarmSettings = body.alarmSettings;
+      const labels = body.labels;
+      const customDailyOrder = body.customDailyOrder;
 
       if (dailyTasks && Array.isArray(dailyTasks) && dailyTasks.length > 0) {
         const statements = dailyTasks.map(t => {
@@ -437,6 +441,18 @@ Salam hormat,
         await db.prepare(
           "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('alarm', ?, datetime('now'))"
         ).bind(JSON.stringify(alarmSettings)).run();
+      }
+
+      if (labels) {
+        await db.prepare(
+          "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('labels', ?, datetime('now'))"
+        ).bind(JSON.stringify(labels)).run();
+      }
+
+      if (customDailyOrder) {
+        await db.prepare(
+          "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('customDailyOrder', ?, datetime('now'))"
+        ).bind(JSON.stringify(customDailyOrder)).run();
       }
 
       return jsonResponse({ success: true, syncedTasks: dailyTasks ? dailyTasks.length : 0 });
