@@ -1046,10 +1046,10 @@
 
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
           <h4 class="font-bold text-slate-900 flex items-center gap-1.5 font-mono text-[11px] uppercase">
-            <span>4. Backup & Pertukaran Data Spreadsheet CSV</span>
+            <span>4. Sinkronisasi Otomatis Cloud & Persistensi Server</span>
           </h4>
           <p class="text-slate-600 leading-relaxed text-[11px]">
-            Data agenda dapat diekspor menjadi file CSV standar yang kompatibel dengan Microsoft Excel dan Google Sheets via tombol <strong>Download Filtered CSV</strong>, serta dapat dipulihkan kapan pun via <strong>Upload Data CSV</strong>.
+            Setiap perubahan agenda otomatis tersinkronisasi dua arah ke database Cloudflare D1 dan file cache server UTM, menjamin data selalu aman, persisten, dan terdistribusi.
           </p>
         </div>
       </div>
@@ -1107,9 +1107,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Hidden File Input for CSV Upload -->
-  <input type="file" id="input-csv-upload" accept=".csv" class="hidden" onchange="window.app.handleCSVUpload(event)">
 
   <!-- ================= MINIMALIST FOOTER ================= -->
   <footer class="w-full border-t border-slate-200 bg-white py-3 text-xs text-slate-500 px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 shadow-inner">

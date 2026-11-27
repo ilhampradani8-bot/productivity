@@ -252,6 +252,23 @@
   },
   "dailyTasks": [
     {
+      "id": "t-1795759310132",
+      "date": "2026-11-29",
+      "timeStart": "15:00",
+      "timeEnd": "16:30",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "UJIAN UAS UT",
+      "note": "UJIAN UAS EXAM BROWSER, HUKUM BISNIS",
+      "recurrence": "none",
+      "validityType": "until_completed",
+      "validUntil": "",
+      "status": "todo",
+      "completedDates": [],
+      "deletedDates": []
+    },
+    {
       "id": "t-1",
       "date": "2026-11-26",
       "timeStart": "07:30",
@@ -266,11 +283,11 @@
       "validUntil": "2029-11-26",
       "status": "done",
       "completedDates": [
-        "2026-11-26"
-      ],
-      "deletedDates": [],
-      "alertSentDates": [
+        "2026-11-26",
         "2026-11-27"
+      ],
+      "deletedDates": [
+        "2026-11-26"
       ]
     },
     {
@@ -290,10 +307,53 @@
       "completedDates": [
         "2026-11-26"
       ],
-      "deletedDates": [],
-      "alertSentDates": [
+      "deletedDates": [
+        "2026-11-26",
         "2026-11-27"
       ]
+    },
+    {
+      "id": "t-5",
+      "date": "2026-11-26",
+      "timeStart": "16:30",
+      "timeEnd": "17:30",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "Sesi Pembelajaran Mandiri & Review Materi Teknis",
+      "note": "Baca modul materi strategis 60 menit",
+      "recurrence": "daily",
+      "validityType": "1_year",
+      "validUntil": "2027-11-26",
+      "status": "todo",
+      "completedDates": [
+        "2026-11-26"
+      ],
+      "deletedDates": []
+    },
+    {
+      "id": "t-1795711864119",
+      "title": "[Pertemuan] Prof. Dr. Ir. Budi Santoso - Konsultasi Hukum & Keamanan Siber",
+      "time_start": "10:00",
+      "time_end": "11:30",
+      "target_date": "2026-11-28",
+      "recurrence": "none",
+      "duration_years": null,
+      "validity_type": null,
+      "status": "todo",
+      "completed_dates": null,
+      "deleted_dates": null,
+      "missed_reasons": null,
+      "note": "Moda: virtual. Klien: Prof. Dr. Ir. Budi Santoso (6281298765432). Catatan: Diskusi audit forensik dan tata kelola kepatuhan sistem AI eksekutif.",
+      "has_second_session": null,
+      "session2_start": null,
+      "session2_end": null,
+      "raw_json": null,
+      "updated_at": "2026-11-26 16:51:03",
+      "hasSecondSession": false,
+      "validityType": "until_completed",
+      "completedDates": [],
+      "deletedDates": []
     },
     {
       "id": "t-3",
@@ -331,23 +391,6 @@
       "completedDates": [
         "2026-11-26"
       ],
-      "deletedDates": []
-    },
-    {
-      "id": "t-5",
-      "date": "2026-11-26",
-      "timeStart": "16:30",
-      "timeEnd": "17:30",
-      "hasSecondSession": false,
-      "session2Start": "",
-      "session2End": "",
-      "title": "Sesi Pembelajaran Mandiri & Review Materi Teknis",
-      "note": "Baca modul materi strategis 60 menit",
-      "recurrence": "daily",
-      "validityType": "1_year",
-      "validUntil": "2027-11-26",
-      "status": "todo",
-      "completedDates": [],
       "deletedDates": []
     }
   ]

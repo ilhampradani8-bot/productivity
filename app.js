@@ -2957,12 +2957,12 @@ Semoga hari Bapak selalu lancar!
           </div>
         </div>
 
-        <!-- 3. Spreadsheet Backup, Sync & Audit Logs Action Toolbar -->
+        <!-- 3. Sync & Audit Logs Action Toolbar -->
         <div class="p-3 sm:p-3.5 rounded-xl bg-slate-900 text-white space-y-2.5 shadow-sm">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              <span class="text-xs font-bold font-mono tracking-wide">Spreadsheet Backup, Sync & Audit Logs</span>
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span class="text-xs font-bold font-mono tracking-wide">Sync & Audit Logs Gateway</span>
             </div>
             <button onclick="window.app.openUserGuideModal()" class="text-[11px] text-indigo-300 hover:text-white flex items-center gap-1 font-semibold transition-colors cursor-pointer">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -2989,18 +2989,6 @@ Semoga hari Bapak selalu lancar!
             <button onclick="window.app.refreshData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
               <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               <span>Refresh Data</span>
-            </button>
-
-            <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
-
-            <button onclick="window.app.exportFilteredCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-              <span>Download Filtered CSV (${allTasksCount} items)</span>
-            </button>
-
-            <button onclick="window.app.triggerCSVUpload()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
-              <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-              <span>Upload Data CSV / Spreadsheet</span>
             </button>
           </div>
         </div>
