@@ -3,7 +3,7 @@ set -e
 
 BUILD_TOOLS="/opt/android-sdk/build-tools/android-13"
 PLATFORM="/opt/android-sdk/platforms/android-11/android.jar"
-PROJECT="/root/aura-alarm-app"
+PROJECT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BIN="$PROJECT/bin"
 SRC="$PROJECT/src/me/ilhampradani/productivity/alarm"
 

@@ -7,8 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -29,6 +32,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -40,240 +44,341 @@ import java.util.TimeZone;
 public class MainActivity extends Activity {
 
     public static final String PREF_NAME = "aura_alarm_prefs";
-    public static final String KEY_SERVER_URL = "server_url";
     public static final String KEY_CACHED_TASKS = "cached_tasks";
     public static final String KEY_ALARM_SETTINGS = "alarm_settings";
     public static final String KEY_LAST_SYNC = "last_sync";
+    public static final String KEY_OFFLINE_ACTIONS = "offline_actions";
     public static final String DEFAULT_SERVER_URL = "https://productivity.ilhampradani.me/api/sync";
 
+    // Auto-sync interval: 25 seconds when activity is active
+    private static final long AUTO_SYNC_INTERVAL_MS = 25000;
+
     private LinearLayout tasksContainer;
-    private TextView tvStatus;
+    private TextView tvStatusPill;
     private TextView tvLastSync;
-    private TextView tvAlarmCount;
+    private TextView tvSummaryTotal;
+    private TextView tvSummaryActive;
+    private TextView tvSummaryDone;
     private Handler mainHandler;
+    private boolean isSyncing = false;
+
+    private final Runnable autoSyncRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isNetworkAvailable(MainActivity.this)) {
+                flushOfflineQueue(MainActivity.this);
+                triggerSync(false);
+            } else {
+                updateOfflineUI();
+            }
+            if (mainHandler != null) {
+                mainHandler.postDelayed(this, AUTO_SYNC_INTERVAL_MS);
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mainHandler = new Handler(Looper.getMainLooper());
 
-        // Root View
+        // Apple Pitch Black Background
         ScrollView scrollView = new ScrollView(this);
-        scrollView.setBackgroundColor(Color.parseColor("#0F172A")); // Slate 900
+        scrollView.setBackgroundColor(Color.parseColor("#000000")); // OLED Black
         scrollView.setFillViewport(true);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(35, 45, 35, 55);
 
-        // Header Title
+        // 1. Top Bar: Apple iTunes / iOS Clock Header
         TextView tvHeader = new TextView(this);
-        tvHeader.setText("AURA DESK ALARM");
+        tvHeader.setText("Executive Alarms");
         tvHeader.setTextColor(Color.WHITE);
-        tvHeader.setTextSize(22);
-        tvHeader.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        tvHeader.setGravity(Gravity.CENTER);
+        tvHeader.setTextSize(26);
+        tvHeader.setTypeface(Typeface.DEFAULT_BOLD);
         root.addView(tvHeader);
 
         TextView tvSub = new TextView(this);
-        tvSub.setText("Executive Alarm & Telemetri • Ilham Pradani, S.H.");
-        tvSub.setTextColor(Color.parseColor("#94A3B8"));
-        tvSub.setTextSize(12);
-        tvSub.setGravity(Gravity.CENTER);
-        tvSub.setPadding(0, 5, 0, 30);
+        tvSub.setText("Aura Executive Desk • Ilham Pradani, S.H.");
+        tvSub.setTextColor(Color.parseColor("#8E8E93")); // iOS secondaryLabel
+        tvSub.setTextSize(13);
+        tvSub.setPadding(0, 4, 0, 20);
         root.addView(tvSub);
 
-        // Status Card
-        LinearLayout statusCard = new LinearLayout(this);
-        statusCard.setOrientation(LinearLayout.VERTICAL);
-        statusCard.setPadding(30, 25, 30, 25);
-        GradientDrawable cardBg = new GradientDrawable();
-        cardBg.setColor(Color.parseColor("#1E293B"));
-        cardBg.setCornerRadius(20);
-        cardBg.setStroke(2, Color.parseColor("#334155"));
-        statusCard.setBackground(cardBg);
+        // 2. Real-time Status Pill (Apple Frosted Pill)
+        tvStatusPill = new TextView(this);
+        tvStatusPill.setText("● Memeriksa Koneksi Database...");
+        tvStatusPill.setTextColor(Color.parseColor("#30D158")); // Apple Emerald
+        tvStatusPill.setTextSize(12);
+        tvStatusPill.setTypeface(Typeface.DEFAULT_BOLD);
+        tvStatusPill.setGravity(Gravity.CENTER);
+        tvStatusPill.setPadding(24, 14, 24, 14);
 
-        tvStatus = new TextView(this);
-        tvStatus.setText("● Terhubung ke Server Cloudflare");
-        tvStatus.setTextColor(Color.parseColor("#10B981")); // Emerald
-        tvStatus.setTextSize(13);
-        tvStatus.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        statusCard.addView(tvStatus);
+        GradientDrawable pillBg = new GradientDrawable();
+        pillBg.setColor(Color.parseColor("#1C1C1E")); // iOS Secondary Surface
+        pillBg.setCornerRadius(22);
+        pillBg.setStroke(2, Color.parseColor("#2C2C2E"));
+        tvStatusPill.setBackground(pillBg);
+        root.addView(tvStatusPill);
 
-        tvLastSync = new TextView(this);
-        tvLastSync.setText("Terakhir Sinkron: Belum pernah");
-        tvLastSync.setTextColor(Color.parseColor("#CBD5E1"));
-        tvLastSync.setTextSize(11);
-        tvLastSync.setPadding(0, 6, 0, 6);
-        statusCard.addView(tvLastSync);
+        // 3. Apple Summary Card (Segmented Metrics)
+        LinearLayout summaryCard = new LinearLayout(this);
+        summaryCard.setOrientation(LinearLayout.HORIZONTAL);
+        summaryCard.setPadding(20, 20, 20, 20);
 
-        tvAlarmCount = new TextView(this);
-        tvAlarmCount.setText("Alarm Aktif Hari Ini: Memuat...");
-        tvAlarmCount.setTextColor(Color.parseColor("#A5B4FC"));
-        tvAlarmCount.setTextSize(12);
-        tvAlarmCount.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        statusCard.addView(tvAlarmCount);
+        GradientDrawable sumBg = new GradientDrawable();
+        sumBg.setColor(Color.parseColor("#1C1C1E"));
+        sumBg.setCornerRadius(18);
+        sumBg.setStroke(1, Color.parseColor("#2C2C2E"));
+        summaryCard.setBackground(sumBg);
 
-        root.addView(statusCard);
+        LinearLayout.LayoutParams sumLp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        sumLp.setMargins(0, 16, 0, 20);
+        summaryCard.setLayoutParams(sumLp);
 
-        // Action Buttons Row
+        // Col 1: Total
+        LinearLayout col1 = createMetricColumn("TOTAL HARI INI", "--", "#FFFFFF");
+        tvSummaryTotal = (TextView) col1.getChildAt(1);
+        summaryCard.addView(col1);
+
+        // Col 2: Active / Siaga
+        LinearLayout col2 = createMetricColumn("SIAGA ALARM", "--", "#FF9F0A"); // Apple Orange
+        tvSummaryActive = (TextView) col2.getChildAt(1);
+        summaryCard.addView(col2);
+
+        // Col 3: Selesai / Coret
+        LinearLayout col3 = createMetricColumn("SELESAI", "--", "#30D158"); // Apple Green
+        tvSummaryDone = (TextView) col3.getChildAt(1);
+        summaryCard.addView(col3);
+
+        root.addView(summaryCard);
+
+        // 4. Action Buttons (Apple Control Style)
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.VERTICAL);
-        btnRow.setPadding(0, 25, 0, 25);
+        btnRow.setPadding(0, 0, 0, 25);
 
-        // Button 1: Sync Now
+        // Button A: Manual Sync Now (Apple System Blue)
         Button btnSync = new Button(this);
-        btnSync.setText("🔄 Sinkronkan Jadwal Sekarang");
+        btnSync.setText("↻  Sinkronkan Sekarang");
         btnSync.setTextColor(Color.WHITE);
         btnSync.setTextSize(14);
-        btnSync.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        btnSync.setTypeface(Typeface.DEFAULT_BOLD);
+
         GradientDrawable btnSyncBg = new GradientDrawable();
-        btnSyncBg.setColor(Color.parseColor("#4F46E5")); // Indigo 600
+        btnSyncBg.setColor(Color.parseColor("#0A84FF")); // Apple System Blue
         btnSyncBg.setCornerRadius(16);
         btnSync.setBackground(btnSyncBg);
-        btnSync.setPadding(20, 20, 20, 20);
+        btnSync.setPadding(20, 18, 20, 18);
 
         LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        p1.setMargins(0, 0, 0, 15);
+        p1.setMargins(0, 0, 0, 12);
         btnSync.setLayoutParams(p1);
-
         btnSync.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                triggerSync();
+                triggerSync(true);
             }
         });
         btnRow.addView(btnSync);
 
-        // Button 2: Test Alarm
+        // Horizontal Row for Secondary Buttons
+        LinearLayout subBtnRow = new LinearLayout(this);
+        subBtnRow.setOrientation(LinearLayout.HORIZONTAL);
+
+        // Button B: Test Alarm Sound
         Button btnTest = new Button(this);
-        btnTest.setText("🔊 Uji Coba Bunyi Alarm (3 Detik)");
+        btnTest.setText("🔔 Uji Suara");
         btnTest.setTextColor(Color.WHITE);
-        btnTest.setTextSize(13);
-        btnTest.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        btnTest.setTextSize(12);
+        btnTest.setTypeface(Typeface.DEFAULT_BOLD);
         GradientDrawable btnTestBg = new GradientDrawable();
-        btnTestBg.setColor(Color.parseColor("#059669")); // Emerald 600
-        btnTestBg.setCornerRadius(16);
+        btnTestBg.setColor(Color.parseColor("#2C2C2E"));
+        btnTestBg.setCornerRadius(14);
         btnTest.setBackground(btnTestBg);
-        btnTest.setPadding(20, 20, 20, 20);
+        btnTest.setPadding(15, 14, 15, 14);
 
         LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
         );
-        p2.setMargins(0, 0, 0, 15);
+        p2.setMargins(0, 0, 8, 0);
         btnTest.setLayoutParams(p2);
-
         btnTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 scheduleTestAlarm();
             }
         });
-        btnRow.addView(btnTest);
+        subBtnRow.addView(btnTest);
 
-        // Button 3: Battery Whitelist (Samsung Anti-Kill)
+        // Button C: Battery Optimization (Samsung)
         Button btnBattery = new Button(this);
-        btnBattery.setText("⚡ Izinkan Alarm Berjalan di Latar (Samsung)");
-        btnBattery.setTextColor(Color.parseColor("#E2E8F0"));
+        btnBattery.setText("⚡ Izin Latar Belakang");
+        btnBattery.setTextColor(Color.parseColor("#E5E5EA"));
         btnBattery.setTextSize(12);
+        btnBattery.setTypeface(Typeface.DEFAULT_BOLD);
         GradientDrawable btnBatBg = new GradientDrawable();
-        btnBatBg.setColor(Color.parseColor("#334155"));
-        btnBatBg.setCornerRadius(16);
+        btnBatBg.setColor(Color.parseColor("#2C2C2E"));
+        btnBatBg.setCornerRadius(14);
         btnBattery.setBackground(btnBatBg);
-        btnBattery.setPadding(20, 18, 20, 18);
+        btnBattery.setPadding(15, 14, 15, 14);
 
+        LinearLayout.LayoutParams p3 = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.2f
+        );
+        btnBattery.setLayoutParams(p3);
         btnBattery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 requestBatteryOptimizationExemption();
             }
         });
-        btnRow.addView(btnBattery);
+        subBtnRow.addView(btnBattery);
 
+        btnRow.addView(subBtnRow);
         root.addView(btnRow);
 
-        // Alarms List Header
-        TextView tvListTitle = new TextView(this);
-        tvListTitle.setText("DAFTAR ALARM AGENDA HARI INI");
-        tvListTitle.setTextColor(Color.WHITE);
-        tvListTitle.setTextSize(13);
-        tvListTitle.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        tvListTitle.setPadding(0, 10, 0, 15);
-        root.addView(tvListTitle);
+        // 5. Section Header for Alarm List
+        TextView tvListHeader = new TextView(this);
+        tvListHeader.setText("AGENDA & ALARM HARI INI");
+        tvListHeader.setTextColor(Color.parseColor("#8E8E93"));
+        tvListHeader.setTextSize(12);
+        tvListHeader.setTypeface(Typeface.DEFAULT_BOLD);
+        tvListHeader.setPadding(0, 10, 0, 15);
+        root.addView(tvListHeader);
 
-        // Tasks Container
+        // 6. Tasks Container (Apple Card Stack)
         tasksContainer = new LinearLayout(this);
         tasksContainer.setOrientation(LinearLayout.VERTICAL);
         root.addView(tasksContainer);
 
+        // 7. Last Sync Timestamp footer
+        tvLastSync = new TextView(this);
+        tvLastSync.setText("Terakhir Sinkron: Belum pernah");
+        tvLastSync.setTextColor(Color.parseColor("#636366"));
+        tvLastSync.setTextSize(11);
+        tvLastSync.setGravity(Gravity.CENTER);
+        tvLastSync.setPadding(0, 30, 0, 20);
+        root.addView(tvLastSync);
+
         scrollView.addView(root);
         setContentView(scrollView);
 
-        // Initial Load & Sync
+        // Initial Load from Offline Cache (Instant View without waiting for internet)
         loadCachedTasksUI();
-        triggerSync();
+
+        // Start Sync
+        triggerSync(false);
     }
 
-    private void scheduleTestAlarm() {
-        Toast.makeText(this, "Alarm uji coba akan berbunyi dalam 3 detik...", Toast.LENGTH_SHORT).show();
-
-        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, AlarmReceiver.class);
-        intent.putExtra(AlarmSoundService.EXTRA_TITLE, "Uji Coba Alarm Eksekutif");
-        intent.putExtra(AlarmSoundService.EXTRA_TIME, "Sekarang");
-        intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, "test-alarm");
-
-        PendingIntent pi = PendingIntent.getBroadcast(
-                this, 9999, intent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
-        );
-
-        long triggerAt = System.currentTimeMillis() + 3000;
-        if (Build.VERSION.SDK_INT >= 23) {
-            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
-        } else {
-            am.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadCachedTasksUI();
+        if (mainHandler != null) {
+            mainHandler.removeCallbacks(autoSyncRunnable);
+            mainHandler.postDelayed(autoSyncRunnable, 2000);
         }
     }
 
-    private void requestBatteryOptimizationExemption() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
-                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                intent.setData(Uri.parse("package:" + getPackageName()));
-                try {
-                    startActivity(intent);
-                } catch (Exception e) {
-                    Toast.makeText(this, "Buka Pengaturan > Aplikasi > Optimasi Baterai > Pilih Tidak Dibatasi", Toast.LENGTH_LONG).show();
-                }
-            } else {
-                Toast.makeText(this, "Aplikasi sudah diizinkan bebas pembatasan baterai!", Toast.LENGTH_SHORT).show();
-            }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mainHandler != null) {
+            mainHandler.removeCallbacks(autoSyncRunnable);
         }
     }
 
-    private void triggerSync() {
-        tvStatus.setText("● Sedang menyinkronkan ke database...");
-        tvStatus.setTextColor(Color.parseColor("#F59E0B")); // Amber
+    private LinearLayout createMetricColumn(String label, String value, String valueColor) {
+        LinearLayout col = new LinearLayout(this);
+        col.setOrientation(LinearLayout.VERTICAL);
+        col.setGravity(Gravity.CENTER);
+        col.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView tvLbl = new TextView(this);
+        tvLbl.setText(label);
+        tvLbl.setTextColor(Color.parseColor("#8E8E93"));
+        tvLbl.setTextSize(9);
+        tvLbl.setTypeface(Typeface.DEFAULT_BOLD);
+        tvLbl.setGravity(Gravity.CENTER);
+        col.addView(tvLbl);
+
+        TextView tvVal = new TextView(this);
+        tvVal.setText(value);
+        tvVal.setTextColor(Color.parseColor(valueColor));
+        tvVal.setTextSize(17);
+        tvVal.setTypeface(Typeface.DEFAULT_BOLD);
+        tvVal.setGravity(Gravity.CENTER);
+        tvVal.setPadding(0, 4, 0, 0);
+        col.addView(tvVal);
+
+        return col;
+    }
+
+    private static boolean isNetworkAvailable(Context ctx) {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+            if (cm == null) return false;
+            NetworkInfo ni = cm.getActiveNetworkInfo();
+            return ni != null && ni.isConnected();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void updateOfflineUI() {
+        tvStatusPill.setText("○ Offline Mode • Alarm Perangkat Siaga 100%");
+        tvStatusPill.setTextColor(Color.parseColor("#FF9F0A")); // Apple Orange
+        GradientDrawable d = new GradientDrawable();
+        d.setColor(Color.parseColor("#261B0E"));
+        d.setCornerRadius(22);
+        d.setStroke(2, Color.parseColor("#5A3E1B"));
+        tvStatusPill.setBackground(d);
+    }
+
+    private void triggerSync(final boolean isManual) {
+        if (isSyncing) return;
+        isSyncing = true;
+
+        if (isManual) {
+            tvStatusPill.setText("↻ Memperbarui Jadwal Database...");
+            tvStatusPill.setTextColor(Color.parseColor("#0A84FF"));
+        }
 
         syncAndScheduleAlarms(this, new SyncCallback() {
             @Override
-            public void onSyncComplete(boolean success, int scheduledCount, String error) {
+            public void onSyncComplete(final boolean success, final int scheduledCount, final String error) {
+                isSyncing = false;
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         if (success) {
-                            tvStatus.setText("● Terhubung ke Database Online (200 OK)");
-                            tvStatus.setTextColor(Color.parseColor("#10B981"));
-                            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, HH:mm:ss", new Locale("id", "ID"));
+                            tvStatusPill.setText("● Terhubung ke Cloudflare Edge • Realtime Sync");
+                            tvStatusPill.setTextColor(Color.parseColor("#30D158"));
+                            GradientDrawable d = new GradientDrawable();
+                            d.setColor(Color.parseColor("#0E2616"));
+                            d.setCornerRadius(22);
+                            d.setStroke(2, Color.parseColor("#1B5A2D"));
+                            tvStatusPill.setBackground(d);
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM, HH:mm:ss", new Locale("id", "ID"));
                             tvLastSync.setText("Terakhir Sinkron: " + sdf.format(new Date()) + " WIB");
-                            tvAlarmCount.setText("Alarm Aktif Hari Ini: " + scheduledCount + " Agenda");
+
                             loadCachedTasksUI();
+                            if (isManual) {
+                                Toast.makeText(MainActivity.this, "Jadwal berhasil disinkronkan (" + scheduledCount + " alarm aktif)", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
-                            tvStatus.setText("● Gagal terhubung: " + error);
-                            tvStatus.setTextColor(Color.parseColor("#EF4444"));
+                            updateOfflineUI();
+                            loadCachedTasksUI();
+                            if (isManual) {
+                                Toast.makeText(MainActivity.this, "Mode Offline: Alarm perangkat tetap aktif 100%", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
                 });
@@ -281,65 +386,330 @@ public class MainActivity extends Activity {
         });
     }
 
+    // ===================== OFFLINE-FIRST & REALTIME VIEW RENDERER =====================
     private void loadCachedTasksUI() {
         tasksContainer.removeAllViews();
         SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         String jsonStr = prefs.getString(KEY_CACHED_TASKS, null);
 
-        if (jsonStr == null || jsonStr.isEmpty()) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Jakarta"));
+        final String todayDate = sdf.format(new Date());
+
+        if (jsonStr == null || jsonStr.trim().isEmpty() || jsonStr.equals("[]")) {
             TextView emptyTv = new TextView(this);
-            emptyTv.setText("Belum ada agenda yang tersinkronkan. Klik tombol sinkron di atas.");
-            emptyTv.setTextColor(Color.parseColor("#94A3B8"));
-            emptyTv.setTextSize(12);
-            emptyTv.setPadding(0, 10, 0, 10);
+            emptyTv.setText("Belum ada agenda untuk hari ini. Jadwal dari web akan otomatis tampil saat dibuat.");
+            emptyTv.setTextColor(Color.parseColor("#8E8E93"));
+            emptyTv.setTextSize(13);
+            emptyTv.setPadding(0, 15, 0, 15);
             tasksContainer.addView(emptyTv);
+
+            if (tvSummaryTotal != null) tvSummaryTotal.setText("0");
+            if (tvSummaryActive != null) tvSummaryActive.setText("0");
+            if (tvSummaryDone != null) tvSummaryDone.setText("0");
             return;
         }
 
+        int countTotal = 0;
+        int countActive = 0;
+        int countDone = 0;
+
         try {
             JSONArray arr = new JSONArray(jsonStr);
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject t = arr.getJSONObject(i);
-                String title = t.optString("title", "Agenda");
-                String start = t.optString("timeStart", "");
-                String end = t.optString("timeEnd", "");
+            countTotal = arr.length();
 
+            for (int i = 0; i < arr.length(); i++) {
+                final JSONObject t = arr.getJSONObject(i);
+                final String taskId = t.optString("id", "task_" + i);
+                final String title = t.optString("title", "Agenda Eksekutif");
+                final String start = t.optString("timeStart", "09:00");
+                final String end = t.optString("timeEnd", "");
+                final String note = t.optString("note", "");
+                final String recurrence = t.optString("recurrence", "none");
+
+                // Check completion status for today
+                boolean isCompleted = false;
+                String status = t.optString("status", "");
+                if ("done".equals(status)) {
+                    isCompleted = true;
+                }
+                JSONArray compDates = t.optJSONArray("completedDates");
+                if (compDates != null) {
+                    for (int c = 0; c < compDates.length(); c++) {
+                        if (todayDate.equals(compDates.optString(c))) {
+                            isCompleted = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (isCompleted) {
+                    countDone++;
+                } else {
+                    countActive++;
+                }
+
+                // Apple Card Container
                 LinearLayout itemCard = new LinearLayout(this);
                 itemCard.setOrientation(LinearLayout.VERTICAL);
-                itemCard.setPadding(25, 20, 25, 20);
+                itemCard.setPadding(24, 20, 24, 20);
 
                 GradientDrawable itemBg = new GradientDrawable();
-                itemBg.setColor(Color.parseColor("#1E293B"));
-                itemBg.setCornerRadius(14);
+                itemBg.setColor(Color.parseColor("#1C1C1E")); // Apple dark surface
+                itemBg.setCornerRadius(20);
+                itemBg.setStroke(1, Color.parseColor(isCompleted ? "#233328" : "#2C2C2E"));
                 itemCard.setBackground(itemBg);
 
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
                 );
-                lp.setMargins(0, 0, 0, 12);
+                lp.setMargins(0, 0, 0, 14);
                 itemCard.setLayoutParams(lp);
 
-                TextView tvT = new TextView(this);
-                tvT.setText(title);
-                tvT.setTextColor(Color.WHITE);
-                tvT.setTextSize(13);
-                tvT.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-                itemCard.addView(tvT);
+                // Row 1: Digital Time + Action Toggle Pill
+                LinearLayout topRow = new LinearLayout(this);
+                topRow.setOrientation(LinearLayout.HORIZONTAL);
+                topRow.setGravity(Gravity.CENTER_VERTICAL);
 
+                // Time Numerals (Apple iOS Clock style)
                 TextView tvTime = new TextView(this);
-                tvTime.setText("⏰ " + start + " - " + end + " WIB (Alarm Terpasang)");
-                tvTime.setTextColor(Color.parseColor("#34D399"));
-                tvTime.setTextSize(11);
-                tvTime.setPadding(0, 4, 0, 0);
-                itemCard.addView(tvTime);
+                tvTime.setText(start + (end.isEmpty() ? "" : " - " + end));
+                tvTime.setTextColor(Color.parseColor(isCompleted ? "#636366" : "#FFFFFF"));
+                tvTime.setTextSize(20);
+                tvTime.setTypeface(Typeface.DEFAULT_BOLD);
+                if (isCompleted) {
+                    tvTime.setPaintFlags(tvTime.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                }
+                LinearLayout.LayoutParams timeParams = new LinearLayout.LayoutParams(
+                        0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+                );
+                tvTime.setLayoutParams(timeParams);
+                topRow.addView(tvTime);
+
+                // Interactive Apple Action Button (Two-Way Sync)
+                final Button btnToggle = new Button(this);
+                btnToggle.setText(isCompleted ? "✓ Selesai" : "Tandai Selesai");
+                btnToggle.setTextColor(Color.WHITE);
+                btnToggle.setTextSize(11);
+                btnToggle.setTypeface(Typeface.DEFAULT_BOLD);
+                btnToggle.setPadding(20, 10, 20, 10);
+
+                GradientDrawable btnTgBg = new GradientDrawable();
+                if (isCompleted) {
+                    btnTgBg.setColor(Color.parseColor("#1C3A27"));
+                    btnTgBg.setStroke(1, Color.parseColor("#30D158"));
+                } else {
+                    btnTgBg.setColor(Color.parseColor("#30D158")); // Apple Emerald
+                }
+                btnTgBg.setCornerRadius(14);
+                btnToggle.setBackground(btnTgBg);
+
+                final boolean finalIsCompleted = isCompleted;
+                btnToggle.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        toggleTaskCompletion(taskId, todayDate, !finalIsCompleted);
+                    }
+                });
+                topRow.addView(btnToggle);
+                itemCard.addView(topRow);
+
+                // Row 2: Title Agenda
+                TextView tvTitle = new TextView(this);
+                tvTitle.setText(title);
+                tvTitle.setTextColor(Color.parseColor(isCompleted ? "#8E8E93" : "#FFFFFF"));
+                tvTitle.setTextSize(15);
+                tvTitle.setTypeface(Typeface.DEFAULT_BOLD);
+                tvTitle.setPadding(0, 10, 0, 4);
+                if (isCompleted) {
+                    tvTitle.setPaintFlags(tvTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                }
+                itemCard.addView(tvTitle);
+
+                // Row 3: Note & Recurrence Pills
+                LinearLayout metaRow = new LinearLayout(this);
+                metaRow.setOrientation(LinearLayout.HORIZONTAL);
+                metaRow.setGravity(Gravity.CENTER_VERTICAL);
+                metaRow.setPadding(0, 4, 0, 0);
+
+                // Recurrence Tag
+                TextView tvRec = new TextView(this);
+                String recLabel = "daily".equals(recurrence) ? "Tiap Hari" : ("weekdays".equals(recurrence) ? "Senin-Jumat" : "Sekali Saja");
+                tvRec.setText(recLabel);
+                tvRec.setTextColor(Color.parseColor("#8E8E93"));
+                tvRec.setTextSize(10);
+                tvRec.setTypeface(Typeface.DEFAULT_BOLD);
+                tvRec.setPadding(12, 4, 12, 4);
+
+                GradientDrawable recBg = new GradientDrawable();
+                recBg.setColor(Color.parseColor("#2C2C2E"));
+                recBg.setCornerRadius(8);
+                tvRec.setBackground(recBg);
+                metaRow.addView(tvRec);
+
+                // Alarm Active Indicator
+                TextView tvAlarmIndicator = new TextView(this);
+                tvAlarmIndicator.setText(isCompleted ? "  •  Alarm Terpenuhi" : "  •  🔔 Alarm Siaga");
+                tvAlarmIndicator.setTextColor(Color.parseColor(isCompleted ? "#636366" : "#FF9F0A"));
+                tvAlarmIndicator.setTextSize(11);
+                tvAlarmIndicator.setTypeface(Typeface.DEFAULT_BOLD);
+                metaRow.addView(tvAlarmIndicator);
+
+                itemCard.addView(metaRow);
+
+                if (!note.isEmpty()) {
+                    TextView tvNote = new TextView(this);
+                    tvNote.setText(note);
+                    tvNote.setTextColor(Color.parseColor("#8E8E93"));
+                    tvNote.setTextSize(12);
+                    tvNote.setPadding(0, 6, 0, 0);
+                    itemCard.addView(tvNote);
+                }
 
                 tasksContainer.addView(itemCard);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        if (tvSummaryTotal != null) tvSummaryTotal.setText(String.valueOf(countTotal));
+        if (tvSummaryActive != null) tvSummaryActive.setText(String.valueOf(countActive));
+        if (tvSummaryDone != null) tvSummaryDone.setText(String.valueOf(countDone));
     }
 
+    // ===================== TWO-WAY INTERACTIVE SYNC HANDLER =====================
+    private void toggleTaskCompletion(final String taskId, final String todayDate, final boolean markDone) {
+        // 1. Optimistic Update in Local SharedPreferences Cache
+        SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        String jsonStr = prefs.getString(KEY_CACHED_TASKS, "[]");
+        try {
+            JSONArray arr = new JSONArray(jsonStr);
+            for (int i = 0; i < arr.length(); i++) {
+                JSONObject t = arr.getJSONObject(i);
+                if (taskId.equals(t.optString("id"))) {
+                    t.put("status", markDone ? "done" : "todo");
+                    JSONArray comp = t.optJSONArray("completedDates");
+                    if (comp == null) comp = new JSONArray();
+
+                    JSONArray newComp = new JSONArray();
+                    for (int k = 0; k < comp.length(); k++) {
+                        String d = comp.optString(k);
+                        if (!todayDate.equals(d)) newComp.put(d);
+                    }
+                    if (markDone) newComp.put(todayDate);
+                    t.put("completedDates", newComp);
+                    break;
+                }
+            }
+            prefs.edit().putString(KEY_CACHED_TASKS, arr.toString()).apply();
+            loadCachedTasksUI();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 2. Dispatch to Cloud Database (or Queue if Offline)
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                boolean sent = false;
+                try {
+                    URL url = new URL(DEFAULT_SERVER_URL);
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json");
+                    conn.setDoOutput(true);
+                    conn.setConnectTimeout(6000);
+                    conn.setReadTimeout(6000);
+
+                    String payload = "{\"action\":\"" + (markDone ? "markDone" : "toggleTask") + "\",\"taskId\":\"" + taskId + "\",\"date\":\"" + todayDate + "\"}";
+                    OutputStream os = conn.getOutputStream();
+                    os.write(payload.getBytes("UTF-8"));
+                    os.close();
+
+                    int resCode = conn.getResponseCode();
+                    conn.disconnect();
+                    if (resCode == 200) sent = true;
+                } catch (Exception ignored) {}
+
+                if (!sent) {
+                    // Queue for offline sync
+                    enqueueOfflineAction(taskId, todayDate, markDone);
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Disimpan offline di HP. Otomatis disinkronkan saat online.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    mainHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, markDone ? "Agenda dicoret & tersinkron ke Database Web ✓" : "Agenda diaktifkan kembali di Database Web", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        }).start();
+    }
+
+    private void enqueueOfflineAction(String taskId, String date, boolean markDone) {
+        SharedPreferences prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        String qStr = prefs.getString(KEY_OFFLINE_ACTIONS, "[]");
+        try {
+            JSONArray q = new JSONArray(qStr);
+            JSONObject item = new JSONObject();
+            item.put("taskId", taskId);
+            item.put("date", date);
+            item.put("markDone", markDone);
+            q.put(item);
+            prefs.edit().putString(KEY_OFFLINE_ACTIONS, q.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+
+    public static void flushOfflineQueue(Context ctx) {
+        SharedPreferences prefs = ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        String qStr = prefs.getString(KEY_OFFLINE_ACTIONS, "[]");
+        if (qStr.equals("[]")) return;
+
+        try {
+            JSONArray q = new JSONArray(qStr);
+            JSONArray remaining = new JSONArray();
+
+            for (int i = 0; i < q.length(); i++) {
+                JSONObject item = q.getJSONObject(i);
+                String taskId = item.optString("taskId");
+                String date = item.optString("date");
+                boolean markDone = item.optBoolean("markDone", true);
+
+                try {
+                    URL url = new URL(DEFAULT_SERVER_URL);
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", "application/json");
+                    conn.setDoOutput(true);
+                    conn.setConnectTimeout(5000);
+                    conn.setReadTimeout(5000);
+
+                    String payload = "{\"action\":\"" + (markDone ? "markDone" : "toggleTask") + "\",\"taskId\":\"" + taskId + "\",\"date\":\"" + date + "\"}";
+                    OutputStream os = conn.getOutputStream();
+                    os.write(payload.getBytes("UTF-8"));
+                    os.close();
+
+                    int resCode = conn.getResponseCode();
+                    conn.disconnect();
+                    if (resCode != 200) {
+                        remaining.put(item);
+                    }
+                } catch (Exception e) {
+                    remaining.put(item);
+                }
+            }
+
+            prefs.edit().putString(KEY_OFFLINE_ACTIONS, remaining.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+
+    // ===================== ROBUST OFFLINE-FALLBACK ALARM SCHEDULER =====================
     public interface SyncCallback {
         void onSyncComplete(boolean success, int scheduledCount, String error);
     }
@@ -348,49 +718,72 @@ public class MainActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                boolean networkSuccess = false;
+                JSONArray tasks = null;
+                JSONObject alarmConf = null;
+
+                // 1. Try to fetch from Online Database
                 try {
                     URL url = new URL(DEFAULT_SERVER_URL);
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("GET");
-                    conn.setConnectTimeout(8000);
-                    conn.setReadTimeout(8000);
+                    conn.setConnectTimeout(7000);
+                    conn.setReadTimeout(7000);
 
                     int code = conn.getResponseCode();
-                    if (code != 200) {
-                        if (callback != null) callback.onSyncComplete(false, 0, "HTTP " + code);
-                        return;
+                    if (code == 200) {
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        StringBuilder sb = new StringBuilder();
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line);
+                        }
+                        reader.close();
+                        conn.disconnect();
+
+                        JSONObject res = new JSONObject(sb.toString());
+                        tasks = res.optJSONArray("tasks");
+                        JSONObject settings = res.optJSONObject("settings");
+                        alarmConf = settings != null ? settings.optJSONObject("alarm") : null;
+                        networkSuccess = true;
                     }
+                } catch (Exception ignored) {}
 
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                    StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        sb.append(line);
+                // 2. Offline Fallback: If network failed, load from local SharedPreferences cache
+                SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+                if (!networkSuccess || tasks == null) {
+                    String cachedTasksStr = prefs.getString(KEY_CACHED_TASKS, null);
+                    if (cachedTasksStr != null && !cachedTasksStr.isEmpty()) {
+                        try {
+                            tasks = new JSONArray(cachedTasksStr);
+                        } catch (Exception ignored) {}
                     }
-                    reader.close();
-                    conn.disconnect();
+                    String cachedSettingsStr = prefs.getString(KEY_ALARM_SETTINGS, null);
+                    if (cachedSettingsStr != null && !cachedSettingsStr.isEmpty()) {
+                        try {
+                            alarmConf = new JSONObject(cachedSettingsStr);
+                        } catch (Exception ignored) {}
+                    }
+                }
 
-                    JSONObject res = new JSONObject(sb.toString());
-                    JSONArray tasks = res.optJSONArray("tasks");
-                    if (tasks == null) tasks = new JSONArray();
+                if (tasks == null) tasks = new JSONArray();
 
-                    JSONObject settings = res.optJSONObject("settings");
-                    JSONObject alarmConf = settings != null ? settings.optJSONObject("alarm") : null;
-                    boolean ringOnStart = alarmConf != null ? alarmConf.optBoolean("ringOnStart", true) : true;
-                    int ringBeforeMinutes = alarmConf != null ? alarmConf.optInt("ringBeforeMinutes", 0) : 0;
-                    boolean ringOnEnd = alarmConf != null ? alarmConf.optBoolean("ringOnEnd", true) : true;
-                    boolean ringOnWakeup = alarmConf != null ? alarmConf.optBoolean("ringOnWakeup", true) : true;
+                boolean ringOnStart = alarmConf != null ? alarmConf.optBoolean("ringOnStart", true) : true;
+                int ringBeforeMinutes = alarmConf != null ? alarmConf.optInt("ringBeforeMinutes", 0) : 0;
+                boolean ringOnEnd = alarmConf != null ? alarmConf.optBoolean("ringOnEnd", true) : true;
+                boolean ringOnWakeup = alarmConf != null ? alarmConf.optBoolean("ringOnWakeup", true) : true;
 
-                    // Filter tasks for today (Jakarta Time)
-                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-                    sdf.setTimeZone(TimeZone.getTimeZone("Asia/Jakarta"));
-                    String todayDate = sdf.format(new Date());
+                // 3. Filter and Schedule Exact Hardware Alarms for Today
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                sdf.setTimeZone(TimeZone.getTimeZone("Asia/Jakarta"));
+                String todayDate = sdf.format(new Date());
 
-                    JSONArray todayTasks = new JSONArray();
-                    AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                JSONArray todayTasks = new JSONArray();
+                AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-                    int scheduled = 0;
-                    for (int i = 0; i < tasks.length(); i++) {
+                int scheduled = 0;
+                for (int i = 0; i < tasks.length(); i++) {
+                    try {
                         JSONObject t = tasks.getJSONObject(i);
                         String recurrence = t.optString("recurrence", "none");
                         String date = t.optString("date", "");
@@ -420,7 +813,7 @@ public class MainActivity extends Activity {
                         String taskId = t.optString("id", "task_" + i);
                         String taskTitle = t.optString("title", "Agenda");
 
-                        // 1. Waktu Mulai Agenda
+                        // Schedule Exact Alarm on Start
                         String[] parts = timeStart.split(":");
                         int hour = Integer.parseInt(parts[0]);
                         int min = Integer.parseInt(parts[1]);
@@ -432,7 +825,7 @@ public class MainActivity extends Activity {
                         targetCal.set(Calendar.MILLISECOND, 0);
                         long triggerTimeStart = targetCal.getTimeInMillis();
 
-                        // OPSI A: Peringatan Awal (Early Warning X menit sebelum mulai)
+                        // Warning X minutes before
                         if (ringBeforeMinutes > 0) {
                             long triggerBefore = triggerTimeStart - (ringBeforeMinutes * 60 * 1000L);
                             if (triggerBefore > System.currentTimeMillis()) {
@@ -446,16 +839,12 @@ public class MainActivity extends Activity {
                                         context, reqCode, intent,
                                         PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
                                 );
-                                if (Build.VERSION.SDK_INT >= 23) {
-                                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerBefore, pi);
-                                } else {
-                                    am.setExact(AlarmManager.RTC_WAKEUP, triggerBefore, pi);
-                                }
+                                setExactAlarm(am, triggerBefore, pi);
                                 scheduled++;
                             }
                         }
 
-                        // OPSI B: Alarm Tepat Waktu Mulai (00 Menit)
+                        // Exact Alarm at Start
                         if (ringOnStart && triggerTimeStart > System.currentTimeMillis()) {
                             Intent intent = new Intent(context, AlarmReceiver.class);
                             intent.putExtra(AlarmSoundService.EXTRA_TITLE, "🔔 Agenda Dimulai: " + taskTitle);
@@ -467,108 +856,137 @@ public class MainActivity extends Activity {
                                     context, reqCode, intent,
                                     PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
                             );
-                            if (Build.VERSION.SDK_INT >= 23) {
-                                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTimeStart, pi);
-                            } else {
-                                am.setExact(AlarmManager.RTC_WAKEUP, triggerTimeStart, pi);
-                            }
+                            setExactAlarm(am, triggerTimeStart, pi);
                             scheduled++;
                         }
 
-                        // OPSI C: Alarm Saat Agenda Berakhir (Checklist / Evaluasi Kendala)
+                        // Alarm at End (Evaluation / Checklist)
                         if (ringOnEnd && timeEnd.contains(":")) {
-                            try {
-                                String[] endParts = timeEnd.split(":");
-                                int endHour = Integer.parseInt(endParts[0]);
-                                int endMin = Integer.parseInt(endParts[1]);
+                            String[] endParts = timeEnd.split(":");
+                            int endHour = Integer.parseInt(endParts[0]);
+                            int endMin = Integer.parseInt(endParts[1]);
 
-                                Calendar endCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
-                                endCal.set(Calendar.HOUR_OF_DAY, endHour);
-                                endCal.set(Calendar.MINUTE, endMin);
-                                endCal.set(Calendar.SECOND, 0);
-                                endCal.set(Calendar.MILLISECOND, 0);
-                                long triggerTimeEnd = endCal.getTimeInMillis();
+                            Calendar endCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            endCal.set(Calendar.HOUR_OF_DAY, endHour);
+                            endCal.set(Calendar.MINUTE, endMin);
+                            endCal.set(Calendar.SECOND, 0);
+                            endCal.set(Calendar.MILLISECOND, 0);
+                            long triggerTimeEnd = endCal.getTimeInMillis();
 
-                                if (triggerTimeEnd > System.currentTimeMillis()) {
-                                    Intent intent = new Intent(context, AlarmReceiver.class);
-                                    intent.putExtra(AlarmSoundService.EXTRA_TITLE, "✅ Waktu Selesai (Checklist/Evaluasi): " + taskTitle);
-                                    intent.putExtra(AlarmSoundService.EXTRA_TIME, timeStart + " - " + timeEnd);
-                                    intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, taskId + "_end");
+                            if (triggerTimeEnd > System.currentTimeMillis()) {
+                                Intent intent = new Intent(context, AlarmReceiver.class);
+                                intent.putExtra(AlarmSoundService.EXTRA_TITLE, "✅ Waktu Selesai (Checklist/Evaluasi): " + taskTitle);
+                                intent.putExtra(AlarmSoundService.EXTRA_TIME, timeStart + " - " + timeEnd);
+                                intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, taskId + "_end");
 
-                                    int reqCode = (taskId + "_end").hashCode() & 0x7fffffff;
-                                    PendingIntent pi = PendingIntent.getBroadcast(
-                                            context, reqCode, intent,
-                                            PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
-                                    );
-                                    if (Build.VERSION.SDK_INT >= 23) {
-                                        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTimeEnd, pi);
-                                    } else {
-                                        am.setExact(AlarmManager.RTC_WAKEUP, triggerTimeEnd, pi);
-                                    }
-                                    scheduled++;
-                                }
-                            } catch (Exception e) {}
+                                int reqCode = (taskId + "_end").hashCode() & 0x7fffffff;
+                                PendingIntent pi = PendingIntent.getBroadcast(
+                                        context, reqCode, intent,
+                                        PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
+                                );
+                                setExactAlarm(am, triggerTimeEnd, pi);
+                                scheduled++;
+                            }
                         }
-                    }
+                    } catch (Exception ignored) {}
+                }
 
-                    // OPSI D: Alarm Bangun Tidur Pagi (Alokasi Istirahat Habis)
-                    if (ringOnWakeup) {
-                        for (int k = 0; k < todayTasks.length(); k++) {
+                // Sleep Wakeup Alarm
+                if (ringOnWakeup) {
+                    for (int k = 0; k < todayTasks.length(); k++) {
+                        try {
                             JSONObject st = todayTasks.getJSONObject(k);
                             String sTitle = st.optString("title", "").toLowerCase();
                             if (sTitle.contains("tidur") || sTitle.contains("istirahat")) {
                                 String sEnd = st.optString("timeEnd", "");
                                 if (sEnd.contains(":")) {
-                                    try {
-                                        String[] sp = sEnd.split(":");
-                                        int wHour = Integer.parseInt(sp[0]);
-                                        int wMin = Integer.parseInt(sp[1]);
+                                    String[] sp = sEnd.split(":");
+                                    int wHour = Integer.parseInt(sp[0]);
+                                    int wMin = Integer.parseInt(sp[1]);
 
-                                        Calendar wCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
-                                        wCal.set(Calendar.HOUR_OF_DAY, wHour);
-                                        wCal.set(Calendar.MINUTE, wMin);
-                                        wCal.set(Calendar.SECOND, 0);
-                                        wCal.set(Calendar.MILLISECOND, 0);
-                                        long wTime = wCal.getTimeInMillis();
+                                    Calendar wCal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                                    wCal.set(Calendar.HOUR_OF_DAY, wHour);
+                                    wCal.set(Calendar.MINUTE, wMin);
+                                    wCal.set(Calendar.SECOND, 0);
+                                    wCal.set(Calendar.MILLISECOND, 0);
+                                    long wTime = wCal.getTimeInMillis();
 
-                                        if (wTime > System.currentTimeMillis()) {
-                                            Intent intent = new Intent(context, AlarmReceiver.class);
-                                            intent.putExtra(AlarmSoundService.EXTRA_TITLE, "🌅 Alarm Bangun Tidur • Waktu Istirahat Selesai");
-                                            intent.putExtra(AlarmSoundService.EXTRA_TIME, sEnd + " WIB");
-                                            intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, "sleep_wakeup");
+                                    if (wTime > System.currentTimeMillis()) {
+                                        Intent intent = new Intent(context, AlarmReceiver.class);
+                                        intent.putExtra(AlarmSoundService.EXTRA_TITLE, "🌅 Alarm Bangun Tidur • Waktu Istirahat Selesai");
+                                        intent.putExtra(AlarmSoundService.EXTRA_TIME, sEnd + " WIB");
+                                        intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, "sleep_wakeup");
 
-                                            int reqCode = "sleep_wakeup".hashCode() & 0x7fffffff;
-                                            PendingIntent pi = PendingIntent.getBroadcast(
-                                                    context, reqCode, intent,
-                                                    PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
-                                            );
-                                            if (Build.VERSION.SDK_INT >= 23) {
-                                                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, wTime, pi);
-                                            } else {
-                                                am.setExact(AlarmManager.RTC_WAKEUP, wTime, pi);
-                                            }
-                                            scheduled++;
-                                        }
-                                    } catch (Exception e) {}
+                                        int reqCode = "sleep_wakeup".hashCode() & 0x7fffffff;
+                                        PendingIntent pi = PendingIntent.getBroadcast(
+                                                context, reqCode, intent,
+                                                PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
+                                        );
+                                        setExactAlarm(am, wTime, pi);
+                                        scheduled++;
+                                    }
                                 }
                             }
-                        }
+                        } catch (Exception ignored) {}
                     }
+                }
 
-                    // Simpan ke SharedPreferences
-                    SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+                // 4. Update SharedPreferences Cache (Always fresh)
+                if (todayTasks.length() > 0 || networkSuccess) {
                     prefs.edit()
                             .putString(KEY_CACHED_TASKS, todayTasks.toString())
                             .putString(KEY_ALARM_SETTINGS, alarmConf != null ? alarmConf.toString() : "{}")
                             .putLong(KEY_LAST_SYNC, System.currentTimeMillis())
                             .apply();
+                }
 
-                    if (callback != null) callback.onSyncComplete(true, scheduled, null);
-
-                } catch (Exception e) {
-                    if (callback != null) callback.onSyncComplete(false, 0, e.getMessage());
+                if (callback != null) {
+                    callback.onSyncComplete(networkSuccess, scheduled, networkSuccess ? null : "Offline Mode");
                 }
             }
         }).start();
+    }
+
+    private static void setExactAlarm(AlarmManager am, long triggerAtMillis, PendingIntent pi) {
+        if (am == null) return;
+        if (Build.VERSION.SDK_INT >= 23) {
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
+        } else {
+            am.setExact(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
+        }
+    }
+
+    private void scheduleTestAlarm() {
+        Toast.makeText(this, "Alarm uji coba berbunyi dalam 3 detik...", Toast.LENGTH_SHORT).show();
+
+        AlarmManager am = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        intent.putExtra(AlarmSoundService.EXTRA_TITLE, "Uji Coba Alarm Eksekutif");
+        intent.putExtra(AlarmSoundService.EXTRA_TIME, "Sekarang");
+        intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, "test-alarm");
+
+        PendingIntent pi = PendingIntent.getBroadcast(
+                this, 9999, intent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+
+        long triggerAt = System.currentTimeMillis() + 3000;
+        setExactAlarm(am, triggerAt, pi);
+    }
+
+    private void requestBatteryOptimizationExemption() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                Intent intent = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                try {
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(this, "Buka Pengaturan > Aplikasi > Optimasi Baterai > Pilih Tidak Dibatasi", Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(this, "Aplikasi sudah bebas pembatasan baterai!", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
