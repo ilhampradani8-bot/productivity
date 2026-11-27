@@ -754,6 +754,7 @@ class ProductivityApp {
   }
 
   setTaskDatePreset(preset) {
+    this.setTaskScheduleMode("once");
     const now = new Date();
     let d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
@@ -1814,6 +1815,7 @@ Semoga hari Bapak selalu lancar!
     const dateTitle = document.getElementById("section-date-title");
     const bannerOnce = document.getElementById("banner-once-mode");
     const recurrenceSection = document.getElementById("container-recurrence-section");
+    const quickPresets = document.getElementById("container-quick-date-presets");
     const recSelect = document.getElementById("task-recurrence");
 
     if (mode === "once") {
@@ -1826,6 +1828,9 @@ Semoga hari Bapak selalu lancar!
       if (dateTitle) {
         dateTitle.textContent = "TANGGAL PELAKSANAAN (SEKALI SAJA)";
       }
+      if (quickPresets) {
+        quickPresets.classList.remove("hidden");
+      }
       if (bannerOnce) {
         bannerOnce.classList.remove("hidden");
       }
@@ -1836,7 +1841,7 @@ Semoga hari Bapak selalu lancar!
         recSelect.value = "none";
       }
     } else {
-      // mode recurring
+      // mode recurring: hide quick presets Hari Ini, Besok, Senin Depan, Minggu Depan
       if (btnOnce) {
         btnOnce.className = "flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-slate-600 hover:text-slate-900 bg-transparent cursor-pointer";
       }
@@ -1845,6 +1850,9 @@ Semoga hari Bapak selalu lancar!
       }
       if (dateTitle) {
         dateTitle.textContent = "TANGGAL MULAI BERLAKU (BERULANG)";
+      }
+      if (quickPresets) {
+        quickPresets.classList.add("hidden");
       }
       if (bannerOnce) {
         bannerOnce.classList.add("hidden");
