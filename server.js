@@ -574,6 +574,10 @@ Salam hormat,
                 const notifVal = JSON.stringify(parsed.notifications).replace(/'/g, "''");
                 await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('notifications', '${notifVal}', datetime('now'));`);
               }
+              if (parsed.fiveYearPlan) {
+                const fiveYearVal = JSON.stringify(parsed.fiveYearPlan).replace(/'/g, "''");
+                await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('fiveYearPlan', '${fiveYearVal}', datetime('now'));`);
+              }
             } catch (err) {
               console.warn('[D1 Sync Background Error]:', err.message);
             }
@@ -620,7 +624,8 @@ Salam hormat,
         tasks: tasks.map(t => {
           try { return t.raw_json ? JSON.parse(t.raw_json) : t; } catch { return t; }
         }),
-        settings: settingsMap
+        settings: settingsMap,
+        fiveYearPlan: settingsMap.fiveYearPlan || []
       }));
     }
     res.writeHead(200, { 'Content-Type': 'application/json' });

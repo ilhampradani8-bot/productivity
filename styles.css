@@ -99,6 +99,8 @@ body {
 #modal-clock-picker.hidden,
 #modal-missed-reason.hidden,
 #modal-add-task.hidden,
+#modal-edit-5y-year.hidden,
+#modal-edit-5y-step.hidden,
 #modal-dashboard-lock.hidden {
   display: none !important;
   pointer-events: none !important;
@@ -108,6 +110,8 @@ body {
 #modal-clock-picker:not(.hidden),
 #modal-missed-reason:not(.hidden),
 #modal-add-task:not(.hidden),
+#modal-edit-5y-year:not(.hidden),
+#modal-edit-5y-step:not(.hidden),
 #modal-dashboard-lock:not(.hidden) {
   display: flex !important;
   pointer-events: auto !important;
@@ -358,6 +362,8 @@ body {
   #modal-missed-reason > div,
   #modal-cancel-task > div,
   #modal-add-task > div,
+  #modal-edit-5y-year > div,
+  #modal-edit-5y-step > div,
   #modal-dashboard-lock > div,
   #modal-user-guide > div,
   #modal-audit-sync > div {

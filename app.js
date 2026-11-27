@@ -56,132 +56,43 @@ const DEFAULT_SYSTEM_DATA = {
   },
   fiveYearPlan: [
     {
-      id: "y1-2026",
+      id: "y-2026",
       year: 2026,
-      title: "Tahun 1: Konsolidasi Infrastruktur, AI Telemetri & Skalabilitas",
-      theme: "Infrastruktur & Ekosistem Mandiri",
-      overallProgress: 75,
+      title: "",
       quarters: [
-        {
-          id: "y1-q1",
-          quarter: "Q1 2026",
-          focus: "Migrasi & Stabilisasi Host UTM & Serverless Edge",
-          status: "completed",
-          progress: 100,
-          steps: [
-            { id: "s101", title: "Setup Workstation UTM 64GB RAM & Cloudflare Tunnel", done: true, note: "Tunnel vps-utm & SSH passwordless aktif" },
-            { id: "s102", title: "Migrasi logger Telegram ke Serverless Cloudflare Edge", done: true, note: "Edge D1 persistence 100% online" }
-          ]
-        },
-        {
-          id: "y1-q2",
-          quarter: "Q2 2026",
-          focus: "Pengembangan AI Trade & Engine Model Pembelajaran",
-          status: "completed",
-          progress: 100,
-          steps: [
-            { id: "s104", title: "Riset arsitektur ensemble ML (LightGBM + XGBoost + CatBoost)", done: true, note: "Pengujian baseline selesai" },
-            { id: "s105", title: "Integrasi telemetri sinyal ke bot WhatsApp", done: true, note: "Notifikasi real-time terhubung" }
-          ]
-        },
-        {
-          id: "y1-q3",
-          quarter: "Q3 2026",
-          focus: "Ekosistem Web & Platform SirkelHub & MallDigital",
-          status: "completed",
-          progress: 100,
-          steps: [
-            { id: "s107", title: "Arsitektur UI solid & integrasi DOKU Production API", done: true, note: "Payment gateway live" },
-            { id: "s108", title: "Pemisahan peran WhatsApp Bot Toko Reimal vs Asisten CPNS", done: true, note: "Group Shield isolasi 100% aktif" }
-          ]
-        },
-        {
-          id: "y1-q4",
-          quarter: "Q4 2026",
-          focus: "Eksekusi Sistem Produktivitas Eksekutif & Review Tahunan",
-          status: "in_progress",
-          progress: 85,
-          steps: [
-            { id: "s109", title: "Peluncuran dashboard Sekretaris Pribadi productivity.ilhampradani.me", done: true, note: "Aplikasi live & terintegrasi Cloudflare Tunnel" },
-            { id: "s110", title: "Integrasi gateway notifikasi WhatsApp 24/7", done: true, note: "Panggilan pesan bot langsung" }
-          ]
-        }
+        { id: "q-2026", quarter: "2026", focus: "", steps: [] }
       ]
     },
     {
-      id: "y2-2027",
+      id: "y-2027",
       year: 2027,
-      title: "Tahun 2: Ekspansi Komersial & Otomasi AI Skala Menengah",
-      theme: "Komersialisasi & Efisiensi Operasional",
-      overallProgress: 15,
+      title: "",
       quarters: [
-        {
-          id: "y2-q1",
-          quarter: "Q1 2027",
-          focus: "Otomasi Penjualan & Sistem Pelanggan SaaS",
-          status: "pending",
-          progress: 25,
-          steps: [
-            { id: "s201", title: "Rilis platform API terkelola untuk klien eksternal", done: false, note: "Sistem billing otomatis" }
-          ]
-        }
+        { id: "q-2027", quarter: "2027", focus: "", steps: [] }
       ]
     },
     {
-      id: "y3-2028",
+      id: "y-2028",
       year: 2028,
-      title: "Tahun 3: Diversifikasi Ekosistem & Pematangan Produk Korporat",
-      theme: "Otonomi & Standar Industri",
-      overallProgress: 0,
+      title: "",
       quarters: [
-        {
-          id: "y3-q1",
-          quarter: "Sepanjang 2028",
-          focus: "Solusi AI Enterprise & Pembentukan Holding Unit Digital",
-          status: "pending",
-          progress: 0,
-          steps: [
-            { id: "s301", title: "Peluncuran suite automasi proses bisnis cerdas", done: false, note: "Segmen korporat" }
-          ]
-        }
+        { id: "q-2028", quarter: "2028", focus: "", steps: [] }
       ]
     },
     {
-      id: "y4-2029",
+      id: "y-2029",
       year: 2029,
-      title: "Tahun 4: Skala Regional & Kepemimpinan Pasar",
-      theme: "Pengaruh Regional & Ekosistem Terdistribusi",
-      overallProgress: 0,
+      title: "",
       quarters: [
-        {
-          id: "y4-q1",
-          quarter: "Sepanjang 2029",
-          focus: "Deployment Node Edge Global",
-          status: "pending",
-          progress: 0,
-          steps: [
-            { id: "s401", title: "Deployment node edge global sub-5ms", done: false, note: "Jaringan regional" }
-          ]
-        }
+        { id: "q-2029", quarter: "2029", focus: "", steps: [] }
       ]
     },
     {
-      id: "y5-2030",
+      id: "y-2030",
       year: 2030,
-      title: "Tahun 5: Kebebasan Finansial Penuh, Warisan Ekosistem & Legacy",
-      theme: "Keberlanjutan & Kebebasan Waktu Eksekutif",
-      overallProgress: 0,
+      title: "",
       quarters: [
-        {
-          id: "y5-q1",
-          quarter: "Sepanjang 2030",
-          focus: "Operasional Berjalan 100% Otonom & Fokus Riset Masa Depan",
-          status: "pending",
-          progress: 0,
-          steps: [
-            { id: "s501", title: "Operasional mandiri tanpa intervensi harian", done: false, note: "Sistem otonom mandiri" }
-          ]
-        }
+        { id: "q-2030", quarter: "2030", focus: "", steps: [] }
       ]
     }
   ],
@@ -3078,59 +2989,86 @@ Semoga hari Bapak selalu lancar!
     const container = document.getElementById("roadmap-5y-container");
     if (!container) return;
 
+    if (!this.data.fiveYearPlan || this.data.fiveYearPlan.length === 0) {
+      container.innerHTML = `
+        <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm space-y-2">
+          <p class="text-sm font-bold text-slate-700">Belum Ada Target Roadmap Tahunan</p>
+          <p class="text-xs text-slate-500">Klik tombol "+ Tambah Tahun" di atas untuk menambahkan tahun dan target rencana kerja.</p>
+          <button onclick="window.app.openAdd5YYearModal()" class="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-sm hover:bg-indigo-700 cursor-pointer">
+            + Tambah Tahun Baru
+          </button>
+        </div>
+      `;
+      return;
+    }
+
     container.innerHTML = this.data.fiveYearPlan.map(year => {
-      let total = 0;
-      let done = 0;
-      year.quarters.forEach(q => {
-        q.steps.forEach(s => {
-          total++;
-          if (s.done) done++;
+      const quarters = year.quarters || [];
+      const allSteps = [];
+      quarters.forEach(q => {
+        (q.steps || []).forEach(s => {
+          allSteps.push({ ...s, quarterId: q.id, quarterName: q.quarter });
         });
       });
-      const pct = total > 0 ? Math.round((done / total) * 100) : year.overallProgress;
 
       return `
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 mb-5 shadow-sm">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-2xl font-black text-indigo-600 font-mono">${year.year}</span>
-                <span class="text-xs px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-medium">${year.theme}</span>
+        <div class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm space-y-3">
+          <!-- Top Row: Tahun & Judul & Aksi -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
+            <div class="flex items-center gap-2.5 flex-1 min-w-0">
+              <span class="text-lg sm:text-2xl font-black text-indigo-600 font-mono tracking-tight flex-shrink-0">${year.year}</span>
+              <div class="flex-1 min-w-0">
+                ${year.title ? `
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900 break-words">${this.escapeHtml(year.title)}</h3>
+                ` : `
+                  <span class="text-xs text-slate-400 italic">Belum ada judul target (klik Edit untuk mengisi)</span>
+                `}
               </div>
-              <h3 class="text-base font-bold text-slate-900 mt-1">${this.escapeHtml(year.title)}</h3>
             </div>
-            <div class="min-w-[180px]">
-              <div class="flex justify-between text-xs text-slate-500 mb-1 font-mono">
-                <span>Capaian</span>
-                <span class="text-indigo-700 font-bold">${pct}%</span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div class="bg-gradient-to-r from-indigo-600 to-emerald-500 h-2 rounded-full" style="width: ${pct}%"></div>
-              </div>
+
+            <!-- Action Buttons for this Year -->
+            <div class="flex items-center gap-1.5 flex-shrink-0 self-end sm:self-center">
+              <button onclick="window.app.openAdd5YStepModal('${year.id}')" class="px-2.5 sm:px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold flex items-center gap-1 cursor-pointer shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>+ Target</span>
+              </button>
+              <button onclick="window.app.openEdit5YYearModal('${year.id}')" title="Edit Judul & Angka Tahun" class="px-2.5 sm:px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-[11px] sm:text-xs font-medium flex items-center gap-1 cursor-pointer">
+                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <span>Edit</span>
+              </button>
+              <button onclick="window.app.delete5YYear('${year.id}')" title="Hapus Tahun ${year.year}" class="p-1 rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            ${year.quarters.map(q => `
-              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-3.5">
-                <div class="flex justify-between items-center mb-1.5">
-                  <span class="text-xs font-bold text-indigo-700 font-mono">${q.quarter}</span>
-                  <span class="text-[10px] text-slate-500 font-mono">${q.steps.filter(s => s.done).length}/${q.steps.length} Selesai</span>
+          <!-- Target Steps List -->
+          <div class="space-y-1.5 pt-1">
+            ${allSteps.length === 0 ? `
+              <div onclick="window.app.openAdd5YStepModal('${year.id}')" class="p-3 text-center rounded-xl border border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/20 text-slate-400 hover:text-indigo-600 text-xs cursor-pointer transition-all">
+                + Klik di sini untuk menambahkan target kerja tahun ${year.year}
+              </div>
+            ` : allSteps.map(step => `
+              <div class="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200 text-xs transition-colors group">
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                  <input type="checkbox" ${step.done ? 'checked' : ''} onchange="window.app.toggle5YStep('${year.id}', '${step.quarterId}', '${step.id}')" class="custom-checkbox flex-shrink-0">
+                  <div class="flex-1 min-w-0">
+                    <span class="${step.done ? 'line-through text-slate-400' : 'text-slate-900 font-medium'} truncate block">${this.escapeHtml(step.title)}</span>
+                    ${step.note ? `<span class="text-[10px] text-slate-400 truncate block">${this.escapeHtml(step.note)}</span>` : ''}
+                  </div>
                 </div>
-                <h4 class="text-xs font-semibold text-slate-800 mb-2.5">${this.escapeHtml(q.focus)}</h4>
-                
-                <div class="space-y-1.5">
-                  ${q.steps.map(step => `
-                    <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-white border border-slate-200 text-xs shadow-sm">
-                      <div class="flex items-center gap-2 flex-1 min-w-0">
-                        <input type="checkbox" ${step.done ? 'checked' : ''} onchange="window.app.toggle5YStep('${year.id}', '${q.id}', '${step.id}')" class="custom-checkbox flex-shrink-0">
-                        <span class="${step.done ? 'line-through text-slate-400' : 'text-slate-800'} truncate">${this.escapeHtml(step.title)}</span>
-                      </div>
-                      <button onclick="window.app.push5YStepToDaily('${year.year}', '${q.quarter}', '${step.id}')" title="Jadikan Agenda Harian" class="text-indigo-600 hover:text-white p-1 rounded hover:bg-indigo-600 transition-colors cursor-pointer text-[11px] font-medium">
-                        + Hari Ini
-                      </button>
-                    </div>
-                  `).join("")}
+
+                <div class="flex items-center gap-1 flex-shrink-0">
+                  <button onclick="window.app.push5YStepToDaily('${year.year}', '${step.quarterName || ''}', '${step.id}')" title="Jadikan Agenda Harian Hari Ini" class="px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 transition-colors cursor-pointer text-[10px] sm:text-[11px] font-medium flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    <span>Hari Ini</span>
+                  </button>
+                  <button onclick="window.app.openEdit5YStepModal('${year.id}', '${step.quarterId}', '${step.id}')" title="Edit Target" class="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-white cursor-pointer">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                  </button>
+                  <button onclick="window.app.delete5YStep('${year.id}', '${step.quarterId}', '${step.id}')" title="Hapus Target" class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-white cursor-pointer">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
                 </div>
               </div>
             `).join("")}
@@ -3140,17 +3078,231 @@ Semoga hari Bapak selalu lancar!
     }).join("");
   }
 
-  toggle5YStep(yearId, quarterId, stepId) {
-    const y = this.data.fiveYearPlan.find(item => item.id === yearId);
+  openAdd5YYearModal() {
+    let nextYear = 2026;
+    if (this.data.fiveYearPlan && this.data.fiveYearPlan.length > 0) {
+      const maxYear = Math.max(...this.data.fiveYearPlan.map(y => parseInt(y.year, 10) || 2026));
+      nextYear = maxYear + 1;
+    }
+    const idEl = document.getElementById("input-5y-year-id");
+    const numEl = document.getElementById("input-5y-year-number");
+    const titleEl = document.getElementById("input-5y-year-title-text");
+    const headingEl = document.getElementById("modal-5y-year-title");
+
+    if (idEl) idEl.value = "";
+    if (numEl) numEl.value = nextYear;
+    if (titleEl) titleEl.value = "";
+    if (headingEl) headingEl.textContent = "TAMBAH TAHUN ROADMAP";
+
+    const modal = document.getElementById("modal-edit-5y-year");
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  openEdit5YYearModal(yearId) {
+    const yearObj = (this.data.fiveYearPlan || []).find(y => y.id === yearId);
+    if (!yearObj) return;
+
+    const idEl = document.getElementById("input-5y-year-id");
+    const numEl = document.getElementById("input-5y-year-number");
+    const titleEl = document.getElementById("input-5y-year-title-text");
+    const headingEl = document.getElementById("modal-5y-year-title");
+
+    if (idEl) idEl.value = yearObj.id;
+    if (numEl) numEl.value = yearObj.year;
+    if (titleEl) titleEl.value = yearObj.title || "";
+    if (headingEl) headingEl.textContent = `EDIT TAHUN ${yearObj.year}`;
+
+    const modal = document.getElementById("modal-edit-5y-year");
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  close5YYearModal() {
+    const modal = document.getElementById("modal-edit-5y-year");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  submit5YYear(e) {
+    if (e) e.preventDefault();
+    const idEl = document.getElementById("input-5y-year-id");
+    const numEl = document.getElementById("input-5y-year-number");
+    const titleEl = document.getElementById("input-5y-year-title-text");
+
+    const yearId = idEl ? idEl.value.trim() : "";
+    const yearNum = numEl ? parseInt(numEl.value, 10) : 2026;
+    const yearTitle = titleEl ? titleEl.value.trim() : "";
+
+    this.data.fiveYearPlan = this.data.fiveYearPlan || [];
+
+    if (yearId) {
+      // Edit existing
+      const existing = this.data.fiveYearPlan.find(y => y.id === yearId);
+      if (existing) {
+        existing.year = yearNum;
+        existing.title = yearTitle;
+      }
+    } else {
+      // Add new
+      const newYear = {
+        id: "y-" + Date.now(),
+        year: yearNum,
+        title: yearTitle,
+        quarters: [
+          {
+            id: "q-" + Date.now(),
+            quarter: String(yearNum),
+            focus: "",
+            steps: []
+          }
+        ]
+      };
+      this.data.fiveYearPlan.push(newYear);
+      this.data.fiveYearPlan.sort((a, b) => (parseInt(a.year, 10) || 0) - (parseInt(b.year, 10) || 0));
+    }
+
+    this.saveData();
+    this.close5YYearModal();
+    this.renderRoadmapView();
+  }
+
+  delete5YYear(yearId) {
+    const yearObj = (this.data.fiveYearPlan || []).find(y => y.id === yearId);
+    if (!yearObj) return;
+
+    if (!confirm(`Hapus tahun ${yearObj.year} dan seluruh targetnya?`)) return;
+
+    this.data.fiveYearPlan = this.data.fiveYearPlan.filter(y => y.id !== yearId);
+    this.saveData();
+    this.renderRoadmapView();
+  }
+
+  openAdd5YStepModal(yearId) {
+    const y = (this.data.fiveYearPlan || []).find(item => item.id === yearId);
     if (!y) return;
-    const q = y.quarters.find(item => item.id === quarterId);
+
+    y.quarters = y.quarters || [];
+    let qId = y.quarters.length > 0 ? y.quarters[0].id : "";
+    if (!qId) {
+      qId = "q-" + Date.now();
+      y.quarters.push({ id: qId, quarter: String(y.year), focus: "", steps: [] });
+    }
+
+    const yearIdEl = document.getElementById("input-5y-step-year-id");
+    const qIdEl = document.getElementById("input-5y-step-quarter-id");
+    const stepIdEl = document.getElementById("input-5y-step-id");
+    const titleEl = document.getElementById("input-5y-step-title-text");
+    const noteEl = document.getElementById("input-5y-step-note-text");
+    const headingEl = document.getElementById("modal-5y-step-heading");
+
+    if (yearIdEl) yearIdEl.value = yearId;
+    if (qIdEl) qIdEl.value = qId;
+    if (stepIdEl) stepIdEl.value = "";
+    if (titleEl) titleEl.value = "";
+    if (noteEl) noteEl.value = "";
+    if (headingEl) headingEl.textContent = `TAMBAH TARGET TAHUN ${y.year}`;
+
+    const modal = document.getElementById("modal-edit-5y-step");
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  openEdit5YStepModal(yearId, quarterId, stepId) {
+    const y = (this.data.fiveYearPlan || []).find(item => item.id === yearId);
+    if (!y) return;
+    const q = (y.quarters || []).find(item => item.id === quarterId);
     if (!q) return;
-    const s = q.steps.find(item => item.id === stepId);
+    const s = (q.steps || []).find(item => item.id === stepId);
+    if (!s) return;
+
+    const yearIdEl = document.getElementById("input-5y-step-year-id");
+    const qIdEl = document.getElementById("input-5y-step-quarter-id");
+    const stepIdEl = document.getElementById("input-5y-step-id");
+    const titleEl = document.getElementById("input-5y-step-title-text");
+    const noteEl = document.getElementById("input-5y-step-note-text");
+    const headingEl = document.getElementById("modal-5y-step-heading");
+
+    if (yearIdEl) yearIdEl.value = yearId;
+    if (qIdEl) qIdEl.value = quarterId;
+    if (stepIdEl) stepIdEl.value = s.id;
+    if (titleEl) titleEl.value = s.title || "";
+    if (noteEl) noteEl.value = s.note || "";
+    if (headingEl) headingEl.textContent = `EDIT TARGET TAHUN ${y.year}`;
+
+    const modal = document.getElementById("modal-edit-5y-step");
+    if (modal) modal.classList.remove("hidden");
+  }
+
+  close5YStepModal() {
+    const modal = document.getElementById("modal-edit-5y-step");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  submit5YStep(e) {
+    if (e) e.preventDefault();
+    const yearIdEl = document.getElementById("input-5y-step-year-id");
+    const qIdEl = document.getElementById("input-5y-step-quarter-id");
+    const stepIdEl = document.getElementById("input-5y-step-id");
+    const titleEl = document.getElementById("input-5y-step-title-text");
+    const noteEl = document.getElementById("input-5y-step-note-text");
+
+    const yearId = yearIdEl ? yearIdEl.value.trim() : "";
+    const quarterId = qIdEl ? qIdEl.value.trim() : "";
+    const stepId = stepIdEl ? stepIdEl.value.trim() : "";
+    const title = titleEl ? titleEl.value.trim() : "";
+    const note = noteEl ? noteEl.value.trim() : "";
+
+    if (!title) return;
+
+    const y = (this.data.fiveYearPlan || []).find(item => item.id === yearId);
+    if (!y) return;
+    y.quarters = y.quarters || [];
+    let q = y.quarters.find(item => item.id === quarterId);
+    if (!q) {
+      q = { id: quarterId || ("q-" + Date.now()), quarter: String(y.year), focus: "", steps: [] };
+      y.quarters.push(q);
+    }
+    q.steps = q.steps || [];
+
+    if (stepId) {
+      const s = q.steps.find(item => item.id === stepId);
+      if (s) {
+        s.title = title;
+        s.note = note;
+      }
+    } else {
+      q.steps.push({
+        id: "s-" + Date.now(),
+        title: title,
+        note: note,
+        done: false
+      });
+    }
+
+    this.saveData();
+    this.close5YStepModal();
+    this.renderRoadmapView();
+  }
+
+  delete5YStep(yearId, quarterId, stepId) {
+    const y = (this.data.fiveYearPlan || []).find(item => item.id === yearId);
+    if (!y) return;
+    const q = (y.quarters || []).find(item => item.id === quarterId);
+    if (!q) return;
+
+    q.steps = (q.steps || []).filter(item => item.id !== stepId);
+    this.saveData();
+    this.renderRoadmapView();
+  }
+
+  toggle5YStep(yearId, quarterId, stepId) {
+    const y = (this.data.fiveYearPlan || []).find(item => item.id === yearId);
+    if (!y) return;
+    const q = (y.quarters || []).find(item => item.id === quarterId);
+    if (!q) return;
+    const s = (q.steps || []).find(item => item.id === stepId);
     if (!s) return;
 
     s.done = !s.done;
     this.saveData();
-    this.render();
+    this.renderRoadmapView();
   }
 
   push5YStepToDaily(year, quarter, stepId) {
