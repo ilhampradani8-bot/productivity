@@ -2108,67 +2108,67 @@ Semoga hari Bapak selalu lancar!
       }
 
       return `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl border transition-all ${
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all ${
           task.isCancelled
             ? "bg-rose-50/20 border-rose-200/60 opacity-75"
             : isDone 
               ? "bg-slate-50/70 border-slate-200 opacity-60" 
               : "bg-white hover:bg-slate-50/50 border-slate-200 shadow-sm"
         }">
-          <div class="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+          <div class="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
             ${task.isCancelled ? `
-              <div class="w-5 h-5 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-600 flex-shrink-0 mt-1 sm:mt-0" title="Agenda ini dibatalkan">
+              <div class="w-5 h-5 rounded-full bg-rose-100 border border-rose-300 flex items-center justify-center text-rose-600 flex-shrink-0 mt-0.5 sm:mt-0" title="Agenda ini dibatalkan">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
               </div>
             ` : `
               <!-- Checkbox -->
-              <input type="checkbox" ${isDone ? 'checked' : ''} onchange="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="custom-checkbox flex-shrink-0 mt-1 sm:mt-0">
+              <input type="checkbox" ${isDone ? 'checked' : ''} onchange="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="custom-checkbox flex-shrink-0 mt-0.5 sm:mt-0">
             `}
             
-            <!-- PROMINENT TIME PILLAR -->
-            <div class="task-time-pillar flex-shrink-0 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 min-w-[130px] shadow-sm">
-              <div class="flex items-center gap-1.5 text-xs font-bold font-mono text-slate-900">
+            <!-- PROMINENT TIME PILLAR (RESPONSIVE) -->
+            <div class="task-time-pillar flex-shrink-0 flex flex-col items-center justify-center bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-2 min-w-[75px] sm:min-w-[130px] shadow-sm">
+              <div class="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold font-mono text-slate-900">
                 ${ICONS.sun}
                 <span>${task.timeStart || '09:00'} - ${task.timeEnd || 'Selesai'}</span>
               </div>
-              ${dur1 ? `<span class="text-[10px] font-mono font-medium text-slate-500 mt-0.5">${dur1}</span>` : ''}
+              ${dur1 ? `<span class="text-[9px] sm:text-[10px] font-mono font-medium text-slate-500 mt-0.5">${dur1}</span>` : ''}
               
               ${task.hasSecondSession && task.session2Start ? `
-                <div class="flex items-center gap-1.5 text-xs font-bold font-mono text-indigo-700 mt-1.5 pt-1.5 border-t border-slate-200 w-full justify-center">
+                <div class="flex items-center gap-1 text-[10px] sm:text-xs font-bold font-mono text-indigo-700 mt-1 sm:mt-1.5 pt-1 sm:pt-1.5 border-t border-slate-200 w-full justify-center">
                   ${ICONS.moon}
                   <span>${task.session2Start} - ${task.session2End || 'Selesai'}</span>
                 </div>
-                ${dur2 ? `<span class="text-[9px] font-mono text-indigo-500">${dur2}</span>` : ''}
+                ${dur2 ? `<span class="text-[8px] sm:text-[9px] font-mono text-indigo-500">${dur2}</span>` : ''}
               ` : ''}
             </div>
 
             <!-- Task Detail & Content -->
             <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2 flex-wrap mb-1">
+              <div class="flex items-center gap-1.5 flex-wrap mb-0.5 sm:mb-1">
                 ${recurrenceBadge}
                 ${cancelBadgeHtml}
                 ${missedBadgeHtml}
               </div>
 
-              <h4 class="text-sm font-bold ${task.isCancelled ? 'line-through text-slate-400' : isDone ? 'line-through text-slate-400' : 'text-slate-900'} break-words">
+              <h4 class="text-xs sm:text-sm font-bold ${task.isCancelled ? 'line-through text-slate-400' : isDone ? 'line-through text-slate-400' : 'text-slate-900'} break-words">
                 ${this.escapeHtml(task.title)}
               </h4>
               
-              ${task.note ? `<p class="text-xs text-slate-600 mt-0.5 break-words leading-relaxed">${this.escapeHtml(task.note)}</p>` : ''}
+              ${task.note ? `<p class="text-[11px] sm:text-xs text-slate-600 mt-0.5 break-words leading-relaxed">${this.escapeHtml(task.note)}</p>` : ''}
             </div>
           </div>
 
           <!-- Actions: Tombol Selesai, Batal, & Utilitas -->
-          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap flex-shrink-0 self-end sm:self-center">
+          <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap flex-shrink-0 self-end sm:self-center mt-1 sm:mt-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto justify-end">
             
             <!-- TOMBOL SELESAI -->
             ${task.isCancelled ? '' : isDone ? `
-              <button onclick="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-semibold transition-all cursor-pointer shadow-sm" title="Klik untuk membatalkan status selesai">
+              <button onclick="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[11px] sm:text-xs font-semibold transition-all cursor-pointer shadow-sm" title="Klik untuk membatalkan status selesai">
                 <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 <span>Selesai ✓</span>
               </button>
             ` : `
-              <button onclick="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition-all cursor-pointer">
+              <button onclick="window.app.toggleTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] sm:text-xs font-semibold shadow-sm transition-all cursor-pointer">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                 <span>Selesai</span>
               </button>
@@ -2176,26 +2176,26 @@ Semoga hari Bapak selalu lancar!
 
             <!-- TOMBOL BATAL -->
             ${task.isCancelled ? `
-              <button onclick="window.app.restoreCancelledTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-300 transition-all cursor-pointer" title="Aktifkan kembali agenda ini">
+              <button onclick="window.app.restoreCancelledTask('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] sm:text-xs font-medium border border-slate-300 transition-all cursor-pointer" title="Aktifkan kembali agenda ini">
                 <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Pulihkan</span>
               </button>
             ` : `
-              <button onclick="window.app.openCancelTaskModal('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold transition-all cursor-pointer" title="Batalkan agenda ini">
+              <button onclick="window.app.openCancelTaskModal('${task.id}', '${this.selectedDate}')" class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] sm:text-xs font-semibold transition-all cursor-pointer" title="Batalkan agenda ini">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 <span>Batal</span>
               </button>
             `}
 
             <!-- Mini Utilitas: Edit, WA, Hapus -->
-            <div class="flex items-center gap-0.5 border-l border-slate-200 pl-1.5">
-              <button onclick="window.app.editTask('${task.id}')" title="Edit Agenda Ini" class="p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer">
+            <div class="flex items-center gap-0.5 border-l border-slate-200 pl-1">
+              <button onclick="window.app.editTask('${task.id}')" title="Edit Agenda Ini" class="p-1 sm:p-1.5 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer">
                 ${ICONS.edit}
               </button>
-              <button onclick="window.app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer">
+              <button onclick="window.app.sendTaskToWA('${task.id}')" title="Kirim Pengingat Tugas ini ke WhatsApp" class="p-1 sm:p-1.5 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer">
                 ${ICONS.wa}
               </button>
-              <button onclick="window.app.deleteTask('${task.id}', '${this.selectedDate}')" title="Hapus Tugas" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer">
+              <button onclick="window.app.deleteTask('${task.id}', '${this.selectedDate}')" title="Hapus Tugas" class="p-1 sm:p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer">
                 ${ICONS.trash}
               </button>
             </div>
@@ -2273,42 +2273,42 @@ Semoga hari Bapak selalu lancar!
       const isMissed = !isDone && (t.missedReason || this.isTaskMissed(t, t.date));
 
       return `
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-slate-300 transition-all">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white border border-slate-200 shadow-sm hover:border-slate-300 transition-all">
           <div class="flex-1 min-w-0 space-y-1">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="text-[11px] font-mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md font-semibold">
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+              <span class="text-[10px] sm:text-[11px] font-mono text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md font-semibold">
                 ${t.date} • ${t.timeStart} - ${t.timeEnd}
               </span>
               ${isDone ? `
-                <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
+                <span class="text-[10px] sm:text-[11px] font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
                   ${ICONS.checkCircle} Selesai
                 </span>
               ` : ''}
               ${isMissed ? `
-                <span class="text-[11px] font-mono text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
-                  ${ICONS.alertTriangle} Terlewat / Ada Kendala
+                <span class="text-[10px] sm:text-[11px] font-mono text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md font-semibold flex items-center gap-1">
+                  ${ICONS.alertTriangle} Terlewat / Kendala
                 </span>
               ` : ''}
             </div>
 
-            <h4 class="text-sm font-bold text-slate-900 break-words">${this.escapeHtml(t.title)}</h4>
-            ${t.note ? `<p class="text-xs text-slate-600 break-words">${this.escapeHtml(t.note)}</p>` : ''}
+            <h4 class="text-xs sm:text-sm font-bold text-slate-900 break-words">${this.escapeHtml(t.title)}</h4>
+            ${t.note ? `<p class="text-[11px] sm:text-xs text-slate-600 break-words">${this.escapeHtml(t.note)}</p>` : ''}
             
             ${t.missedReason ? `
-              <div class="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs mt-1">
-                <span class="font-bold">Kendala yang Tercatat:</span> ${this.escapeHtml(t.missedReason)}
+              <div class="p-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] sm:text-xs mt-1">
+                <span class="font-bold">Kendala:</span> ${this.escapeHtml(t.missedReason)}
               </div>
             ` : ''}
           </div>
 
           <!-- Quick Action: Jadwalkan Lagi Hari Ini -->
-          <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-center">
+          <div class="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 self-end sm:self-center mt-1 sm:mt-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto justify-end">
             ${isMissed && !t.missedReason ? `
-              <button onclick="window.app.openMissedReasonModal('${t.id}', '${t.date}')" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-semibold cursor-pointer">
+              <button onclick="window.app.openMissedReasonModal('${t.id}', '${t.date}')" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[11px] sm:text-xs font-semibold cursor-pointer">
                 Isi Kendala
               </button>
             ` : ''}
-            <button onclick="window.app.duplicateTaskToToday('${t.id}')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-1">
+            <button onclick="window.app.duplicateTaskToToday('${t.id}')" class="px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-1">
               ${ICONS.plus}
               <span>Jadwalkan Lagi Hari Ini</span>
             </button>
@@ -2888,105 +2888,105 @@ Semoga hari Bapak selalu lancar!
 
     container.innerHTML = `
       <!-- 1. Header & Month Selector Navigation -->
-      <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3 sm:p-5 shadow-sm space-y-3 sm:space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
           <div>
             <div class="flex items-center gap-2">
               <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
               </span>
-              <h2 class="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight uppercase">
+              <h2 class="text-sm sm:text-lg font-black text-slate-900 font-mono tracking-tight uppercase">
                 Roadmap Bulanan & Alokasi Waktu 24 Jam
               </h2>
             </div>
-            <p class="text-xs text-slate-500 mt-1">
+            <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5 sm:mt-1">
               Distribusi beban jam kerja harian (<span class="font-mono font-semibold text-slate-700">2/24 Jam, 14/24 Jam</span>) dan rata-rata per bulan.
             </p>
           </div>
 
           <!-- Month Controls -->
-          <div class="flex items-center gap-1.5 self-start sm:self-auto font-mono text-xs">
-            <button onclick="window.app.changeMonthlyView(-1)" title="Bulan Sebelumnya" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border border-slate-200">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          <div class="flex items-center gap-1 sm:gap-1.5 self-start sm:self-auto font-mono text-xs">
+            <button onclick="window.app.changeMonthlyView(-1)" title="Bulan Sebelumnya" class="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border border-slate-200">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <span class="px-3.5 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs whitespace-nowrap">
+            <span class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs whitespace-nowrap text-xs sm:text-sm">
               ${monthName} ${y}
             </span>
-            <button onclick="window.app.changeMonthlyView(1)" title="Bulan Berikutnya" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border border-slate-200">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <button onclick="window.app.changeMonthlyView(1)" title="Bulan Berikutnya" class="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border border-slate-200">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
             </button>
-            <button onclick="window.app.resetMonthlyViewToCurrent()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-medium transition-colors cursor-pointer border border-slate-200 whitespace-nowrap">
+            <button onclick="window.app.resetMonthlyViewToCurrent()" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-medium transition-colors cursor-pointer border border-slate-200 whitespace-nowrap text-xs">
               Bulan Ini
             </button>
           </div>
         </div>
 
         <!-- 2. Summary Metric Badges (Rata-rata & Alokasi Jam) -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Rata-Rata / Hari</span>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 pt-2 border-t border-slate-100">
+          <div class="p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Rata-Rata / Hari</span>
             <div class="flex items-baseline gap-1">
-              <span class="text-lg sm:text-xl font-black font-mono text-indigo-600">${avgHoursClean}</span>
-              <span class="text-xs font-bold text-slate-500 font-mono">/ 24 Jam</span>
+              <span class="text-base sm:text-xl font-black font-mono text-indigo-600">${avgHoursClean}</span>
+              <span class="text-[10px] sm:text-xs font-bold text-slate-500 font-mono">/ 24 Jam</span>
             </div>
-            <span class="text-[10px] text-slate-500 block mt-0.5">Rata-rata per hari bulan ini (${avgPct}%)</span>
+            <span class="text-[9px] sm:text-[10px] text-slate-500 block mt-0.5">Rata-rata (${avgPct}%)</span>
           </div>
 
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Total Jam Terpakai</span>
+          <div class="p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Total Jam Terpakai</span>
             <div class="flex items-baseline gap-1">
-              <span class="text-lg sm:text-xl font-black font-mono text-slate-800">${totalHoursMonth}</span>
-              <span class="text-xs font-bold text-slate-400 font-mono">/ ${maxCapacityHours} Jam</span>
+              <span class="text-base sm:text-xl font-black font-mono text-slate-800">${totalHoursMonth}</span>
+              <span class="text-[10px] sm:text-xs font-bold text-slate-400 font-mono">/ ${maxCapacityHours} Jam</span>
             </div>
-            <span class="text-[10px] text-slate-500 block mt-0.5">Kapasitas 1 bulan penuh</span>
+            <span class="text-[9px] sm:text-[10px] text-slate-500 block mt-0.5">Kapasitas 1 bulan</span>
           </div>
 
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Hari Terpadat</span>
-            <span class="text-xs sm:text-sm font-bold text-slate-800 truncate block mt-1">${busiestDay.hours > 0 ? busiestDay.day : 'Belum Ada'}</span>
-            <span class="text-[10px] text-indigo-600 font-mono block mt-0.5 font-semibold">${busiestDay.hours > 0 ? `${busiestDay.cleanHours}/24 Jam Terisi` : '-'}</span>
+          <div class="p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Hari Terpadat</span>
+            <span class="text-xs sm:text-sm font-bold text-slate-800 truncate block mt-0.5">${busiestDay.hours > 0 ? busiestDay.day : 'Belum Ada'}</span>
+            <span class="text-[9px] sm:text-[10px] text-indigo-600 font-mono block mt-0.5 font-semibold">${busiestDay.hours > 0 ? `${busiestDay.cleanHours}/24 Jam` : '-'}</span>
           </div>
 
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Total Agenda Aktif</span>
+          <div class="p-2.5 sm:p-3 rounded-lg sm:rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Total Agenda Aktif</span>
             <div class="flex items-baseline gap-1">
-              <span class="text-lg sm:text-xl font-black font-mono text-emerald-600">${totalMonthTasks}</span>
-              <span class="text-xs font-bold text-slate-400 font-mono">Sesi</span>
+              <span class="text-base sm:text-xl font-black font-mono text-emerald-600">${totalMonthTasks}</span>
+              <span class="text-[10px] sm:text-xs font-bold text-slate-400 font-mono">Sesi</span>
             </div>
-            <span class="text-[10px] text-emerald-600 font-semibold block mt-0.5">Bebas bentrok waktu</span>
+            <span class="text-[9px] sm:text-[10px] text-emerald-600 font-semibold block mt-0.5">Bebas bentrok</span>
           </div>
         </div>
 
         <!-- 3. Sync & Audit Logs Action Toolbar -->
-        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-900 text-white space-y-2.5 shadow-sm">
+        <div class="p-2.5 sm:p-3.5 rounded-xl bg-slate-900 text-white space-y-2 sm:space-y-2.5 shadow-sm">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              <span class="text-xs font-bold font-mono tracking-wide">Sync & Audit Logs Gateway</span>
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span class="text-[11px] sm:text-xs font-bold font-mono tracking-wide">Sync & Audit Logs Gateway</span>
             </div>
-            <button onclick="window.app.openUserGuideModal()" class="text-[11px] text-indigo-300 hover:text-white flex items-center gap-1 font-semibold transition-colors cursor-pointer">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <button onclick="window.app.openUserGuideModal()" class="text-[10px] sm:text-[11px] text-indigo-300 hover:text-white flex items-center gap-1 font-semibold transition-colors cursor-pointer">
+              <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span>User Guide & Documentation</span>
             </button>
           </div>
 
-          <div class="flex items-center gap-2 flex-wrap">
-            <button onclick="window.app.manualSync()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
+          <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <button onclick="window.app.manualSync()" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] sm:text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               <span>Sync Manual</span>
             </button>
 
-            <button onclick="window.app.checkAllMonthCollisions()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
+            <button onclick="window.app.checkAllMonthCollisions()" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] sm:text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
               <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
               <span>Cek Konflik</span>
             </button>
 
-            <button onclick="window.app.openAuditSyncModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
+            <button onclick="window.app.openAuditSyncModal()" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] sm:text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
               <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span>Log Error Sync</span>
             </button>
 
-            <button onclick="window.app.refreshData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
+            <button onclick="window.app.refreshData()" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[11px] sm:text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
               <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
               <span>Refresh Data</span>
             </button>
@@ -2994,8 +2994,8 @@ Semoga hari Bapak selalu lancar!
         </div>
       </div>
 
-      <!-- 4. Monthly Roadmap Cards Grid (Per Hari: 2/24 Jam, 14/24 Jam) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+      <!-- 4. Monthly Roadmap Cards Grid (Compact 2-col on mobile, up to 7-col on desktop) -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-1.5 sm:gap-3">
         ${dayStatsList.map(item => {
           let ratioColor = "text-slate-400";
           let barColor = "bg-slate-300";
@@ -3027,40 +3027,45 @@ Semoga hari Bapak selalu lancar!
           }
 
           return `
-            <div onclick="window.app.goToDate('${item.dayStr}')" class="p-3.5 rounded-2xl bg-white border ${item.isToday ? 'border-indigo-500 ring-2 ring-indigo-200 shadow-sm' : 'border-slate-200'} hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group min-h-[140px]">
+            <div onclick="window.app.goToDate('${item.dayStr}')" class="p-2 sm:p-3.5 rounded-xl sm:rounded-2xl bg-white border ${item.isToday ? 'border-indigo-500 ring-2 ring-indigo-200 shadow-sm' : 'border-slate-200'} hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group min-h-[90px] sm:min-h-[135px]">
               <div>
                 <!-- Top Row: Tanggal, Nama Hari, Badge Hari Ini -->
                 <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1.5">
-                    <span class="text-lg font-black font-mono ${item.isToday ? 'text-indigo-600' : 'text-slate-800'}">${item.d}</span>
-                    <span class="text-xs font-semibold text-slate-500">${item.dayOfWeek}</span>
+                  <div class="flex items-center gap-1 sm:gap-1.5">
+                    <span class="text-sm sm:text-lg font-black font-mono ${item.isToday ? 'text-indigo-600' : 'text-slate-800'}">${item.d}</span>
+                    <span class="text-[10px] sm:text-xs font-semibold text-slate-500">${item.dayOfWeek}</span>
                   </div>
-                  ${item.isToday ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-600 text-white tracking-wider">HARI INI</span>' : ''}
+                  ${item.isToday ? '<span class="px-1 py-0.2 rounded text-[8px] font-bold bg-indigo-600 text-white tracking-wider">HARI INI</span>' : ''}
                 </div>
 
                 <!-- Middle: Rasio Jam (2/24 Jam, 14/24 Jam) -->
-                <div class="my-2.5">
-                  <div class="flex items-baseline justify-between mb-1">
-                    <span class="text-sm font-black font-mono ${ratioColor}">
-                      ${item.cleanHours}<span class="text-xs font-bold text-slate-400">/24 Jam</span>
+                <div class="my-1 sm:my-2.5">
+                  <div class="flex items-baseline justify-between mb-0.5 sm:mb-1">
+                    <span class="text-xs sm:text-sm font-black font-mono ${ratioColor}">
+                      ${item.cleanHours}<span class="text-[9px] sm:text-xs font-bold text-slate-400">/24 Jam</span>
                     </span>
-                    <span class="text-[10px] font-mono text-slate-400 font-semibold">${item.pct}%</span>
+                    <span class="text-[9px] sm:text-[10px] font-mono text-slate-400 font-semibold">${item.pct}%</span>
                   </div>
-                  <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="w-full h-1 sm:h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div class="h-full ${barColor} rounded-full transition-all" style="width: ${item.pct}%"></div>
                   </div>
                 </div>
               </div>
 
               <!-- Bottom: Preview Agenda & Link -->
-              <div class="pt-2 border-t border-slate-100 space-y-1">
+              <div class="pt-1 sm:pt-2 border-t border-slate-100 space-y-0.5 sm:space-y-1">
                 <div class="flex items-center justify-between text-slate-600">
-                  <span class="text-[10px] font-bold uppercase tracking-wider font-mono text-slate-500">
+                  <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider font-mono text-slate-500">
                     ${item.taskCount > 0 ? `${item.taskCount} Agenda` : 'Kosong'}
                   </span>
-                  <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                  <svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </div>
-                ${previewHtml}
+                <div class="hidden sm:block">
+                  ${previewHtml}
+                </div>
+                <div class="sm:hidden">
+                  ${item.tasks.length > 0 ? `<div class="truncate text-slate-700 text-[10px] font-medium">[${item.tasks[0].timeStart || '00:00'}] ${this.escapeHtml(item.tasks[0].title)}</div>` : ''}
+                </div>
               </div>
             </div>
           `;

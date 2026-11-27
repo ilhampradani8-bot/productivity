@@ -39,20 +39,20 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="./styles.css?v=20261127_01">
+  <link rel="stylesheet" href="./styles.css?v=20261127_02">
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
 
   <!-- ================= TOP HEADER BAR ================= -->
-  <header class="w-full border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-40 px-3 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-3 shadow-sm">
+  <header class="w-full border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-40 px-2.5 sm:px-6 lg:px-8 h-12 sm:h-14 flex items-center justify-between gap-2 shadow-sm">
     
     <!-- Brand -->
-    <div onclick="window.app.switchTab('daily')" class="flex items-center gap-2.5 cursor-pointer">
-      <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-xs text-white shadow-sm flex-shrink-0">
+    <div onclick="window.app.switchTab('daily')" class="flex items-center gap-2 cursor-pointer">
+      <div class="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-black text-xs text-white shadow-sm flex-shrink-0">
         A
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-sm font-black tracking-tight text-slate-900 font-mono">AURA<span class="text-indigo-600">.DESK</span></span>
+        <span class="text-xs sm:text-sm font-black tracking-tight text-slate-900 font-mono">AURA<span class="text-indigo-600">.DESK</span></span>
       </div>
     </div>
 
@@ -86,11 +86,11 @@
     </nav>
 
     <!-- Header Status, Action & Clock -->
-    <div class="flex items-center gap-2 sm:gap-2.5">
+    <div class="flex items-center gap-1.5 sm:gap-2.5">
       <!-- TAMBAH AGENDA BUTTON -->
-      <button onclick="window.app.openAddTaskModal()" class="px-3 sm:px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+      <button onclick="window.app.openAddTaskModal()" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] sm:text-xs shadow-sm transition-all flex items-center gap-1 sm:gap-1.5 cursor-pointer">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        <span class="tracking-wide">TAMBAH AGENDA</span>
+        <span class="tracking-wide">+ AGENDA</span>
       </button>
 
       <!-- Link Portal Publik -->
@@ -100,14 +100,14 @@
       </a>
 
       <!-- Lock Dashboard Button -->
-      <button onclick="window.app.lockDashboard()" title="Kunci Dashboard (PIN)" class="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 cursor-pointer transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      <button onclick="window.app.lockDashboard()" title="Kunci Dashboard (PIN)" class="p-1 sm:p-1.5 rounded-lg sm:rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 cursor-pointer transition-colors">
+        <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
       </button>
 
       <!-- Sync Status Badge -->
-      <div id="cloud-sync-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono">
+      <div id="cloud-sync-badge" class="flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[11px] sm:text-xs font-mono">
         <span class="w-2 h-2 rounded-full bg-emerald-500 wa-pulse"></span>
-        <span id="cloud-sync-text" class="text-[11px] font-medium hidden lg:inline">Tersinkron Cloud</span>
+        <span id="cloud-sync-text" class="text-[10px] sm:text-[11px] font-medium hidden lg:inline">Tersinkron Cloud</span>
       </div>
 
       <!-- Live Clock -->
@@ -119,17 +119,17 @@
   </header>
 
   <!-- Mobile Tab Navigation Bar -->
-  <div class="md:hidden flex items-center gap-1 bg-white border-b border-slate-200 p-1.5 overflow-x-auto shadow-sm no-scrollbar">
-    <button onclick="window.app.switchTab('daily')" data-tab="daily" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white whitespace-nowrap cursor-pointer">Harian</button>
-    <button onclick="window.app.switchTab('meetings')" data-tab="meetings" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 whitespace-nowrap cursor-pointer">Permohonan</button>
-    <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 whitespace-nowrap cursor-pointer">Roadmap Bulanan</button>
-    <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 whitespace-nowrap cursor-pointer">5 Tahun</button>
-    <button onclick="window.app.switchTab('history')" data-tab="history" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 whitespace-nowrap cursor-pointer">Riwayat</button>
-    <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 whitespace-nowrap cursor-pointer">Aturan WA</button>
+  <div class="md:hidden flex items-center gap-1 bg-white border-b border-slate-200 p-1 overflow-x-auto shadow-sm no-scrollbar">
+    <button onclick="window.app.switchTab('daily')" data-tab="daily" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-600 text-white whitespace-nowrap cursor-pointer">Harian</button>
+    <button onclick="window.app.switchTab('meetings')" data-tab="meetings" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-amber-700 whitespace-nowrap cursor-pointer">Permohonan</button>
+    <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 whitespace-nowrap cursor-pointer">Roadmap Bulanan</button>
+    <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-slate-600 whitespace-nowrap cursor-pointer">5 Tahun</button>
+    <button onclick="window.app.switchTab('history')" data-tab="history" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-indigo-700 whitespace-nowrap cursor-pointer">Riwayat</button>
+    <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-700 whitespace-nowrap cursor-pointer">Aturan WA</button>
   </div>
 
   <!-- ================= MAIN FULLWIDTH CONTAINER ================= -->
-  <main class="flex-1 w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-5">
+  <main class="flex-1 w-full px-2.5 sm:px-6 lg:px-8 py-3 sm:py-5">
     
     <!-- ================= VIEW 1: AGENDA HARIAN ================= -->
     <div id="view-daily" class="view-section">
@@ -150,32 +150,32 @@
           </div>
 
           <!-- Daily Header & Quick Action Bar -->
-          <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
+          <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 sm:py-3 shadow-sm">
             <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+              <span class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-indigo-600"></span>
               <h2 class="text-xs sm:text-sm font-bold text-slate-900 font-mono tracking-tight">AGENDA HARIAN EKSEKUTIF</h2>
             </div>
-            <button onclick="window.app.openAddTaskModal()" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer">
+            <button onclick="window.app.openAddTaskModal()" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] sm:text-xs flex items-center gap-1 sm:gap-1.5 shadow-sm transition-all cursor-pointer">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               <span>+ Tambah Agenda</span>
             </button>
           </div>
 
           <!-- Date Navigation & Search Bar -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs shadow-sm">
-            <div class="flex items-center gap-1.5 sm:gap-2">
-              <button id="btn-nav-prev" title="Hari Sebelumnya" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-2.5 bg-white border border-slate-200 rounded-xl px-2.5 sm:px-4 py-2 sm:py-2.5 text-xs shadow-sm">
+            <div class="flex items-center gap-1 sm:gap-2">
+              <button id="btn-nav-prev" title="Hari Sebelumnya" class="p-1 sm:p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
               </button>
-              <input type="date" id="date-input" class="bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-slate-800 font-mono text-xs focus:outline-none focus:border-indigo-600">
-              <button id="btn-nav-next" title="Hari Berikutnya" class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              <input type="date" id="date-input" class="bg-slate-50 border border-slate-300 rounded px-2 sm:px-2.5 py-1 text-slate-800 font-mono text-xs focus:outline-none focus:border-indigo-600">
+              <button id="btn-nav-next" title="Hari Berikutnya" class="p-1 sm:p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">
+                <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
               </button>
-              <button id="btn-nav-today" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-indigo-700 font-semibold cursor-pointer">Hari Ini</button>
+              <button id="btn-nav-today" class="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-indigo-700 font-semibold cursor-pointer text-xs">Hari Ini</button>
             </div>
 
             <div class="flex items-center gap-2">
-              <input type="text" id="search-input" placeholder="Cari agenda atau catatan..." class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600">
+              <input type="text" id="search-input" placeholder="Cari agenda atau catatan..." class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-lg px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-indigo-600">
             </div>
           </div>
 
@@ -486,8 +486,8 @@
   </main>
 
   <!-- ================= POPUP MODAL 1: EVALUASI TUGAS TERLEWAT ================= -->
-  <div id="modal-missed-reason" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 w-full max-w-lg shadow-2xl space-y-4 text-slate-800">
+  <div id="modal-missed-reason" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-lg shadow-2xl space-y-3 sm:space-y-4 text-slate-800">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-200 pb-3">
@@ -553,8 +553,8 @@
   </div>
 
   <!-- ================= POPUP MODAL: KENAPA AGENDA DIBATALKAN ================= -->
-  <div id="modal-cancel-task" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 w-full max-w-lg shadow-2xl space-y-4 text-slate-800">
+  <div id="modal-cancel-task" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-lg shadow-2xl space-y-3 sm:space-y-4 text-slate-800">
       
       <div class="flex items-center justify-between pb-3 border-b border-slate-200">
         <div class="flex items-center gap-2.5">
@@ -628,8 +628,8 @@
   </div>
 
   <!-- ================= POPUP MODAL 2: PEMILIH JAM BULAT ================= -->
-  <div id="modal-clock-picker" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 w-full max-w-sm shadow-2xl space-y-4 text-slate-800">
+  <div id="modal-clock-picker" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-sm shadow-2xl space-y-3 sm:space-y-4 text-slate-800">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
@@ -698,8 +698,8 @@
   </div>
 
   <!-- ================= POPUP MODAL 3: TAMBAH / EDIT AGENDA ================= -->
-  <div id="modal-add-task" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 w-full max-w-2xl shadow-2xl space-y-4 text-slate-800 my-auto max-h-[92vh] overflow-y-auto">
+  <div id="modal-add-task" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-2xl shadow-2xl space-y-3 sm:space-y-4 text-slate-800 my-auto max-h-[94vh] overflow-y-auto">
       
       <!-- Modal Header -->
       <div class="flex items-center justify-between pb-3 border-b border-slate-200">
@@ -947,8 +947,8 @@
   </div>
 
   <!-- ================= POPUP MODAL 4: DASHBOARD PIN LOCK GATE ================= -->
-  <div id="modal-dashboard-lock" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl space-y-6 text-slate-800 relative">
+  <div id="modal-dashboard-lock" class="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-5 sm:p-8 w-full max-w-md shadow-2xl space-y-4 sm:space-y-6 text-slate-800 relative">
       <div class="text-center space-y-2">
         <div class="w-14 h-14 mx-auto rounded-2xl bg-indigo-600 flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-indigo-200">
           A
@@ -998,8 +998,8 @@
   </div>
 
   <!-- ================= POPUP MODAL 5: USER GUIDE & DOCUMENTATION ================= -->
-  <div id="modal-user-guide" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 w-full max-w-2xl shadow-xl space-y-4 text-slate-800 relative my-auto">
+  <div id="modal-user-guide" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-2xl shadow-xl space-y-3 sm:space-y-4 text-slate-800 relative my-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-200">
         <div class="flex items-center gap-2">
           <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
@@ -1063,8 +1063,8 @@
   </div>
 
   <!-- ================= POPUP MODAL 6: AUDIT SYNC LOGS ================= -->
-  <div id="modal-audit-sync" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 w-full max-w-xl shadow-xl space-y-4 text-slate-800 relative my-auto">
+  <div id="modal-audit-sync" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 w-full max-w-xl shadow-xl space-y-3 sm:space-y-4 text-slate-800 relative my-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-200">
         <div class="flex items-center gap-2">
           <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
@@ -1120,6 +1120,6 @@
     </div>
   </footer>
 
-  <script src="./app.js?v=20261127_01"></script>
+  <script src="./app.js?v=20261127_02"></script>
 </body>
 </html>
