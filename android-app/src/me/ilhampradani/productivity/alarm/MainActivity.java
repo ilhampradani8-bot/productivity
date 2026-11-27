@@ -631,6 +631,7 @@ public class MainActivity extends Activity {
             }
             prefs.edit().putString(KEY_CACHED_TASKS, arr.toString()).apply();
             loadCachedTasksUI();
+            NotificationHelper.updateStatusNotifications(MainActivity.this, arr);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1013,11 +1014,70 @@ public class MainActivity extends Activity {
                             .apply();
                 }
 
+                // 5. Update Status Notifications (Agenda Akan Datang & Sudah Terlewat)
+                NotificationHelper.updateStatusNotifications(context, todayTasks);
+
                 if (callback != null) {
                     callback.onSyncComplete(networkSuccess, scheduled, networkSuccess ? null : "Offline Mode");
                 }
             }
         }).start();
+    }
+
+    public static void markTaskCompletedLocally(Context context, String taskId, String date) {
+        if (context == null || taskId == null) return;
+        try {
+            SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            String cachedStr = prefs.getString(KEY_CACHED_TASKS, null);
+            if (cachedStr != null && !cachedStr.isEmpty()) {
+                JSONArray arr = new JSONArray(cachedStr);
+                for (int i = 0; i < arr.length(); i++) {
+                    JSONObject obj = arr.getJSONObject(i);
+                    if (taskId.equals(obj.optString("id"))) {
+                        obj.put("status", "done");
+                        JSONArray comp = obj.optJSONArray("completedDates");
+                        if (comp == null) comp = new JSONArray();
+                        boolean found = false;
+                        for (int k = 0; k < comp.length(); k++) {
+                            if (comp.optString(k).equals(date)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found && date != null) comp.put(date);
+                        obj.put("completedDates", comp);
+                        break;
+                    }
+                }
+                prefs.edit().putString(KEY_CACHED_TASKS, arr.toString()).apply();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    public static boolean postTaskActionDirect(Context context, String taskId, String date, boolean markDone) {
+        try {
+            URL url = new URL(DEFAULT_SERVER_URL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("User-Agent", "AuraDeskAlarm/2.0 (Samsung Galaxy A10s SM-A107F)");
+            conn.setRequestProperty("X-Device-Id", "Samsung-A10s");
+            conn.setRequestProperty("X-Battery-Level", getBatteryLevel(context) + "%");
+            conn.setDoOutput(true);
+            conn.setConnectTimeout(6000);
+            conn.setReadTimeout(6000);
+
+            String payload = "{\"action\":\"" + (markDone ? "markDone" : "toggleTask") + "\",\"taskId\":\"" + taskId + "\",\"date\":\"" + date + "\"}";
+            OutputStream os = conn.getOutputStream();
+            os.write(payload.getBytes("UTF-8"));
+            os.close();
+
+            int code = conn.getResponseCode();
+            conn.disconnect();
+            return (code == 200);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private static void setExactAlarm(AlarmManager am, long triggerAtMillis, PendingIntent pi) {

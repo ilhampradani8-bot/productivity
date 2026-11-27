@@ -133,17 +133,25 @@ public class AlarmSoundService extends Service {
                 this, 1, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
         );
 
+        Intent doneIntent = new Intent(this, AlarmReceiver.class);
+        doneIntent.putExtra("action", "action_mark_done");
+        doneIntent.putExtra("task_id", taskId);
+        PendingIntent donePendingIntent = PendingIntent.getBroadcast(
+                this, 2, doneIntent, PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+
         Notification.Builder builder = (Build.VERSION.SDK_INT >= 26)
                 ? new Notification.Builder(this, CHANNEL_ID)
                 : new Notification.Builder(this);
 
-        builder.setContentTitle("🚨 PENGINGAT AGENDA EKSEKUTIF")
-                .setContentText(title + " (" + time + " WIB)")
+        builder.setContentTitle("Sedang Pengingat: " + title)
+                .setContentText(time + " WIB • Alarm Berdering Sekarang")
                 .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
                 .setContentIntent(fullScreenPendingIntent)
                 .setFullScreenIntent(fullScreenPendingIntent, true)
                 .setOngoing(true)
-                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Matikan Alarm", stopPendingIntent)
+                .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Matikan", stopPendingIntent)
+                .addAction(android.R.drawable.checkbox_on_background, "Coret Selesai", donePendingIntent)
                 .setPriority(Notification.PRIORITY_MAX);
 
         return builder.build();
