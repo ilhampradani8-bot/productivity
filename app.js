@@ -1618,12 +1618,17 @@ Semoga hari Bapak selalu lancar!
     let sleepStart = idealSleepStart;
     let isOvernight = (sleepStart > sleepEnd);
     let isOverridden = false;
+    let isCut = false;
+    let cutMinutes = 0;
+    let cutDesc = "";
+    let eveningRelaxMinutes = 0;
+    let eveningRelaxHours = 0;
 
-    // 4. Evaluasi lembur malam:
+    // 4. Evaluasi lembur malam & waktu santai:
     // Jika tugas terakhir selesai lewat jam tidur ideal (misal lembur lewat jam 23:00),
-    // maka jam tidur bergeser menyesuaikan selesainya lembur.
+    // maka jam tidur bergeser menyesuaikan selesainya lembur, dan waktu tidur terpotong.
     // Jika tugas terakhir selesai sore/malam awal (misal 17:30, 18:00, atau 19:30),
-    // jam tidur TETAP dimulai jam 23:00 (waktu 19:30 - 23:00 adalah waktu fleksibel/pribadi/keluarga).
+    // jam tidur TETAP dimulai jam 23:00, dan waktu 19:30 - 23:00 dihitung sebagai waktu santai/pribadi.
     if (maxEnd !== null) {
       if (maxEnd >= 1440) {
         // Lembur selesai dini hari (misal 01:00)
@@ -1632,12 +1637,20 @@ Semoga hari Bapak selalu lancar!
           sleepStart = earlyEnd;
           isOvernight = false;
           isOverridden = true;
+          isCut = true;
         }
       } else if (maxEnd > idealSleepStart) {
         // Lembur selesai antara jam 23:00 dan 24:00
         sleepStart = maxEnd;
         isOvernight = true;
         isOverridden = true;
+        isCut = true;
+      } else if (maxEnd < idealSleepStart) {
+        eveningRelaxMinutes = idealSleepStart - maxEnd;
+        eveningRelaxHours = parseFloat((eveningRelaxMinutes / 60).toFixed(1));
+        if (String(eveningRelaxHours).endsWith(".0")) {
+          eveningRelaxHours = parseInt(eveningRelaxHours, 10);
+        }
       }
     }
 
@@ -1649,17 +1662,24 @@ Semoga hari Bapak selalu lancar!
       durationMinutes = Math.max(0, sleepEnd - sleepStart);
     }
 
+    if (durationMinutes < 360) {
+      isCut = true;
+      cutMinutes = 360 - durationMinutes;
+      const cutHrs = (cutMinutes / 60).toFixed(1);
+      cutDesc = cutMinutes < 60 ? `${cutMinutes} Menit` : `${cutHrs.endsWith('.0') ? parseInt(cutHrs, 10) : cutHrs} Jam (${cutMinutes} m)`;
+    }
+
     const durationHours = parseFloat((durationMinutes / 60).toFixed(1));
     const cleanHours = String(durationHours).endsWith(".0") ? parseInt(durationHours, 10) : durationHours;
 
     let overrideReason = "";
-    if (isOverridden) {
-      overrideReason = `Waktu tidur disesuaikan (${cleanHours} Jam) karena lembur agenda "${lastTaskTitle}" selesai pukul ${this.minutesToTime(sleepStart)} WIB menjelang agenda pagi "${nextMorningTitle}" (${this.minutesToTime(sleepEnd)} WIB). Fleksibel dapat ditimpa agenda kerja.`;
+    if (isCut) {
+      overrideReason = `Waktu tidur terpotong ${cutDesc} (tersisa ${cleanHours} Jam) karena lembur agenda "${lastTaskTitle}" selesai pukul ${this.minutesToTime(maxEnd < 1440 ? maxEnd : maxEnd - 1440)} WIB menjelang agenda pagi "${nextMorningTitle}" (${this.minutesToTime(sleepEnd)} WIB).`;
     } else {
-      const eveningNote = (maxEnd !== null && maxEnd < idealSleepStart) 
-        ? ` Sisa waktu dari selesainya tugas "${lastTaskTitle}" (${this.minutesToTime(maxEnd)} WIB) hingga 23:00 WIB adalah waktu fleksibel pribadi & keluarga.` 
+      const eveningNote = eveningRelaxMinutes > 0
+        ? ` Waktu santai malam: ${this.minutesToTime(maxEnd)} - ${this.minutesToTime(sleepStart)} WIB (${eveningRelaxHours} Jam).`
         : "";
-      overrideReason = `Alokasi tidur standar 6 Jam (${this.minutesToTime(sleepStart)} - ${this.minutesToTime(sleepEnd)} WIB).${eveningNote} Fleksibel dapat ditimpa jika ada jadwal tambahan.`;
+      overrideReason = `Alokasi tidur standar 6.0 Jam (${this.minutesToTime(sleepStart)} - ${this.minutesToTime(sleepEnd)} WIB).${eveningNote} Fleksibel dapat ditimpa jika ada jadwal tambahan.`;
     }
 
     return {
@@ -1670,6 +1690,12 @@ Semoga hari Bapak selalu lancar!
       durationMinutes,
       isOvernight,
       isOverridden,
+      isCut,
+      cutMinutes,
+      cutDesc,
+      eveningRelaxMinutes,
+      eveningRelaxHours,
+      maxEnd,
       overrideReason,
       lastTaskTitle,
       nextMorningTitle
@@ -2404,8 +2430,106 @@ Semoga hari Bapak selalu lancar!
     }
   }
 
+  updateSidebarSleepCard() {
+    const card = document.getElementById("sidebar-sleep-card");
+    if (!card) return;
+    const dyn = this.calculateDynamicSleep(this.selectedDate);
+    if (!dyn) {
+      card.classList.add("hidden");
+      return;
+    }
+    card.classList.remove("hidden");
+
+    const sStr = this.minutesToTime(dyn.startMins);
+    const eStr = this.minutesToTime(dyn.endMins);
+    const lastEndStr = dyn.maxEnd !== null ? this.minutesToTime(dyn.maxEnd < 1440 ? dyn.maxEnd : dyn.maxEnd - 1440) : null;
+
+    let statusBadge = dyn.isCut
+      ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 font-mono shadow-2xs">Terpotong ${dyn.cutDesc}</span>`
+      : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono shadow-2xs">6.0 Jam Penuh</span>`;
+
+    let breakdownHtml = "";
+    if (dyn.isCut) {
+      breakdownHtml = `
+        <div class="space-y-1.5 p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-900">
+          <div class="flex items-center justify-between">
+            <span class="text-amber-700 font-medium">Status Pemulihan:</span>
+            <span class="font-bold text-amber-900">Terpotong ${dyn.cutDesc}</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-amber-700 font-medium">Penyebab Lembur:</span>
+            <span class="font-semibold truncate max-w-[170px]" title="${dyn.lastTaskTitle}">"${dyn.lastTaskTitle || 'Agenda Malam'}" (${lastEndStr} WIB)</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-amber-700 font-medium">Bangun Esok:</span>
+            <span class="font-semibold">${eStr} WIB (${dyn.nextMorningTitle})</span>
+          </div>
+        </div>
+      `;
+    } else {
+      let eveningRow = "";
+      if (dyn.eveningRelaxMinutes > 0 && lastEndStr) {
+        eveningRow = `
+          <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+            <span class="text-slate-500">Waktu Santai / Pribadi:</span>
+            <span class="font-semibold text-indigo-700">${lastEndStr} - ${sStr} WIB (${dyn.eveningRelaxHours} Jam)</span>
+          </div>
+        `;
+      }
+      breakdownHtml = `
+        <div class="space-y-1.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-[11px]">
+          ${eveningRow}
+          <div class="flex items-center justify-between ${dyn.eveningRelaxMinutes > 0 ? 'pt-0.5' : ''}">
+            <span class="text-slate-500">Waktu Tidur Ideal:</span>
+            <span class="font-semibold text-emerald-700">${sStr} - ${eStr} WIB (6.0 Jam)</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-500">
+            <span>Agenda Pagi Esok:</span>
+            <span class="font-medium text-slate-700 truncate max-w-[170px]" title="${dyn.nextMorningTitle}">${dyn.nextMorningTitle}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center text-indigo-600 shadow-2xs">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          </div>
+          <div>
+            <span class="font-bold text-slate-800 text-xs tracking-tight">Waktu Tidur & Pemulihan</span>
+            <p class="text-[10px] text-slate-400 font-mono">Otomatisasi Jadwal Tidur</p>
+          </div>
+        </div>
+        ${statusBadge}
+      </div>
+
+      <div class="bg-gradient-to-r from-indigo-50/50 via-purple-50/40 to-slate-50 p-2.5 rounded-xl border border-indigo-100/80 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] text-slate-500 block">Jadwal Tidur Terjadwal</span>
+          <span class="font-mono font-bold text-slate-800 text-sm">${sStr} - ${eStr} WIB</span>
+        </div>
+        <div class="text-right">
+          <span class="text-[10px] text-slate-500 block">Total Durasi</span>
+          <span class="font-mono font-bold ${dyn.isCut ? 'text-amber-700' : 'text-emerald-700'} text-sm">${dyn.durationHours} Jam</span>
+        </div>
+      </div>
+
+      ${breakdownHtml}
+
+      <div class="pt-1 flex items-center justify-between gap-2">
+        <p class="text-[10px] text-slate-400 italic leading-tight">Fleksibel & otomatis menyesuaikan lembur</p>
+        <button type="button" onclick="window.app.presetSleepSchedule()" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-semibold border border-slate-200 cursor-pointer transition-colors shadow-2xs whitespace-nowrap">
+          Jadwalkan
+        </button>
+      </div>
+    `;
+  }
+
   render() {
     this.updateSidebarBriefing();
+    this.updateSidebarSleepCard();
     if (this.activeTab === "daily") this.renderDailyView();
     else if (this.activeTab === "meetings") this.renderMeetingsView();
     else if (this.activeTab === "monthly") this.renderMonthlyView();
@@ -2646,45 +2770,12 @@ Semoga hari Bapak selalu lancar!
       }
     }
 
-    const hasExplicitSleep = tasks.some(t => this.isSleepTask(t));
-    const dynSleep = this.calculateDynamicSleep(this.selectedDate);
-    let autoSleepCardHtml = "";
-
-    if (!hasExplicitSleep && dynSleep) {
-      const sStr = this.minutesToTime(dynSleep.startMins);
-      const eStr = this.minutesToTime(dynSleep.endMins);
-      autoSleepCardHtml = `
-        <div class="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-purple-50/70 border border-purple-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs shadow-xs transition-all">
-          <div class="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
-            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-purple-100 border border-purple-300/80 flex items-center justify-center text-purple-700 flex-shrink-0 mt-0.5 sm:mt-0 shadow-2xs">
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-            </div>
-            <div class="min-w-0">
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="font-bold text-purple-900 font-mono text-[11px] sm:text-xs">ALOKASI TIDUR OTOMATIS: ${sStr} - ${eStr} WIB</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${dynSleep.isOverridden ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-purple-100 text-purple-800 border border-purple-200'}">
-                  ${dynSleep.durationHours} Jam ${dynSleep.isOverridden ? '• Menyesuaikan Lembur' : '• Istirahat & Pemulihan'}
-                </span>
-              </div>
-              <p class="text-[10px] sm:text-[11px] text-purple-800/80 mt-0.5 break-words">
-                ${dynSleep.overrideReason}
-              </p>
-            </div>
-          </div>
-          <button type="button" onclick="window.app.presetSleepSchedule()" class="px-2.5 py-1 rounded-lg bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 text-[10px] sm:text-[11px] font-semibold flex-shrink-0 self-end sm:self-center cursor-pointer shadow-2xs transition-all">
-            Kustomisasi Waktu
-          </button>
-        </div>
-      `;
-    }
-
     if (tasks.length === 0) {
       list.innerHTML = `
         <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm mb-3">
           <p class="text-sm font-medium text-slate-600">Tidak ada agenda pada tanggal ini.</p>
           <p class="text-xs text-slate-500 mt-1">Gunakan form Google-style atau klik peta bar 24 jam di atas untuk menjadwalkan agenda bebas bentrok.</p>
         </div>
-        ${autoSleepCardHtml}
       `;
       return;
     }
@@ -2897,7 +2988,7 @@ Semoga hari Bapak selalu lancar!
       `;
     }).join("");
 
-    list.innerHTML = taskCardsHtml + (autoSleepCardHtml ? `<div class="mt-2.5 sm:mt-3">${autoSleepCardHtml}</div>` : "");
+    list.innerHTML = taskCardsHtml;
   }
 
   // ===================== VIEW TAB RIWAYAT & EVALUASI KENDALA (NEW!) =====================
