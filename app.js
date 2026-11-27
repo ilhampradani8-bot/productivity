@@ -834,6 +834,178 @@ class ProductivityApp {
     };
   }
 
+  // ===================== INDONESIAN CUSTOM DATE PICKER =====================
+  openCustomDatePicker(targetId = "task-target-date") {
+    this.datePickerTargetId = targetId;
+    const targetInput = document.getElementById(targetId);
+    let initialDate = targetInput && targetInput.value ? targetInput.value : (this.selectedDate || this.getTodayDateString());
+    
+    const parts = initialDate.split("-");
+    this.datePickerYear = parseInt(parts[0], 10) || new Date().getFullYear();
+    this.datePickerMonth = (parseInt(parts[1], 10) - 1);
+    if (isNaN(this.datePickerMonth) || this.datePickerMonth < 0 || this.datePickerMonth > 11) {
+      this.datePickerMonth = new Date().getMonth();
+    }
+    this.datePickerSelected = initialDate;
+
+    this.renderCustomDatePicker();
+
+    const modal = document.getElementById("modal-date-picker");
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+  }
+
+  closeCustomDatePicker() {
+    const modal = document.getElementById("modal-date-picker");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+  }
+
+  prevDatePickerMonth() {
+    this.datePickerMonth--;
+    if (this.datePickerMonth < 0) {
+      this.datePickerMonth = 11;
+      this.datePickerYear--;
+    }
+    this.renderCustomDatePicker();
+  }
+
+  nextDatePickerMonth() {
+    this.datePickerMonth++;
+    if (this.datePickerMonth > 11) {
+      this.datePickerMonth = 0;
+      this.datePickerYear++;
+    }
+    this.renderCustomDatePicker();
+  }
+
+  setDatePickerPreset(preset) {
+    const now = new Date();
+    let d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (preset === "today") {
+      // today
+    } else if (preset === "tomorrow") {
+      d.setDate(d.getDate() + 1);
+    } else if (preset === "next_monday") {
+      const day = d.getDay();
+      const diff = (8 - day) % 7 || 7;
+      d.setDate(d.getDate() + diff);
+    } else if (preset === "next_week") {
+      d.setDate(d.getDate() + 7);
+    }
+
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dayStr = String(d.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${dayStr}`;
+
+    this.datePickerYear = d.getFullYear();
+    this.datePickerMonth = d.getMonth();
+    this.datePickerSelected = dateStr;
+    this.renderCustomDatePicker();
+    this.applyCustomDatePicker();
+  }
+
+  selectDatePickerDate(year, month, day) {
+    const mStr = String(month + 1).padStart(2, "0");
+    const dStr = String(day).padStart(2, "0");
+    this.datePickerSelected = `${year}-${mStr}-${dStr}`;
+    this.renderCustomDatePicker();
+  }
+
+  applyCustomDatePicker() {
+    if (!this.datePickerSelected) return;
+    const targetId = this.datePickerTargetId || "task-target-date";
+    const targetInput = document.getElementById(targetId);
+    if (targetInput) {
+      targetInput.value = this.datePickerSelected;
+      if (targetId === "task-target-date") {
+        this.onTaskDateChange();
+      } else if (targetId === "task-valid-until") {
+        const displayEl = document.getElementById("task-valid-until-display");
+        if (displayEl) {
+          const info = this.formatIndonesianDateWithDay(this.datePickerSelected);
+          displayEl.textContent = info.fullText;
+        }
+      } else if (targetId === "date-input") {
+        this.selectedDate = this.datePickerSelected;
+        this.updateHeaderDateDisplay();
+        this.handleValidityPresetChange();
+        this.render();
+        this.checkTimeCollision();
+      }
+    }
+    this.closeCustomDatePicker();
+  }
+
+  renderCustomDatePicker() {
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const monthYearEl = document.getElementById("date-picker-month-year");
+    if (monthYearEl) {
+      monthYearEl.textContent = `${months[this.datePickerMonth]} ${this.datePickerYear}`;
+    }
+
+    const selectedInfoEl = document.getElementById("date-picker-selected-display");
+    if (selectedInfoEl && this.datePickerSelected) {
+      const info = this.formatIndonesianDateWithDay(this.datePickerSelected);
+      selectedInfoEl.textContent = info.fullText;
+    }
+
+    const gridEl = document.getElementById("date-picker-grid");
+    if (!gridEl) return;
+
+    const firstDayIndex = new Date(this.datePickerYear, this.datePickerMonth, 1).getDay();
+    const totalDays = new Date(this.datePickerYear, this.datePickerMonth + 1, 0).getDate();
+    const prevMonthDays = new Date(this.datePickerYear, this.datePickerMonth, 0).getDate();
+    const todayStr = this.getTodayDateString();
+
+    let cellsHtml = "";
+
+    // Padding previous month
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+      const dayNum = prevMonthDays - i;
+      cellsHtml += `<div class="date-picker-day-cell empty">${dayNum}</div>`;
+    }
+
+    // Days in current month
+    for (let day = 1; day <= totalDays; day++) {
+      const mStr = String(this.datePickerMonth + 1).padStart(2, "0");
+      const dStr = String(day).padStart(2, "0");
+      const currentIso = `${this.datePickerYear}-${mStr}-${dStr}`;
+
+      const isSelected = this.datePickerSelected === currentIso;
+      const isToday = todayStr === currentIso;
+
+      let cellClass = "date-picker-day-cell";
+      if (isSelected) cellClass += " selected";
+      else if (isToday) cellClass += " today";
+
+      cellsHtml += `
+        <button type="button" 
+                onclick="window.app.selectDatePickerDate(${this.datePickerYear}, ${this.datePickerMonth}, ${day})"
+                ondblclick="window.app.selectDatePickerDate(${this.datePickerYear}, ${this.datePickerMonth}, ${day}); window.app.applyCustomDatePicker();"
+                class="${cellClass}"
+                title="${currentIso}${isToday ? ' (Hari Ini)' : ''}">
+          ${day}
+        </button>
+      `;
+    }
+
+    // Trailing padding to make full weeks
+    const totalCellsSoFar = firstDayIndex + totalDays;
+    const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
+    for (let day = 1; day <= remainingCells; day++) {
+      cellsHtml += `<div class="date-picker-day-cell empty">${day}</div>`;
+    }
+
+    gridEl.innerHTML = cellsHtml;
+  }
+
   updateHeaderDateDisplay() {
     const el = document.getElementById("header-date-day-display");
     const dateInput = document.getElementById("date-input");
@@ -852,8 +1024,11 @@ class ProductivityApp {
     const dateStr = input.value;
     const info = this.formatIndonesianDateWithDay(dateStr);
 
+    const displayEl = document.getElementById("task-target-date-display");
+    if (displayEl) displayEl.textContent = info.fullText;
+
     const badge = document.getElementById("task-date-day-label");
-    if (badge) badge.textContent = info.fullText;
+    if (badge) badge.textContent = info.dayName || "Hari Ini";
 
     const weeklyOpt = document.getElementById("task-recurrence-weekly-label");
     if (weeklyOpt) weeklyOpt.textContent = `Setiap ${info.dayName} (Mengikuti Tanggal Mulai)`;
@@ -1073,6 +1248,64 @@ class ProductivityApp {
     viewport.scrollTo({ left: Math.max(0, targetScroll), behavior: "smooth" });
   }
 
+  // ===================== TIMELINE CARD EXPAND & VISUAL SCHEDULING =====================
+  toggleTimelineCardExpand() {
+    const card = document.getElementById("timeline-card-container");
+    const btn = document.getElementById("btn-toggle-expand-card");
+    if (!card) return;
+
+    card.classList.toggle("is-expanded");
+    const isExp = card.classList.contains("is-expanded");
+    
+    if (btn) {
+      if (isExp) {
+        btn.innerHTML = `<svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg><span>Kecilkan Peta</span>`;
+        btn.classList.add("bg-indigo-50", "text-indigo-800", "border-indigo-300");
+      } else {
+        btn.innerHTML = `<svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg><span>Perbesar Peta</span>`;
+        btn.classList.remove("bg-indigo-50", "text-indigo-800", "border-indigo-300");
+      }
+    }
+
+    if (isExp) {
+      this.scrollToCurrentTaskTime();
+    }
+  }
+
+  setTaskDurationMinutes(durationMins) {
+    const s1StartEl = document.getElementById("task-start-time");
+    const s1EndEl = document.getElementById("task-end-time");
+    if (!s1StartEl || !s1EndEl) return;
+
+    const startMins = this.timeToMinutes(s1StartEl.value || "09:00");
+    let endMins = startMins + durationMins;
+    if (endMins >= 1440) {
+      endMins = 1439;
+    }
+
+    s1EndEl.value = this.minutesToTime(endMins);
+    this.checkTimeCollision();
+  }
+
+  setTaskStartTimePreset(timeStr) {
+    const s1StartEl = document.getElementById("task-start-time");
+    const s1EndEl = document.getElementById("task-end-time");
+    if (!s1StartEl || !s1EndEl) return;
+
+    const oldStart = this.timeToMinutes(s1StartEl.value || "09:00");
+    const oldEnd = this.timeToMinutes(s1EndEl.value || "10:30");
+    const currentDuration = oldEnd > oldStart ? (oldEnd - oldStart) : 60;
+
+    const newStart = this.timeToMinutes(timeStr);
+    let newEnd = newStart + currentDuration;
+    if (newEnd >= 1440) newEnd = 1439;
+
+    s1StartEl.value = timeStr;
+    s1EndEl.value = this.minutesToTime(newEnd);
+    this.checkTimeCollision();
+    this.scrollToCurrentTaskTime();
+  }
+
   onTimelineMouseMove(e) {
     const bar = document.getElementById("timeline-24h-bar");
     const cursor = document.getElementById("timeline-cursor-line");
@@ -1130,9 +1363,6 @@ class ProductivityApp {
     
     let snappedStart = Math.round(rawMins / 15) * 15;
     if (snappedStart >= 1440) snappedStart = 1425;
-    
-    let snappedEnd = Math.min(1439, snappedStart + 60);
-    if (snappedEnd <= snappedStart) snappedEnd = 1439;
 
     const s1StartEl = document.getElementById("task-start-time");
     const s1EndEl = document.getElementById("task-end-time");
@@ -1141,11 +1371,21 @@ class ProductivityApp {
     const s2EndEl = document.getElementById("task-session2-end");
 
     const hasS2 = toggleS2 && toggleS2.checked;
-    const s1End = s1EndEl ? this.timeToMinutes(s1EndEl.value) : 600;
+    const s1OldStart = s1StartEl ? this.timeToMinutes(s1StartEl.value || "09:00") : 540;
+    const s1OldEnd = s1EndEl ? this.timeToMinutes(s1EndEl.value || "10:30") : 630;
+    const currentDuration = s1OldEnd > s1OldStart ? (s1OldEnd - s1OldStart) : 60;
 
-    if (hasS2 && snappedStart >= s1End && s2StartEl && s2EndEl) {
+    let snappedEnd = Math.min(1439, snappedStart + currentDuration);
+    if (snappedEnd <= snappedStart) snappedEnd = Math.min(1439, snappedStart + 60);
+
+    if (hasS2 && snappedStart >= s1OldEnd && s2StartEl && s2EndEl) {
+      const s2OldStart = this.timeToMinutes(s2StartEl.value || "19:30");
+      const s2OldEnd = this.timeToMinutes(s2EndEl.value || "20:30");
+      const s2Dur = s2OldEnd > s2OldStart ? (s2OldEnd - s2OldStart) : 60;
+      let s2EndVal = Math.min(1439, snappedStart + s2Dur);
+      if (s2EndVal <= snappedStart) s2EndVal = Math.min(1439, snappedStart + 60);
       s2StartEl.value = this.minutesToTime(snappedStart);
-      s2EndEl.value = this.minutesToTime(snappedEnd);
+      s2EndEl.value = this.minutesToTime(s2EndVal);
     } else if (s1StartEl && s1EndEl) {
       s1StartEl.value = this.minutesToTime(snappedStart);
       s1EndEl.value = this.minutesToTime(snappedEnd);
@@ -2035,6 +2275,40 @@ Semoga hari Bapak selalu lancar!
       if (warnBox) warnBox.classList.add("hidden");
       if (submitBtn) submitBtn.disabled = false;
     }
+
+    // Update Timeline Selected Time & Duration Badge
+    const timeBadgeEl = document.getElementById("timeline-selected-time-badge");
+    const durBadgeEl = document.getElementById("timeline-selected-duration-badge");
+    let durMins = 0;
+    if (s1End > s1Start) {
+      durMins = s1End - s1Start;
+    } else if (isOvernightAgenda) {
+      durMins = (1440 - s1Start) + s1End;
+    }
+
+    if (timeBadgeEl) {
+      timeBadgeEl.textContent = `${s1StartEl.value} - ${s1EndEl.value} WIB`;
+    }
+    if (durBadgeEl) {
+      const durHours = Math.floor(durMins / 60);
+      const durRemMins = durMins % 60;
+      let durText = "";
+      if (durHours > 0 && durRemMins > 0) durText = `(${durHours} Jam ${durRemMins} Menit)`;
+      else if (durHours > 0) durText = `(${durHours} Jam)`;
+      else durText = `(${durRemMins} Menit)`;
+      durBadgeEl.textContent = durText;
+    }
+
+    // Highlight matching duration pill
+    const pills = document.querySelectorAll(".duration-pill");
+    pills.forEach(p => {
+      const pMins = parseInt(p.getAttribute("data-mins"), 10);
+      if (pMins === durMins) {
+        p.classList.add("active");
+      } else {
+        p.classList.remove("active");
+      }
+    });
 
     let gridHtml = "";
     // 1. Grid Garis Vertikal Tiap Jam (1 sampai 23)

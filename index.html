@@ -1025,6 +1025,80 @@
     </div>
   </div>
 
+  <!-- ================= POPUP MODAL: KALENDER INDONESIA (CUSTOM DATE PICKER) ================= -->
+  <div id="modal-date-picker" class="fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl sm:rounded-3xl w-full max-w-sm sm:max-w-md shadow-2xl flex flex-col text-slate-800 overflow-hidden">
+      
+      <!-- Header Modal Tanggal -->
+      <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-slate-50/80">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <h3 class="text-xs sm:text-sm font-bold text-slate-900 font-mono tracking-wide">PILIH TANGGAL (INDONESIA)</h3>
+        </div>
+        <button type="button" onclick="window.app.closeCustomDatePicker()" aria-label="Tutup Kalender" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition-colors cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Body Kalender -->
+      <div class="p-4 sm:p-5 space-y-3.5">
+        
+        <!-- Preset Cepat Tanggal -->
+        <div class="flex items-center justify-between gap-1.5 flex-wrap">
+          <button type="button" onclick="window.app.setDatePickerPreset('today')" class="flex-1 py-1 px-2 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 text-[11px] font-semibold transition-all cursor-pointer text-center">Hari Ini</button>
+          <button type="button" onclick="window.app.setDatePickerPreset('tomorrow')" class="flex-1 py-1 px-2 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 text-[11px] font-semibold transition-all cursor-pointer text-center">Besok</button>
+          <button type="button" onclick="window.app.setDatePickerPreset('next_monday')" class="flex-1 py-1 px-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-[11px] font-semibold transition-all cursor-pointer text-center">Senin Depan</button>
+          <button type="button" onclick="window.app.setDatePickerPreset('next_week')" class="flex-1 py-1 px-2 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 border border-slate-200 text-[11px] font-semibold transition-all cursor-pointer text-center">Minggu Depan</button>
+        </div>
+
+        <!-- Month Navigation Bar -->
+        <div class="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+          <button type="button" onclick="window.app.prevDatePickerMonth()" title="Bulan Sebelumnya" class="p-1.5 rounded-lg text-slate-600 hover:text-indigo-700 hover:bg-white border border-transparent hover:border-slate-200 transition-all cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <span id="date-picker-month-year" class="font-bold text-sm text-slate-900 font-mono tracking-wide">November 2026</span>
+          <button type="button" onclick="window.app.nextDatePickerMonth()" title="Bulan Berikutnya" class="p-1.5 rounded-lg text-slate-600 hover:text-indigo-700 hover:bg-white border border-transparent hover:border-slate-200 transition-all cursor-pointer">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+
+        <!-- Hari dalam Seminggu (Header) -->
+        <div class="grid grid-cols-7 gap-1 text-center font-mono text-[11px] font-semibold pb-1 border-b border-slate-100">
+          <span class="text-rose-600">Min</span>
+          <span class="text-slate-600">Sen</span>
+          <span class="text-slate-600">Sel</span>
+          <span class="text-slate-600">Rab</span>
+          <span class="text-slate-600">Kam</span>
+          <span class="text-slate-600">Jum</span>
+          <span class="text-indigo-600">Sab</span>
+        </div>
+
+        <!-- Grid Tanggal -->
+        <div id="date-picker-grid" class="grid grid-cols-7 gap-1 text-center min-h-[190px]">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+
+        <!-- Preview Tanggal Terpilih -->
+        <div class="p-2.5 rounded-xl bg-indigo-50/80 border border-indigo-100 text-center">
+          <span class="text-[10px] text-slate-500 font-mono block">Tanggal Terpilih:</span>
+          <span id="date-picker-selected-display" class="text-xs sm:text-sm font-bold text-indigo-900 font-mono">Jumat, 27 November 2026</span>
+        </div>
+
+      </div>
+
+      <!-- Footer Action Buttons -->
+      <div class="flex items-center justify-end gap-2 px-4 py-3 border-t border-slate-200 bg-slate-50/80">
+        <button type="button" onclick="window.app.closeCustomDatePicker()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 transition-colors cursor-pointer">
+          Batal
+        </button>
+        <button type="button" onclick="window.app.applyCustomDatePicker()" class="px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer">
+          Pilih Tanggal Ini
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ================= POPUP MODAL 3: TAMBAH / EDIT AGENDA ================= -->
   <div id="modal-add-task" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-end sm:items-center justify-center p-0 sm:p-4 overflow-hidden">
     <div class="bg-white border-t sm:border border-slate-200 rounded-t-3xl sm:rounded-3xl w-full max-w-2xl shadow-2xl flex flex-col h-[90dvh] sm:h-auto sm:max-h-[88vh] text-slate-800 overflow-hidden">
@@ -1100,8 +1174,20 @@
           </div>
 
           <div class="flex items-center gap-2">
-            <input type="date" id="task-target-date" onchange="window.app.onTaskDateChange()" class="flex-1 bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 font-mono focus:outline-none focus:border-indigo-600 shadow-sm">
-            <span id="task-date-day-label" class="text-xs font-semibold text-slate-700 font-mono px-3 py-1.5 rounded-lg bg-white border border-slate-200 shadow-sm">Hari Ini</span>
+            <!-- Hidden input for standard form value -->
+            <input type="hidden" id="task-target-date" value="">
+            
+            <!-- Custom Indonesian Date Picker Trigger Button -->
+            <button type="button" onclick="window.app.openCustomDatePicker('task-target-date')" 
+              class="flex-1 flex items-center justify-between bg-white hover:bg-slate-50 border border-slate-300 hover:border-indigo-500 rounded-lg px-3.5 py-2 text-xs text-slate-900 font-medium shadow-sm transition-all cursor-pointer group">
+              <div class="flex items-center gap-2 truncate">
+                <svg class="w-4 h-4 text-indigo-600 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span id="task-target-date-display" class="font-bold text-slate-800 font-mono truncate">Pilih Tanggal...</span>
+              </div>
+              <span class="text-[10px] font-mono font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded group-hover:bg-indigo-600 group-hover:text-white transition-colors flex-shrink-0">Kalender Indo</span>
+            </button>
+
+            <span id="task-date-day-label" class="text-xs font-semibold text-slate-700 font-mono px-3 py-2 rounded-lg bg-white border border-slate-200 shadow-sm flex-shrink-0">Hari Ini</span>
           </div>
 
           <!-- Dynamic helper notice for single date -->
@@ -1182,8 +1268,8 @@
           </div>
         </div>
 
-        <!-- 5. Visual Jadwal 24 Jam (CLICKABLE DIRECTLY WITH ZOOM & PRECISION AM/PM) -->
-        <div id="timeline-card-container" class="space-y-2 bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-3.5 transition-all">
+        <!-- 5. Visual Jadwal 24 Jam (CLICKABLE DIRECTLY WITH ZOOM & PRECISION AM/PM & ENLARGEABLE CARD) -->
+        <div id="timeline-card-container" class="space-y-2.5 bg-slate-50 border border-slate-200 rounded-xl p-3 sm:p-3.5 transition-all">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono">
             <div class="flex items-center gap-2 min-w-0">
               <span id="collision-date-label" class="text-slate-700 font-bold truncate">Peta Waktu 24 Jam:</span>
@@ -1193,16 +1279,61 @@
               </span>
             </div>
             
-            <!-- Zoom & Scale Controls for Timeline Card -->
-            <div class="flex items-center gap-1 flex-shrink-0">
-              <span class="text-[10px] text-slate-500 font-sans mr-0.5">Skala:</span>
-              <button type="button" onclick="window.app.setTimelineZoom('fit')" id="btn-zoom-fit" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-600 text-white shadow-2xs transition-colors cursor-pointer" title="Tampilan Pas Lebar Normal">Normal</button>
-              <button type="button" onclick="window.app.setTimelineZoom('2x')" id="btn-zoom-2x" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer" title="Perbesar 2x Lebar dengan Geser Horizontal">2x Lebar</button>
-              <button type="button" onclick="window.app.setTimelineZoom('3x')" id="btn-zoom-3x" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 transition-colors cursor-pointer" title="Detail Presisi Tinggi 3x Lebar">3x Presisi</button>
-              <button type="button" onclick="window.app.scrollToCurrentTaskTime()" class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer ml-0.5" title="Geser ke Jam Agenda">
-                Ke Jam
+            <!-- Card Controls: Expand & Scale -->
+            <div class="flex items-center gap-1.5 flex-wrap sm:flex-nowrap flex-shrink-0">
+              <!-- Expand / Shrink Card Button -->
+              <button type="button" id="btn-toggle-expand-card" onclick="window.app.toggleTimelineCardExpand()" 
+                class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 transition-all cursor-pointer flex items-center gap-1 shadow-2xs">
+                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                <span>Perbesar Peta</span>
               </button>
+
+              <div class="flex items-center gap-1 bg-white border border-slate-200 rounded-md p-0.5">
+                <span class="text-[9px] text-slate-400 font-sans px-1">Skala:</span>
+                <button type="button" onclick="window.app.setTimelineZoom('fit')" id="btn-zoom-fit" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-600 text-white shadow-2xs transition-colors cursor-pointer" title="Tampilan Pas Lebar Normal">Normal</button>
+                <button type="button" onclick="window.app.setTimelineZoom('2x')" id="btn-zoom-2x" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-white text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Perbesar 2x Lebar dengan Geser Horizontal">2x</button>
+                <button type="button" onclick="window.app.setTimelineZoom('3x')" id="btn-zoom-3x" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-white text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="Detail Presisi Tinggi 3x Lebar">3x</button>
+                <button type="button" onclick="window.app.scrollToCurrentTaskTime()" class="px-1.5 py-0.5 rounded text-[10px] font-medium text-slate-600 hover:text-slate-900 cursor-pointer" title="Geser ke Jam Agenda">
+                  Ke Jam
+                </button>
+              </div>
             </div>
+          </div>
+
+          <!-- Live Selected Time & Duration Summary -->
+          <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-indigo-50/70 border border-indigo-100 text-xs">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[11px] font-mono text-slate-600">Pilihan Waktu Agenda:</span>
+              <span id="timeline-selected-time-badge" class="font-bold text-indigo-800 font-mono text-xs sm:text-sm">09:00 - 10:30 WIB</span>
+              <span id="timeline-selected-duration-badge" class="font-bold text-indigo-600 font-mono text-xs">(1 Jam 30 Menit)</span>
+            </div>
+            <span class="text-[10px] font-mono text-slate-400 hidden sm:inline">Klik bar atau pilih durasi di bawah</span>
+          </div>
+
+          <!-- 1-Click Durasi Cepat Pills -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <span class="text-[10px] font-mono text-slate-500 font-medium mr-0.5">Durasi 1-Klik:</span>
+            <button type="button" data-mins="15" onclick="window.app.setTaskDurationMinutes(15)" class="duration-pill px-2 py-1 rounded-md text-[10px] font-medium bg-white text-slate-700 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-all shadow-2xs">15m</button>
+            <button type="button" data-mins="30" onclick="window.app.setTaskDurationMinutes(30)" class="duration-pill px-2 py-1 rounded-md text-[10px] font-medium bg-white text-slate-700 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-all shadow-2xs">30m</button>
+            <button type="button" data-mins="45" onclick="window.app.setTaskDurationMinutes(45)" class="duration-pill px-2 py-1 rounded-md text-[10px] font-medium bg-white text-slate-700 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-all shadow-2xs">45m</button>
+            <button type="button" data-mins="60" onclick="window.app.setTaskDurationMinutes(60)" class="duration-pill px-2 py-1 rounded-md text-[10px] font-medium bg-white text-slate-700 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-all shadow-2xs">1 Jam</button>
+            <button type="button" data-mins="90" onclick="window.app.setTaskDurationMinutes(90)" class="duration-pill px-2 py-1 rounded-md text-[10px] font-medium bg-white text-slate-700 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-all shadow-2xs">1.5 Jam</button>
+            <button type="button" data-mins="120" onclick="window.app.setTaskDurationMinutes(120)" class="duration-pill px-2 py-1 rounded-md text-[10px] font-medium bg-white text-slate-700 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-all shadow-2xs">2 Jam</button>
+            <button type="button" data-mins="180" onclick="window.app.setTaskDurationMinutes(180)" class="duration-pill px-2 py-1 rounded-md text-[10px] font-medium bg-white text-slate-700 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-all shadow-2xs">3 Jam</button>
+            <button type="button" data-mins="240" onclick="window.app.setTaskDurationMinutes(240)" class="duration-pill px-2 py-1 rounded-md text-[10px] font-medium bg-white text-slate-700 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 cursor-pointer transition-all shadow-2xs">4 Jam</button>
+          </div>
+
+          <!-- 1-Click Jam Mulai Populer Presets -->
+          <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+            <span class="text-[10px] font-mono text-slate-500 font-medium mr-0.5">Mulai Cepat:</span>
+            <button type="button" onclick="window.app.setTaskStartTimePreset('08:00')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 cursor-pointer transition-colors shadow-2xs">08:00 Pagi</button>
+            <button type="button" onclick="window.app.setTaskStartTimePreset('09:00')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 cursor-pointer transition-colors shadow-2xs">09:00</button>
+            <button type="button" onclick="window.app.setTaskStartTimePreset('10:00')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 cursor-pointer transition-colors shadow-2xs">10:00</button>
+            <button type="button" onclick="window.app.setTaskStartTimePreset('13:00')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 cursor-pointer transition-colors shadow-2xs">13:00 Siang</button>
+            <button type="button" onclick="window.app.setTaskStartTimePreset('14:00')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 cursor-pointer transition-colors shadow-2xs">14:00</button>
+            <button type="button" onclick="window.app.setTaskStartTimePreset('16:00')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 cursor-pointer transition-colors shadow-2xs">16:00 Sore</button>
+            <button type="button" onclick="window.app.setTaskStartTimePreset('19:30')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 cursor-pointer transition-colors shadow-2xs">19:30 Malam</button>
+            <button type="button" onclick="window.app.setTaskStartTimePreset('21:00')" class="px-2 py-0.5 rounded text-[10px] font-medium bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-800 border border-slate-200 cursor-pointer transition-colors shadow-2xs">21:00</button>
           </div>
 
           <!-- Scrollable Viewport Wrapper -->
@@ -1305,7 +1436,12 @@
 
           <div id="custom-end-date-row" class="hidden">
             <label class="block text-[11px] font-medium text-slate-600 mb-1">Tanggal Batas Akhir:</label>
-            <input type="date" id="task-valid-until" class="bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 font-mono focus:outline-none focus:border-indigo-600 shadow-sm">
+            <input type="hidden" id="task-valid-until" value="">
+            <button type="button" onclick="window.app.openCustomDatePicker('task-valid-until')" 
+              class="w-full flex items-center justify-between bg-white hover:bg-slate-50 border border-slate-300 hover:border-indigo-500 rounded-lg px-3 py-2 text-xs text-slate-800 font-mono shadow-sm transition-all cursor-pointer">
+              <span id="task-valid-until-display">Pilih Tanggal Batas Akhir...</span>
+              <span class="text-[10px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded">Kalender Indo</span>
+            </button>
           </div>
         </div>
 
