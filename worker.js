@@ -607,6 +607,37 @@ Salam hormat,
     });
   }
 
+  // 7b. Test Upcoming Task WhatsApp Reminder
+  if (path === "/api/test-upcoming-reminder" && method === "POST") {
+    const phone = "6288971071138";
+    const testMsg = 
+`Halo Pak Ilham Pradani, S.H., mohon izin menyampaikan pengingat agenda kerja Bapak:
+
+[PENGINGAT AGENDA]: *Uji Coba Pengingat Agenda Eksekutif*
+[JADWAL]: *09:00 - 10:30 WIB*
+[CATATAN]: "Pengingat otomatis dari Web Productivity"
+
+Agenda kerja dijadwalkan dimulai dalam 10 menit ke depan. Pengingat otomatis terverifikasi aktif dari web.
+Dashboard: https://productivity.ilhampradani.me
+
+Salam hormat,
+*Aura Desk*`;
+
+    const notifId = "wa-test-" + Date.now();
+    await db.prepare(`
+      INSERT INTO notification_queue (id, phone, message, type, status, created_at)
+      VALUES (?, ?, ?, 'Uji Coba Pengingat Agenda', 'pending', datetime('now'))
+    `).bind(notifId, phone, testMsg).run();
+
+    return jsonResponse({
+      success: true,
+      queued: true,
+      notifId,
+      phone,
+      message: "Uji coba pengingat agenda berhasil masuk antrean Cloudflare D1"
+    });
+  }
+
   // 8. Polling Antrean Notifikasi (Khusus Host UTM)
   if (path === "/api/notifications/pending" && method === "GET") {
     const { results } = await db.prepare(

@@ -60,6 +60,11 @@ const DEFAULT_SYSTEM_DATA = {
   notifications: {
     enabled: true,
     targetPhone: "6288971071138",
+    upcomingTaskAlert: {
+      enabled: true,
+      remindMinutes: 10,
+      remindOnStart: true
+    },
     morningBriefing: {
       enabled: true,
       time: "07:00"
@@ -503,6 +508,8 @@ class ProductivityApp {
     if (!this.editingTaskId) {
       this.setTaskScheduleMode("once");
       this.renderLabelDropdowns();
+      const waRemEl = document.getElementById("task-wa-reminder");
+      if (waRemEl) waRemEl.checked = true;
     }
     const input = document.getElementById("task-target-date");
     if (input) {
@@ -3531,6 +3538,17 @@ Semoga hari Bapak selalu lancar!
         }
       }
 
+      // WhatsApp Reminder Badge
+      let waBadgeHtml = "";
+      if (task.waReminder !== false && !this.isSleepTask(task)) {
+        waBadgeHtml = `
+          <span class="inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200" title="Pengingat WhatsApp Otomatis Aktif">
+            <svg class="w-2.5 h-2.5 fill-current text-emerald-600" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.173.086.274.072.376-.043.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
+            <span>WA Aktif</span>
+          </span>
+        `;
+      }
+
       return `
         <div id="daily-card-${task.id}" 
              draggable="true" 
@@ -3599,6 +3617,7 @@ Semoga hari Bapak selalu lancar!
               <div class="flex items-center gap-1.5 flex-wrap mb-0.5 sm:mb-1">
                 ${recurrenceBadge}
                 ${labelBadgeHtml}
+                ${waBadgeHtml}
                 ${cancelBadgeHtml}
                 ${missedBadgeHtml}
               </div>
@@ -3830,6 +3849,7 @@ Semoga hari Bapak selalu lancar!
         task.validUntil = formData.validUntil || "";
         task.note = formData.note ? formData.note.trim() : "";
         task.label = formData.label ? formData.label.trim() : "";
+        task.waReminder = formData.waReminder !== false;
       }
       this.editingTaskId = null;
       const submitTextEl = document.getElementById("btn-save-task-text");
@@ -3848,6 +3868,9 @@ Semoga hari Bapak selalu lancar!
         title: formData.title.trim(),
         note: formData.note ? formData.note.trim() : "",
         label: formData.label ? formData.label.trim() : "",
+        waReminder: formData.waReminder !== false,
+        upcomingAlertSentDates: [],
+        startAlertSentDates: [],
         recurrence: formData.recurrence || "none",
         validityType: formData.validityType || "until_completed",
         validUntil: formData.validUntil || "",
@@ -3920,6 +3943,8 @@ Semoga hari Bapak selalu lancar!
     }
     if (noteEl) noteEl.value = task.note || "";
     this.renderLabelDropdowns(task.label || "");
+    const waRemEl = document.getElementById("task-wa-reminder");
+    if (waRemEl) waRemEl.checked = (task.waReminder !== false);
 
     if (submitTextEl) {
       submitTextEl.innerHTML = `${ICONS.save} <span>Simpan Perubahan Agenda</span>`;
@@ -3938,6 +3963,8 @@ Semoga hari Bapak selalu lancar!
     const cancelBtn = document.getElementById("btn-cancel-edit");
     if (submitTextEl) submitTextEl.textContent = "+ Simpan ke Jadwal";
     if (cancelBtn) cancelBtn.classList.add("hidden");
+    const waRemEl = document.getElementById("task-wa-reminder");
+    if (waRemEl) waRemEl.checked = true;
     
     const targetDateEl = document.getElementById("task-target-date");
     if (targetDateEl) {
@@ -5179,6 +5206,9 @@ Semoga hari Bapak selalu lancar!
   renderNotificationsView() {
     const notif = this.data.notifications || DEFAULT_SYSTEM_DATA.notifications;
     const phoneEl = document.getElementById("notif-target-phone");
+    const upcomingEnabledEl = document.getElementById("notif-upcoming-enabled");
+    const upcomingMinsEl = document.getElementById("notif-upcoming-minutes");
+    const upcomingOnStartEl = document.getElementById("notif-upcoming-on-start");
     const morningTimeEl = document.getElementById("notif-morning-time");
     const morningCheckEl = document.getElementById("notif-morning-enabled");
     const eveningTimeEl = document.getElementById("notif-evening-time");
@@ -5189,6 +5219,19 @@ Semoga hari Bapak selalu lancar!
     if (phoneEl) {
       phoneEl.value = notif.targetPhone || "6288971071138";
       phoneEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
+    if (upcomingEnabledEl) {
+      upcomingEnabledEl.checked = !(notif.upcomingTaskAlert && notif.upcomingTaskAlert.enabled === false);
+      upcomingEnabledEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
+    if (upcomingMinsEl) {
+      upcomingMinsEl.value = (notif.upcomingTaskAlert && notif.upcomingTaskAlert.remindMinutes !== undefined)
+        ? String(notif.upcomingTaskAlert.remindMinutes) : "10";
+      upcomingMinsEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
+    if (upcomingOnStartEl) {
+      upcomingOnStartEl.checked = !(notif.upcomingTaskAlert && notif.upcomingTaskAlert.remindOnStart === false);
+      upcomingOnStartEl.onchange = () => this.autoSaveNotificationSettings(true);
     }
     if (morningTimeEl) {
       morningTimeEl.value = (notif.morningBriefing && notif.morningBriefing.time) || "07:00";
@@ -5354,17 +5397,24 @@ Semoga hari Bapak selalu lancar!
     if (!this.data.notifications) this.data.notifications = {};
     const notif = this.data.notifications;
     const phoneEl = document.getElementById("notif-target-phone");
+    const upcomingEnabledEl = document.getElementById("notif-upcoming-enabled");
+    const upcomingMinsEl = document.getElementById("notif-upcoming-minutes");
+    const upcomingOnStartEl = document.getElementById("notif-upcoming-on-start");
     const morningTimeEl = document.getElementById("notif-morning-time");
     const morningCheckEl = document.getElementById("notif-morning-enabled");
     const eveningTimeEl = document.getElementById("notif-evening-time");
     const eveningCheckEl = document.getElementById("notif-evening-enabled");
     const missedCheckEl = document.getElementById("notif-missed-enabled");
 
+    if (!notif.upcomingTaskAlert) notif.upcomingTaskAlert = {};
     if (!notif.morningBriefing) notif.morningBriefing = {};
     if (!notif.eveningRecap) notif.eveningRecap = {};
     if (!notif.missedTaskAlert) notif.missedTaskAlert = {};
 
     if (phoneEl) notif.targetPhone = phoneEl.value.replace(/[^0-9]/g, '');
+    if (upcomingEnabledEl) notif.upcomingTaskAlert.enabled = upcomingEnabledEl.checked;
+    if (upcomingMinsEl) notif.upcomingTaskAlert.remindMinutes = parseInt(upcomingMinsEl.value, 10) || 10;
+    if (upcomingOnStartEl) notif.upcomingTaskAlert.remindOnStart = upcomingOnStartEl.checked;
     if (morningTimeEl) notif.morningBriefing.time = morningTimeEl.value;
     if (morningCheckEl) notif.morningBriefing.enabled = morningCheckEl.checked;
     if (eveningTimeEl) notif.eveningRecap.time = eveningTimeEl.value;
@@ -5386,6 +5436,30 @@ Semoga hari Bapak selalu lancar!
 
   async saveNotificationSettings() {
     await this.autoSaveNotificationSettings(false);
+  }
+
+  async sendTestUpcomingTaskWA() {
+    const phone = this.data.notifications?.targetPhone || "6288971071138";
+    const tasks = this.getTasksForDate(this.selectedDate);
+    const activeTask = tasks.find(t => !t.isDone && !t.isCancelled && !this.isSleepTask(t)) || tasks[0];
+
+    const taskTitle = activeTask ? activeTask.title : "Uji Coba Pengingat Agenda Eksekutif";
+    const timeRange = activeTask && activeTask.timeStart ? `${activeTask.timeStart} - ${activeTask.timeEnd || 'Selesai'} WIB` : "09:00 - 10:30 WIB";
+    const note = activeTask && activeTask.note ? activeTask.note : "Pengingat otomatis dari Web Productivity";
+
+    const message = 
+`Halo Pak ${this.data.profile.name}, mohon izin menyampaikan pengingat agenda kerja Bapak:
+
+[PENGINGAT AGENDA]: *${taskTitle}*
+[JADWAL]: *${timeRange}*
+${note ? `[CATATAN]: "${note}"\n` : ''}
+Agenda kerja dijadwalkan dimulai dalam 10 menit ke depan. Pengingat otomatis terverifikasi aktif dari web.
+Dashboard: https://productivity.ilhampradani.me
+
+Salam hormat,
+*Aura Desk*`;
+
+    await this.dispatchWAMessage(phone, message, "Uji Coba Pengingat Agenda", false);
   }
 
   async sendTestNotification() {
@@ -5686,6 +5760,8 @@ Salam hangat,
         const note = document.getElementById("task-note") ? document.getElementById("task-note").value : "";
         const labelSelect = document.getElementById("task-label-select");
         const label = labelSelect ? labelSelect.value : "";
+        const waRemEl = document.getElementById("task-wa-reminder");
+        const waReminder = waRemEl ? waRemEl.checked : true;
 
         this.addTask({
           date,
@@ -5699,7 +5775,8 @@ Salam hangat,
           validityType: validityPreset,
           validUntil,
           note,
-          label
+          label,
+          waReminder
         });
 
         if (document.getElementById("task-title")) document.getElementById("task-title").value = "";

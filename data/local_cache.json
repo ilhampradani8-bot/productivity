@@ -1,12 +1,17 @@
 {
   "profile": {
-    "name": "Ilham Pradani",
+    "name": "Ilham Pradani, S.H.",
     "role": "Founder & Tech Architect",
     "secretaryName": "Aura Executive Desk"
   },
   "notifications": {
     "enabled": true,
     "targetPhone": "6288971071138",
+    "upcomingTaskAlert": {
+      "enabled": true,
+      "remindMinutes": 10,
+      "remindOnStart": true
+    },
     "morningBriefing": {
       "enabled": true,
       "time": "07:00"

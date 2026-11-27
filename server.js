@@ -159,12 +159,53 @@ function getJakartaTimeInfo() {
   };
 }
 
-// Background Worker: Memeriksa agenda terlewat secara real-time 24/7 di server
+// Background Worker: Memeriksa agenda terlewat & pengingat mendatang secara real-time 24/7 di server
 function isSleepTask(task) {
   if (!task) return false;
   if (task.category === "istirahat" || task.isSleep === true) return true;
   const title = (task.title || "").toLowerCase();
   return /\b(tidur|istirahat|sleep|rest|pemulihan|recharge)\b/i.test(title);
+}
+
+function isTaskApplicableForDate(task, dateStr) {
+  if (!task) return false;
+  if (task.deletedDates && task.deletedDates.includes(dateStr)) return false;
+
+  if (!task.recurrence || task.recurrence === "none") {
+    return (task.date === dateStr);
+  }
+  if (dateStr < task.date) return false;
+  if (task.validUntil && dateStr > task.validUntil) return false;
+
+  if (task.recurrence === "daily") {
+    return true;
+  }
+  const parts = dateStr.split("-");
+  const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+
+  if (task.recurrence === "weekdays") {
+    return (dow >= 1 && dow <= 5);
+  }
+  if (task.recurrence === "weekends") {
+    return (dow === 0 || dow === 6);
+  }
+  if (task.recurrence === "weekly_sunday") return dow === 0;
+  if (task.recurrence === "weekly_monday") return dow === 1;
+  if (task.recurrence === "weekly_tuesday") return dow === 2;
+  if (task.recurrence === "weekly_wednesday") return dow === 3;
+  if (task.recurrence === "weekly_thursday") return dow === 4;
+  if (task.recurrence === "weekly_friday") return dow === 5;
+  if (task.recurrence === "weekly_saturday") return dow === 6;
+
+  if (task.recurrence === "weekly_day") {
+    const p2 = task.date.split("-");
+    const dow2 = new Date(parseInt(p2[0], 10), parseInt(p2[1], 10) - 1, parseInt(p2[2], 10)).getDay();
+    return dow === dow2;
+  }
+  if (task.recurrence === "yearly") {
+    return (dateStr.slice(5) === task.date.slice(5));
+  }
+  return false;
 }
 
 async function checkServerMissedTasks() {
@@ -191,82 +232,7 @@ async function checkServerMissedTasks() {
     let hasUpdates = false;
 
     for (const task of localData.dailyTasks) {
-      if (task.deletedDates && task.deletedDates.includes(dateStr)) continue;
-
-      let applies = false;
-      if (!task.recurrence || task.recurrence === "none") {
-        applies = (task.date === dateStr);
-      } else if (task.recurrence === "daily") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) applies = true;
-      } else if (task.recurrence === "weekdays") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow >= 1 && dow <= 5) applies = true;
-        }
-      } else if (task.recurrence === "weekends") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow === 0 || dow === 6) applies = true;
-        }
-      } else if (task.recurrence === "weekly_sunday") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow === 0) applies = true;
-        }
-      } else if (task.recurrence === "weekly_monday") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow === 1) applies = true;
-        }
-      } else if (task.recurrence === "weekly_tuesday") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow === 2) applies = true;
-        }
-      } else if (task.recurrence === "weekly_wednesday") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow === 3) applies = true;
-        }
-      } else if (task.recurrence === "weekly_thursday") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow === 4) applies = true;
-        }
-      } else if (task.recurrence === "weekly_friday") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow === 5) applies = true;
-        }
-      } else if (task.recurrence === "weekly_saturday") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const parts = dateStr.split("-");
-          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
-          if (dow === 6) applies = true;
-        }
-      } else if (task.recurrence === "weekly_day") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          const p1 = dateStr.split("-");
-          const p2 = task.date.split("-");
-          const dow1 = new Date(parseInt(p1[0], 10), parseInt(p1[1], 10) - 1, parseInt(p1[2], 10)).getDay();
-          const dow2 = new Date(parseInt(p2[0], 10), parseInt(p2[1], 10) - 1, parseInt(p2[2], 10)).getDay();
-          if (dow1 === dow2) applies = true;
-        }
-      } else if (task.recurrence === "yearly") {
-        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
-          applies = (dateStr.slice(5) === task.date.slice(5));
-        }
-      }
-
-      if (!applies) continue;
+      if (!isTaskApplicableForDate(task, dateStr)) continue;
 
       let isDone = (task.status === "done");
       let isCancelled = (task.status === "cancelled");
@@ -295,7 +261,7 @@ async function checkServerMissedTasks() {
         hasUpdates = true;
 
         const message = 
-`Halo Pak Ilham Pradani, mohon izin menginfokan ya Pak 🙏
+`Halo Pak Ilham Pradani, S.H., mohon izin menginfokan ya Pak.
 
 Jadwal Bapak *"${task.title}"* yang dialokasikan pukul *${task.timeStart} - ${task.timeEnd} WIB* sepertinya sudah berakhir.
 
@@ -320,9 +286,178 @@ Semoga hari Bapak selalu produktif!
   }
 }
 
+// Background Worker: Memeriksa agenda mendatang & saat mulai untuk dikirimkan ke WhatsApp secara real-time
+async function checkServerUpcomingTaskReminders() {
+  try {
+    const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+    if (!fs.existsSync(cacheFile)) return;
+
+    let localData = null;
+    try {
+      localData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+    } catch (e) {
+      return;
+    }
+
+    if (!localData || !localData.dailyTasks) return;
+    const notifSettings = localData.notifications || {};
+    const upcomingSettings = notifSettings.upcomingTaskAlert || { enabled: true, remindMinutes: 10, remindOnStart: true };
+    if (upcomingSettings.enabled === false) return;
+
+    const targetPhone = notifSettings.targetPhone || TARGET_PHONE;
+    const { dateStr, currentMins } = getJakartaTimeInfo();
+    const remindMins = parseInt(upcomingSettings.remindMinutes, 10) || 10;
+    const remindOnStart = upcomingSettings.remindOnStart !== false;
+
+    let hasUpdates = false;
+
+    for (const task of localData.dailyTasks) {
+      if (!isTaskApplicableForDate(task, dateStr)) continue;
+
+      let isDone = (task.status === "done");
+      let isCancelled = (task.status === "cancelled");
+      if (task.recurrence && task.recurrence !== "none") {
+        isDone = task.completedDates && task.completedDates.includes(dateStr);
+        isCancelled = task.cancelledDates && task.cancelledDates.includes(dateStr);
+      }
+
+      if (isDone || isCancelled || isSleepTask(task)) continue;
+      if (task.waReminder === false) continue;
+
+      // Sesi 1
+      if (task.timeStart) {
+        const startMins = timeToMins(task.timeStart);
+        if (startMins > 0) {
+          // 1. Pengingat Mendatang (Ahead of time, e.g. 10 menit sebelum mulai)
+          if (remindMins > 0 && currentMins >= (startMins - remindMins) && currentMins < startMins) {
+            const key = `${dateStr}_s1`;
+            if (!task.upcomingAlertSentDates) task.upcomingAlertSentDates = [];
+            if (!task.upcomingAlertSentDates.includes(key)) {
+              task.upcomingAlertSentDates.push(key);
+              hasUpdates = true;
+
+              const timeRange = `${task.timeStart} - ${task.timeEnd || 'Selesai'} WIB`;
+              const msg = 
+`Halo Pak Ilham Pradani, S.H., mohon izin menyampaikan pengingat agenda kerja Bapak:
+
+[PENGINGAT AGENDA]: *${task.title}*
+[JADWAL]: *${timeRange}*
+${task.note ? `[CATATAN]: "${task.note}"\n` : ''}
+Agenda kerja dijadwalkan dimulai dalam ${remindMins} menit ke depan. Silakan mempersiapkan aktivitas Bapak.
+Dashboard: https://productivity.ilhampradani.me
+
+Salam hormat,
+*Aura Desk*`;
+
+              console.log(`[Upcoming Reminder] Mengirim pengingat agenda ke ${targetPhone}: "${task.title}"`);
+              await sendWhatsAppMessage(targetPhone, msg);
+              break;
+            }
+          }
+
+          // 2. Pengingat Tepat Saat Dimulai (Menit 00 sampai +5 menit)
+          if (remindOnStart && currentMins >= startMins && currentMins <= startMins + 5) {
+            const key = `${dateStr}_s1`;
+            if (!task.startAlertSentDates) task.startAlertSentDates = [];
+            if (!task.startAlertSentDates.includes(key)) {
+              task.startAlertSentDates.push(key);
+              hasUpdates = true;
+
+              const timeRange = `${task.timeStart} - ${task.timeEnd || 'Selesai'} WIB`;
+              const msg = 
+`Halo Pak Ilham Pradani, S.H., agenda kerja Bapak telah dimulai:
+
+[AGENDA AKTIF]: *${task.title}*
+[ALOKASI]: *${timeRange}*
+${task.note ? `[CATATAN]: "${task.note}"\n` : ''}
+Selamat beraktivitas Pak Ilham. Apabila agenda telah selesai dilaksanakan, jangan lupa dicoret di dashboard web ya Pak.
+Dashboard: https://productivity.ilhampradani.me
+
+Salam hormat,
+*Aura Desk*`;
+
+              console.log(`[Start Reminder] Mengirim notifikasi mulai ke ${targetPhone}: "${task.title}"`);
+              await sendWhatsAppMessage(targetPhone, msg);
+              break;
+            }
+          }
+        }
+      }
+
+      // Sesi 2 (jika ada)
+      if (task.hasSecondSession && task.session2Start) {
+        const s2StartMins = timeToMins(task.session2Start);
+        if (s2StartMins > 0) {
+          if (remindMins > 0 && currentMins >= (s2StartMins - remindMins) && currentMins < s2StartMins) {
+            const key = `${dateStr}_s2`;
+            if (!task.upcomingAlertSentDates) task.upcomingAlertSentDates = [];
+            if (!task.upcomingAlertSentDates.includes(key)) {
+              task.upcomingAlertSentDates.push(key);
+              hasUpdates = true;
+
+              const timeRange = `${task.session2Start} - ${task.session2End || 'Selesai'} WIB`;
+              const msg = 
+`Halo Pak Ilham Pradani, S.H., pengingat agenda sesi malam Bapak:
+
+[PENGINGAT SESI 2]: *${task.title}*
+[JADWAL]: *${timeRange}*
+${task.note ? `[CATATAN]: "${task.note}"\n` : ''}
+Sesi malam dijadwalkan dimulai dalam ${remindMins} menit ke depan.
+Dashboard: https://productivity.ilhampradani.me
+
+Salam hormat,
+*Aura Desk*`;
+
+              console.log(`[Upcoming Reminder S2] Mengirim pengingat ke ${targetPhone}: "${task.title}"`);
+              await sendWhatsAppMessage(targetPhone, msg);
+              break;
+            }
+          }
+
+          if (remindOnStart && currentMins >= s2StartMins && currentMins <= s2StartMins + 5) {
+            const key = `${dateStr}_s2`;
+            if (!task.startAlertSentDates) task.startAlertSentDates = [];
+            if (!task.startAlertSentDates.includes(key)) {
+              task.startAlertSentDates.push(key);
+              hasUpdates = true;
+
+              const timeRange = `${task.session2Start} - ${task.session2End || 'Selesai'} WIB`;
+              const msg = 
+`Halo Pak Ilham Pradani, S.H., agenda kerja sesi malam telah dimulai:
+
+[SESI 2 AKTIF]: *${task.title}*
+[ALOKASI]: *${timeRange}*
+${task.note ? `[CATATAN]: "${task.note}"\n` : ''}
+Selamat menyelesaikan agenda malam Pak Ilham.
+Dashboard: https://productivity.ilhampradani.me
+
+Salam hormat,
+*Aura Desk*`;
+
+              console.log(`[Start Reminder S2] Mengirim notifikasi mulai ke ${targetPhone}: "${task.title}"`);
+              await sendWhatsAppMessage(targetPhone, msg);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (hasUpdates) {
+      fs.writeFileSync(cacheFile, JSON.stringify(localData, null, 2), 'utf8');
+    }
+  } catch (err) {
+    console.error('[Upcoming Reminder Error]:', err.message);
+  }
+}
+
 // Jalankan scheduler agenda terlewat setiap 30 detik (24/7 di background)
 setInterval(checkServerMissedTasks, 30000);
 setTimeout(checkServerMissedTasks, 2000);
+
+// Jalankan scheduler pengingat agenda mendatang setiap 30 detik (24/7 di background)
+setInterval(checkServerUpcomingTaskReminders, 30000);
+setTimeout(checkServerUpcomingTaskReminders, 5000);
 
 const server = http.createServer(async (req, res) => {
   // CORS Headers
@@ -367,6 +502,27 @@ const server = http.createServer(async (req, res) => {
         }
 
         const botData = await sendWhatsAppMessage(phone, message);
+        if (botData && botData.success) {
+          const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+          if (fs.existsSync(cacheFile)) {
+            try {
+              const localData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+              if (!localData.notifications) localData.notifications = {};
+              if (!localData.notifications.logs) localData.notifications.logs = [];
+              const now = new Date();
+              const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+              localData.notifications.logs.unshift({
+                id: "log-" + Date.now(),
+                time: timeStr,
+                type: parsed.type || "Notifikasi WhatsApp",
+                status: "Terkirim",
+                phone: phone
+              });
+              if (localData.notifications.logs.length > 30) localData.notifications.logs.pop();
+              fs.writeFileSync(cacheFile, JSON.stringify(localData, null, 2), 'utf8');
+            } catch (e) {}
+          }
+        }
         res.writeHead(botData.success ? 200 : 500, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify(botData));
       } catch (err) {
@@ -375,6 +531,48 @@ const server = http.createServer(async (req, res) => {
       }
     });
     return;
+  }
+
+  // API: Uji Coba Pengingat Agenda Mendatang ke WhatsApp
+  if (pathname === '/api/test-upcoming-reminder' && req.method === 'POST') {
+    try {
+      const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+      let sampleTask = { title: "Uji Coba Pengingat Agenda Eksekutif", timeStart: "09:00", timeEnd: "10:30", note: "Pengingat otomatis dari Web Productivity" };
+      let targetPhone = TARGET_PHONE;
+
+      if (fs.existsSync(cacheFile)) {
+        try {
+          const localData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+          if (localData.notifications && localData.notifications.targetPhone) {
+            targetPhone = localData.notifications.targetPhone;
+          }
+          if (localData.dailyTasks && localData.dailyTasks.length > 0) {
+            const found = localData.dailyTasks.find(t => t.status !== 'done' && t.status !== 'cancelled' && !isSleepTask(t));
+            if (found) sampleTask = found;
+          }
+        } catch (e) {}
+      }
+
+      const timeRange = `${sampleTask.timeStart || '09:00'} - ${sampleTask.timeEnd || '10:00'} WIB`;
+      const testMsg = 
+`Halo Pak Ilham Pradani, S.H., mohon izin menyampaikan pengingat agenda kerja Bapak:
+
+[PENGINGAT AGENDA]: *${sampleTask.title}*
+[JADWAL]: *${timeRange}*
+${sampleTask.note ? `[CATATAN]: "${sampleTask.note}"\n` : ''}
+Agenda kerja dijadwalkan dimulai dalam 10 menit ke depan. Pengingat otomatis terverifikasi aktif dari web.
+Dashboard: https://productivity.ilhampradani.me
+
+Salam hormat,
+*Aura Desk*`;
+
+      const botData = await sendWhatsAppMessage(targetPhone, testMsg);
+      res.writeHead(botData.success ? 200 : 500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: botData.success, targetPhone, task: sampleTask.title, botResponse: botData }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: false, error: err.message }));
+    }
   }
 
   // API: Status Perangkat Alarm (Samsung Galaxy A10s via Cloud Heartbeat & ADB)
