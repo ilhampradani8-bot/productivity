@@ -504,12 +504,14 @@ class ProductivityApp {
       this.setTaskScheduleMode("once");
       this.renderLabelDropdowns();
     }
-    if (presetDate) {
-      const input = document.getElementById("task-target-date");
-      if (input) {
+    const input = document.getElementById("task-target-date");
+    if (input) {
+      if (presetDate) {
         input.value = presetDate;
-        this.onTaskDateChange();
+      } else if (!this.editingTaskId || !input.value) {
+        input.value = this.selectedDate || this.getTodayDateString();
       }
+      this.onTaskDateChange();
     }
     const titleInput = document.getElementById("task-title");
     if (titleInput) setTimeout(() => titleInput.focus(), 150);
@@ -815,26 +817,47 @@ class ProductivityApp {
     }
   }
 
+  formatIndonesianDateWithDay(dateStr) {
+    if (!dateStr) return { dayName: "", fullText: "", shortText: "" };
+    const parts = dateStr.split("-");
+    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const dayName = days[d.getDay()] || "";
+    const monthName = months[d.getMonth()] || "";
+    return {
+      dayName,
+      fullText: `${dayName}, ${d.getDate()} ${monthName} ${d.getFullYear()}`,
+      shortText: `${dayName}, ${d.getDate()} ${monthName.slice(0, 3)} ${d.getFullYear()}`
+    };
+  }
+
+  updateHeaderDateDisplay() {
+    const el = document.getElementById("header-date-day-display");
+    const dateInput = document.getElementById("date-input");
+    if (dateInput && dateInput.value !== this.selectedDate) {
+      dateInput.value = this.selectedDate;
+    }
+    if (el && this.selectedDate) {
+      const info = this.formatIndonesianDateWithDay(this.selectedDate);
+      el.textContent = info.fullText || this.selectedDate;
+    }
+  }
+
   onTaskDateChange() {
     const input = document.getElementById("task-target-date");
     if (!input || !input.value) return;
     const dateStr = input.value;
-    const parts = dateStr.split("-");
-    const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-
-    const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-    const dayName = days[d.getDay()];
-    const labelText = `${dayName}, ${d.getDate()} ${months[d.getMonth()]}`;
+    const info = this.formatIndonesianDateWithDay(dateStr);
 
     const badge = document.getElementById("task-date-day-label");
-    if (badge) badge.textContent = labelText;
+    if (badge) badge.textContent = info.fullText;
 
     const weeklyOpt = document.getElementById("task-recurrence-weekly-label");
-    if (weeklyOpt) weeklyOpt.textContent = `Setiap ${dayName} (Mingguan)`;
+    if (weeklyOpt) weeklyOpt.textContent = `Setiap ${info.dayName} (Mengikuti Tanggal Mulai)`;
 
     const colLabel = document.getElementById("collision-date-label");
-    if (colLabel) colLabel.textContent = `Peta Waktu 24 Jam (${dayName}, ${dateStr}):`;
+    if (colLabel) colLabel.textContent = `Peta Waktu 24 Jam (${info.dayName}, ${dateStr}):`;
 
     this.handleValidityPresetChange();
     this.checkTimeCollision();
@@ -2575,6 +2598,7 @@ Semoga hari Bapak selalu lancar!
 
   // ===================== DAILY VIEW =====================
   renderDailyView() {
+    this.updateHeaderDateDisplay();
     const list = document.getElementById("daily-task-container");
     if (!list) return;
 
@@ -4683,8 +4707,10 @@ Salam hangat,
     const dateInput = document.getElementById("date-input");
     if (dateInput) {
       dateInput.value = this.selectedDate;
+      this.updateHeaderDateDisplay();
       dateInput.addEventListener("change", (e) => {
         this.selectedDate = e.target.value;
+        this.updateHeaderDateDisplay();
         this.handleValidityPresetChange();
         this.render();
         this.checkTimeCollision();
@@ -4699,6 +4725,7 @@ Salam hangat,
       btnToday.addEventListener("click", () => {
         this.selectedDate = this.getTodayDateString();
         if (dateInput) dateInput.value = this.selectedDate;
+        this.updateHeaderDateDisplay();
         this.handleValidityPresetChange();
         this.render();
         this.checkTimeCollision();
@@ -4711,6 +4738,7 @@ Salam hangat,
         d.setDate(d.getDate() - 1);
         this.selectedDate = d.toISOString().split("T")[0];
         if (dateInput) dateInput.value = this.selectedDate;
+        this.updateHeaderDateDisplay();
         this.handleValidityPresetChange();
         this.render();
         this.checkTimeCollision();
@@ -4723,6 +4751,7 @@ Salam hangat,
         d.setDate(d.getDate() + 1);
         this.selectedDate = d.toISOString().split("T")[0];
         if (dateInput) dateInput.value = this.selectedDate;
+        this.updateHeaderDateDisplay();
         this.handleValidityPresetChange();
         this.render();
         this.checkTimeCollision();

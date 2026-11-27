@@ -273,6 +273,25 @@
   },
   "dailyTasks": [
     {
+      "id": "t-1795781221676",
+      "date": "2026-11-27",
+      "timeStart": "19:45",
+      "timeEnd": "20:45",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "Erp abmalaya",
+      "note": "perubahan pada impa codelogika yang di minta dan perbaikan dan pengujian bug untuk hari sabtu",
+      "label": "",
+      "recurrence": "none",
+      "validityType": "until_completed",
+      "validUntil": "",
+      "status": "todo",
+      "completedDates": [],
+      "deletedDates": [],
+      "updated_at": "2026-11-27T12:07:04.244Z"
+    },
+    {
       "id": "t-1",
       "date": "2026-11-26",
       "timeStart": "05:00",
