@@ -16,7 +16,7 @@
       "time": "21:00"
     },
     "missedTaskAlert": {
-      "enabled": false
+      "enabled": true
     },
     "logs": [
       {
@@ -289,7 +289,7 @@
       "status": "todo",
       "completedDates": [],
       "deletedDates": [],
-      "updated_at": "2026-11-27T13:49:02.055Z"
+      "updated_at": "2026-11-27T13:57:15.669Z"
     },
     {
       "id": "t-1795782808734",
@@ -559,8 +559,8 @@
     "online": true,
     "device": "Samsung Galaxy A10s (SM-A107F)",
     "battery": "88%",
-    "last_sync": "2026-11-27T13:45:07.808Z",
-    "timestamp": 1795787107808
+    "last_sync": "2026-11-27T13:56:33.522Z",
+    "timestamp": 1795787793522
   },
   "sync_signal": {
     "sync_at": "2026-11-27T12:56:32.847Z",

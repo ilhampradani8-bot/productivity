@@ -3983,33 +3983,164 @@ Semoga hari Bapak selalu lancar!
     this.pushToCloud();
   }
 
+  // ===================== RECURRING TASK DELETION & HISTORY PRESERVATION =====================
+  openDeleteTaskModal(taskId, targetDate) {
+    const task = this.data.dailyTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    this.deletingTaskId = taskId;
+    this.deletingTargetDate = targetDate;
+
+    const modal = document.getElementById("modal-delete-task");
+    const titleEl = document.getElementById("delete-modal-title");
+    const dateEl = document.getElementById("delete-modal-date");
+    const timeEl = document.getElementById("delete-modal-time");
+    const recBadge = document.getElementById("delete-modal-recurrence-badge");
+    const compBadge = document.getElementById("delete-modal-completed-badge");
+
+    const info = this.formatIndonesianDateWithDay(targetDate);
+    if (titleEl) titleEl.textContent = task.title;
+    if (dateEl) dateEl.textContent = `Tanggal: ${info.fullText || targetDate}`;
+    if (timeEl) timeEl.textContent = `${task.timeStart || ''} - ${task.timeEnd || ''} WIB`;
+
+    const recLabels = {
+      daily: "Setiap Hari (Senin - Minggu)",
+      weekdays: "Hari Kerja (Senin - Jumat)",
+      weekends: "Akhir Pekan (Sabtu & Minggu)",
+      weekly_monday: "Setiap Hari Senin",
+      weekly_tuesday: "Setiap Hari Selasa",
+      weekly_wednesday: "Setiap Hari Rabu",
+      weekly_thursday: "Setiap Hari Kamis",
+      weekly_friday: "Setiap Hari Jumat",
+      weekly_saturday: "Setiap Hari Sabtu",
+      weekly_sunday: "Setiap Hari Minggu",
+      weekly_day: "Mingguan",
+      yearly: "Setiap Tahun"
+    };
+    if (recBadge) recBadge.textContent = recLabels[task.recurrence] || "Agenda Berulang";
+
+    const compCount = (task.completedDates || []).length;
+    if (compBadge) {
+      if (compCount > 0) {
+        compBadge.textContent = `${compCount} Riwayat Telah Dicoret Selesai`;
+        compBadge.className = "px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-semibold";
+      } else {
+        compBadge.textContent = "Belum Ada Riwayat Selesai";
+        compBadge.className = "px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono font-medium";
+      }
+    }
+
+    if (modal) {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+  }
+
+  closeDeleteTaskModal() {
+    const modal = document.getElementById("modal-delete-task");
+    if (modal) {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+    this.deletingTaskId = null;
+    this.deletingTargetDate = null;
+  }
+
+  confirmDeleteRecurringFuture() {
+    if (!this.deletingTaskId) return;
+    this.stopRecurringAndPreserveHistory(this.deletingTaskId, this.deletingTargetDate);
+    this.closeDeleteTaskModal();
+  }
+
+  confirmDeleteSingleOccurrence() {
+    if (!this.deletingTaskId) return;
+    const task = this.data.dailyTasks.find(t => t.id === this.deletingTaskId);
+    if (task && this.deletingTargetDate) {
+      if (!task.deletedDates) task.deletedDates = [];
+      if (!task.deletedDates.includes(this.deletingTargetDate)) {
+        task.deletedDates.push(this.deletingTargetDate);
+      }
+      if (task.completedDates) {
+        task.completedDates = task.completedDates.filter(d => d !== this.deletingTargetDate);
+      }
+      this.saveData();
+      this.render();
+      this.checkTimeCollision();
+      this.pushToCloud();
+      this.showToast(`Agenda pada tanggal ${this.deletingTargetDate} telah dihapus`, "info");
+    }
+    this.closeDeleteTaskModal();
+  }
+
+  confirmDeleteRecurringAll() {
+    if (!this.deletingTaskId) return;
+    const taskId = this.deletingTaskId;
+    const task = this.data.dailyTasks.find(t => t.id === taskId);
+    const title = task ? task.title : "Agenda";
+
+    this.data.dailyTasks = this.data.dailyTasks.filter(t => t.id !== taskId && !t.id.startsWith(`${taskId}_done_`));
+    this.saveData();
+    this.render();
+    this.checkTimeCollision();
+    this.pushToCloud();
+    this.showToast(`Seluruh rangkaian agenda "${title}" berhasil dihapus bersih`, "info");
+    this.closeDeleteTaskModal();
+  }
+
+  stopRecurringAndPreserveHistory(taskId, targetDate) {
+    const task = this.data.dailyTasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    // 1. Kumpulkan seluruh tanggal yang sudah dicoret selesai
+    const completedDates = (task.completedDates || []).slice();
+    if (task.status === "done" && task.date && !completedDates.includes(task.date)) {
+      completedDates.push(task.date);
+    }
+
+    // 2. Konversikan setiap tanggal yang sudah dicoret menjadi agenda mandiri berstatus selesai
+    // agar riwayat masa lalu tetap 100% aman dan tidak terhapus
+    completedDates.forEach(dateStr => {
+      const existingDone = this.data.dailyTasks.find(t => t.id === `${task.id}_done_${dateStr}`);
+      if (!existingDone) {
+        this.data.dailyTasks.push({
+          ...task,
+          id: `${task.id}_done_${dateStr}`,
+          date: dateStr,
+          recurrence: "none",
+          validityType: "until_completed",
+          validUntil: "",
+          status: "done",
+          completedDates: [dateStr],
+          deletedDates: [],
+          note: task.note ? `${task.note} (Riwayat agenda selesai)` : `Riwayat agenda selesai`
+        });
+      }
+    });
+
+    // 3. Hapus jadwal berulang utama sehingga jadwal di masa depan dan jadwal yang belum dicoret hilang
+    this.data.dailyTasks = this.data.dailyTasks.filter(t => t.id !== taskId);
+
+    this.saveData();
+    this.render();
+    this.checkTimeCollision();
+    this.pushToCloud();
+    this.showToast(`Jadwal ke depan dihapus. ${completedDates.length} riwayat yang sudah dicoret tetap tersimpan aman!`, "success");
+  }
+
   deleteTask(id, targetDate) {
     const task = this.data.dailyTasks.find(item => item.id === id);
     if (!task) return;
 
     if (task.recurrence && task.recurrence !== "none") {
-      const choice = confirm(`Agenda "${task.title}" berulang.\n\nKlik OK untuk Hapus Hanya Hari Ini (${targetDate}).\nKlik CANCEL untuk opsi hapus permanen.`);
-      if (choice) {
-        if (!task.deletedDates) task.deletedDates = [];
-        if (!task.deletedDates.includes(targetDate)) task.deletedDates.push(targetDate);
-        this.saveData();
-        this.render();
-        this.checkTimeCollision();
-      } else {
-        const delAll = confirm(`Hapus SELURUH rangkaian perulangan agenda "${task.title}" secara permanen?`);
-        if (delAll) {
-          this.data.dailyTasks = this.data.dailyTasks.filter(item => item.id !== id);
-          this.saveData();
-          this.render();
-          this.checkTimeCollision();
-        }
-      }
+      this.openDeleteTaskModal(id, targetDate);
     } else {
       if (confirm(`Hapus agenda "${task.title}"?`)) {
         this.data.dailyTasks = this.data.dailyTasks.filter(item => item.id !== id);
         this.saveData();
         this.render();
         this.checkTimeCollision();
+        this.pushToCloud();
+        this.showToast("Agenda berhasil dihapus", "info");
       }
     }
   }
