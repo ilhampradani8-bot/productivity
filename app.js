@@ -452,6 +452,9 @@ class ProductivityApp {
   }
 
   presetSleepSchedule() {
+    const targetDate = this.selectedDate || this.getTodayDateString();
+    const dyn = this.calculateDynamicSleep(targetDate);
+
     this.openAddTaskModal();
     this.setTaskScheduleMode("recurring");
     const titleEl = document.getElementById("task-title");
@@ -461,17 +464,20 @@ class ProductivityApp {
     const noteEl = document.getElementById("task-note");
     const toggleS2 = document.getElementById("toggle-session2");
 
+    const startStr = this.minutesToTime(dyn.startMins);
+    const endStr = this.minutesToTime(dyn.endMins);
+
     if (titleEl) titleEl.value = "Waktu Istirahat & Tidur Eksekutif";
-    if (startEl) startEl.value = "23:00";
-    if (endEl) endEl.value = "05:00";
+    if (startEl) startEl.value = startStr;
+    if (endEl) endEl.value = endStr;
     if (recEl) recEl.value = "daily";
-    if (noteEl) noteEl.value = "Alokasi pemulihan energi fisik & kognitif eksekutif (Recovery block terencana).";
+    if (noteEl) noteEl.value = `Alokasi istirahat & pemulihan energi fisik/kognitif (${dyn.durationHours} Jam, fleksibel dapat ditimpa agenda kerja).`;
     if (toggleS2 && toggleS2.checked) {
       toggleS2.checked = false;
       this.toggleSession2UI();
     }
     this.checkTimeCollision();
-    this.showToast("Preset Waktu Tidur Eksekutif (23:00 - 05:00 WIB) berhasil dimuat!", "success");
+    this.showToast(`Waktu Tidur (${startStr} - ${endStr} WIB, ${dyn.durationHours} Jam) disesuaikan otomatis dari tugas terakhir!`, "success");
   }
 
   // ===================== TOAST NOTIFICATION =====================
@@ -1311,21 +1317,158 @@ Semoga hari Bapak selalu lancar!
     });
   }
 
+  // ===================== DYNAMIC AUTO-SLEEP RECOVERY ENGINE =====================
+  calculateDynamicSleep(targetDate) {
+    const DEFAULT_SLEEP = 360; // Standar 6 Jam
+    const tasks = this.getTasksForDate(targetDate).filter(t => !t.isCancelled && !this.isSleepTask(t));
+
+    if (!tasks || tasks.length === 0) {
+      return {
+        startMins: 1380, // 23:00
+        endMins: 300,    // 05:00
+        durationHours: 6,
+        durationMinutes: DEFAULT_SLEEP,
+        isOvernight: true,
+        isOverridden: false,
+        overrideReason: ""
+      };
+    }
+
+    let overnightEnd = null;
+    let overnightTitle = "";
+    let lateEveningEnd = null;
+    let lateEveningTitle = "";
+    let daytimeEnd = null;
+    let daytimeTitle = "";
+    let earliestMorningStart = null;
+    let earliestMorningTitle = "";
+
+    tasks.forEach(t => {
+      if (t.timeStart) {
+        const s = this.timeToMinutes(t.timeStart);
+        let e = this.timeToMinutes(t.timeEnd || t.timeStart);
+
+        // Cari agenda pagi/subuh pertama (07:00 - 12:00)
+        if (s >= 420 && s <= 720) {
+          if (earliestMorningStart === null || s < earliestMorningStart) {
+            earliestMorningStart = s;
+            earliestMorningTitle = t.title;
+          }
+        }
+
+        if (e < s) {
+          // Agenda lintas tengah malam (misal 23:00 - 04:30)
+          if (overnightEnd === null || e > overnightEnd) {
+            overnightEnd = e;
+            overnightTitle = t.title;
+          }
+        } else if (s < 420 && e <= 450) {
+          // Agenda subuh dini hari (misal 01:00 - 04:30)
+          if (overnightEnd === null || e > overnightEnd) {
+            overnightEnd = e;
+            overnightTitle = t.title;
+          }
+        } else if (e >= 1200) {
+          // Agenda malam (20:00 - 24:00)
+          if (lateEveningEnd === null || e > lateEveningEnd) {
+            lateEveningEnd = e;
+            lateEveningTitle = t.title;
+          }
+        } else {
+          // Agenda siang/sore (selesai sebelum 20:00)
+          if (daytimeEnd === null || e > daytimeEnd) {
+            daytimeEnd = e;
+            daytimeTitle = t.title;
+          }
+        }
+      }
+
+      if (t.hasSecondSession && t.session2Start) {
+        const s2 = this.timeToMinutes(t.session2Start);
+        let e2 = this.timeToMinutes(t.session2End || t.session2Start);
+        if (e2 >= 1200) {
+          if (lateEveningEnd === null || e2 > lateEveningEnd) {
+            lateEveningEnd = e2;
+            lateEveningTitle = `${t.title} (Sesi 2)`;
+          }
+        }
+      }
+    });
+
+    let sleepStart = 1380; // Default 23:00
+    let isOverridden = false;
+    let overrideReason = "";
+    let actualDuration = DEFAULT_SLEEP;
+    let nominalEnd = (sleepStart + DEFAULT_SLEEP) % 1440;
+
+    if (overnightEnd !== null) {
+      // Selesai subuh! Tidur langsung mulai setelah tugas subuh/lintas malam ini selesai
+      sleepStart = overnightEnd;
+      nominalEnd = (sleepStart + DEFAULT_SLEEP) % 1440;
+
+      const morningTarget = earliestMorningStart !== null ? earliestMorningStart : 450; // default 07:30
+      if (morningTarget > sleepStart) {
+        const gap = morningTarget - sleepStart;
+        if (gap < DEFAULT_SLEEP) {
+          actualDuration = Math.max(60, gap); // minimal 1 jam jika mepet
+          nominalEnd = morningTarget;
+          isOverridden = true;
+          const hr = (actualDuration / 60).toFixed(1).replace(".0", "");
+          overrideReason = `Ditimpa agenda "${earliestMorningTitle || 'Pagi'}" (${hr} jam)`;
+        }
+      }
+    } else if (lateEveningEnd !== null) {
+      // Selesai malam (misal 21:30 atau 23:30)
+      sleepStart = lateEveningEnd;
+      nominalEnd = (sleepStart + DEFAULT_SLEEP) % 1440;
+
+      const morningTarget = earliestMorningStart !== null ? earliestMorningStart : 450;
+      const totalAvailable = (1440 - sleepStart) + morningTarget;
+      if (totalAvailable < DEFAULT_SLEEP) {
+        actualDuration = Math.max(60, totalAvailable);
+        nominalEnd = morningTarget;
+        isOverridden = true;
+        const hr = (actualDuration / 60).toFixed(1).replace(".0", "");
+        overrideReason = `Ditimpa agenda "${earliestMorningTitle || 'Pagi'}" (${hr} jam)`;
+      }
+    } else {
+      // Selesai sore (misal 17:30) -> default tidur 23:00 - 05:00 (6 jam)
+      sleepStart = 1380;
+      nominalEnd = 300;
+    }
+
+    const durationHours = parseFloat((actualDuration / 60).toFixed(1));
+    const cleanHours = String(durationHours).endsWith(".0") ? parseInt(durationHours, 10) : durationHours;
+
+    return {
+      startMins: sleepStart,
+      endMins: nominalEnd,
+      durationHours: cleanHours,
+      durationMinutes: actualDuration,
+      isOvernight: nominalEnd < sleepStart,
+      isOverridden,
+      overrideReason
+    };
+  }
+
   getOccupiedIntervals(targetDate, excludeTaskId = null) {
     const tasks = this.getTasksForDate(targetDate).filter(t => t.id !== excludeTaskId && !t.isCancelled);
     const intervals = [];
+    let hasExplicitSleep = false;
 
     tasks.forEach(t => {
       const isSleep = this.isSleepTask(t);
+      if (isSleep) hasExplicitSleep = true;
+
       if (t.timeStart && t.timeEnd) {
         const s = this.timeToMinutes(t.timeStart);
         const e = this.timeToMinutes(t.timeEnd);
         if (e > s) {
           intervals.push({ start: s, end: e, title: t.title, taskId: t.id, session: 1, isSleep });
-        } else if (e < s && isSleep) {
-          // Jadwal tidur lintas tengah malam (contoh: 23:00 - 05:00)
-          intervals.push({ start: s, end: 1440, title: `${t.title} (Malam)`, taskId: t.id, session: 1, isSleep: true });
-          intervals.push({ start: 0, end: e, title: `${t.title} (Subuh)`, taskId: t.id, session: 1, isSleep: true });
+        } else if (e < s) {
+          // Jadwal lintas tengah malam (misal 23:00 - 04:30 atau tidur 23:00 - 05:00)
+          intervals.push({ start: s, end: 1440, title: `${t.title} (Malam)`, taskId: t.id, session: 1, isSleep });
+          intervals.push({ start: 0, end: e, title: `${t.title} (Subuh)`, taskId: t.id, session: 1, isSleep });
         }
       }
       if (t.hasSecondSession && t.session2Start && t.session2End) {
@@ -1336,6 +1479,45 @@ Semoga hari Bapak selalu lancar!
         }
       }
     });
+
+    // Masukkan jadwal tidur otomatis pada bar waktu jika belum ada jadwal tidur manual
+    if (!hasExplicitSleep) {
+      const dyn = this.calculateDynamicSleep(targetDate);
+      if (dyn && dyn.durationMinutes > 0) {
+        if (dyn.isOvernight) {
+          intervals.push({
+            start: dyn.startMins,
+            end: 1440,
+            title: `Waktu Istirahat & Tidur Otomatis (${dyn.durationHours} Jam)`,
+            taskId: "auto-sleep-night",
+            session: 1,
+            isSleep: true,
+            isDynamicSleep: true
+          });
+          if (dyn.endMins > 0) {
+            intervals.push({
+              start: 0,
+              end: dyn.endMins,
+              title: `Waktu Istirahat & Tidur Otomatis (${dyn.durationHours} Jam)`,
+              taskId: "auto-sleep-dawn",
+              session: 1,
+              isSleep: true,
+              isDynamicSleep: true
+            });
+          }
+        } else {
+          intervals.push({
+            start: dyn.startMins,
+            end: dyn.endMins,
+            title: `Waktu Istirahat & Tidur Otomatis (${dyn.durationHours} Jam)`,
+            taskId: "auto-sleep",
+            session: 1,
+            isSleep: true,
+            isDynamicSleep: true
+          });
+        }
+      }
+    }
 
     intervals.sort((a, b) => a.start - b.start);
     return intervals;
@@ -1368,31 +1550,40 @@ Semoga hari Bapak selalu lancar!
     const targetDate = (targetDateInput && targetDateInput.value) || this.selectedDate;
     const occupied = this.getOccupiedIntervals(targetDate, this.editingTaskId);
     let conflict = null;
+    let isSleepOverride = false;
+    const isOvernightAgenda = s1End < s1Start;
 
-    if (s1End <= s1Start) {
-      if (!isCurrentSleep) {
-        conflict = { msg: "Jam selesai Sesi 1 harus lebih besar dari jam mulai!" };
-      }
+    if (s1End === s1Start) {
+      conflict = { msg: "Jam mulai dan jam selesai Sesi 1 tidak boleh sama persis!" };
     }
 
     if (!conflict) {
       if (s1End > s1Start) {
         for (const occ of occupied) {
           if (s1Start < occ.end && s1End > occ.start) {
-            conflict = { 
-              msg: `Bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
-            };
-            break;
+            if (occ.isSleep) {
+              // Boleh ditimpa! Agenda kerja diizinkan menimpa alokasi waktu tidur
+              isSleepOverride = true;
+            } else {
+              conflict = { 
+                msg: `Bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
+              };
+              break;
+            }
           }
         }
-      } else if (isCurrentSleep) {
-        // Cek bentrok untuk tidur lintas hari (malam 23:00..1440 dan subuh 0..05:00)
+      } else if (isOvernightAgenda) {
+        // Cek bentrok untuk agenda lintas tengah malam (malam s1Start..1440 dan subuh 0..s1End)
         for (const occ of occupied) {
           if ((s1Start < occ.end && 1440 > occ.start) || (0 < occ.end && s1End > occ.start)) {
-            conflict = { 
-              msg: `Waktu tidur bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
-            };
-            break;
+            if (occ.isSleep) {
+              isSleepOverride = true;
+            } else {
+              conflict = { 
+                msg: `Bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
+              };
+              break;
+            }
           }
         }
       }
@@ -1406,10 +1597,14 @@ Semoga hari Bapak selalu lancar!
       } else {
         for (const occ of occupied) {
           if (s2Start < occ.end && s2End > occ.start) {
-            conflict = { 
-              msg: `Sesi Malam bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
-            };
-            break;
+            if (occ.isSleep) {
+              isSleepOverride = true;
+            } else {
+              conflict = { 
+                msg: `Sesi Malam bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
+              };
+              break;
+            }
           }
         }
       }
@@ -1427,9 +1622,14 @@ Semoga hari Bapak selalu lancar!
       if (submitBtn) submitBtn.disabled = true;
     } else {
       if (badgeEl) {
-        const sleepNotice = isCurrentSleep && s1End <= s1Start ? " (Tidur Lintas Malam)" : "";
-        badgeEl.innerHTML = `${ICONS.checkCircle} <span>Slot Aman${sleepNotice}</span>`;
-        badgeEl.className = "font-bold text-emerald-700 flex items-center gap-1.5 flex-shrink-0";
+        if (isSleepOverride) {
+          badgeEl.innerHTML = `<svg class="w-3.5 h-3.5 text-purple-600 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg> <span class="text-purple-700">Slot Aman (Menimpa Waktu Istirahat)</span>`;
+          badgeEl.className = "font-bold text-purple-700 flex items-center gap-1.5 flex-shrink-0";
+        } else {
+          const sleepNotice = isOvernightAgenda ? " (Lintas Malam)" : "";
+          badgeEl.innerHTML = `${ICONS.checkCircle} <span>Slot Aman${sleepNotice}</span>`;
+          badgeEl.className = "font-bold text-emerald-700 flex items-center gap-1.5 flex-shrink-0";
+        }
       }
       if (warnBox) warnBox.classList.add("hidden");
       if (submitBtn) submitBtn.disabled = false;
@@ -1453,16 +1653,16 @@ Semoga hari Bapak selalu lancar!
       html += `
         <div class="timeline-slot-current ${isConf ? 'conflict' : 'valid'}" style="left: ${left.toFixed(2)}%; width: ${width.toFixed(2)}%;" title="Sesi 1: ${this.minutesToTime(s1Start)} - ${this.minutesToTime(s1End)}"></div>
       `;
-    } else if (isCurrentSleep && s1Start > 0 && s1End > 0) {
-      // Overnight sleep preview
+    } else if (isOvernightAgenda && s1Start > 0) {
+      // Overnight preview (baik kerja malam maupun tidur lintas hari)
       const left1 = (s1Start / 1440) * 100;
       const width1 = Math.max(1, ((1440 - s1Start) / 1440) * 100);
       const left2 = 0;
       const width2 = Math.max(1, (s1End / 1440) * 100);
       const isConf = conflict !== null;
       html += `
-        <div class="timeline-slot-current ${isConf ? 'conflict' : 'valid'}" style="left: ${left1.toFixed(2)}%; width: ${width1.toFixed(2)}%;" title="Waktu Tidur (Malam): ${this.minutesToTime(s1Start)} - 24:00"></div>
-        <div class="timeline-slot-current ${isConf ? 'conflict' : 'valid'}" style="left: ${left2.toFixed(2)}%; width: ${width2.toFixed(2)}%;" title="Waktu Tidur (Subuh): 00:00 - ${this.minutesToTime(s1End)}"></div>
+        <div class="timeline-slot-current ${isConf ? 'conflict' : 'valid'}" style="left: ${left1.toFixed(2)}%; width: ${width1.toFixed(2)}%;" title="Agenda (Malam): ${this.minutesToTime(s1Start)} - 24:00"></div>
+        <div class="timeline-slot-current ${isConf ? 'conflict' : 'valid'}" style="left: ${left2.toFixed(2)}%; width: ${width2.toFixed(2)}%;" title="Agenda (Subuh): 00:00 - ${this.minutesToTime(s1End)}"></div>
       `;
     }
 
@@ -2023,17 +2223,50 @@ Semoga hari Bapak selalu lancar!
       }
     }
 
+    const hasExplicitSleep = tasks.some(t => this.isSleepTask(t));
+    const dynSleep = this.calculateDynamicSleep(this.selectedDate);
+    let autoSleepCardHtml = "";
+
+    if (!hasExplicitSleep && dynSleep) {
+      const sStr = this.minutesToTime(dynSleep.startMins);
+      const eStr = this.minutesToTime(dynSleep.endMins);
+      autoSleepCardHtml = `
+        <div class="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-purple-50/70 border border-purple-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs shadow-xs transition-all">
+          <div class="flex items-start sm:items-center gap-2 sm:gap-2.5 min-w-0">
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-purple-100 border border-purple-300/80 flex items-center justify-center text-purple-700 flex-shrink-0 mt-0.5 sm:mt-0 shadow-2xs">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="font-bold text-purple-900 font-mono text-[11px] sm:text-xs">ALOKASI TIDUR OTOMATIS: ${sStr} - ${eStr} WIB</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold ${dynSleep.isOverridden ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-purple-100 text-purple-800 border border-purple-200'}">
+                  ${dynSleep.durationHours} Jam ${dynSleep.isOverridden ? '• Menyesuaikan Agenda' : '• Terjadwal 6 Jam'}
+                </span>
+              </div>
+              <p class="text-[10px] sm:text-[11px] text-purple-800/80 mt-0.5 break-words">
+                ${dynSleep.isOverridden ? dynSleep.overrideReason : 'Otomatis dihitung 6 jam setelah tugas terakhir selesai. Fleksibel dapat ditimpa agenda kerja.'}
+              </p>
+            </div>
+          </div>
+          <button type="button" onclick="window.app.presetSleepSchedule()" class="px-2.5 py-1 rounded-lg bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 text-[10px] sm:text-[11px] font-semibold flex-shrink-0 self-end sm:self-center cursor-pointer shadow-2xs transition-all">
+            Kustomisasi Waktu
+          </button>
+        </div>
+      `;
+    }
+
     if (tasks.length === 0) {
       list.innerHTML = `
-        <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm">
+        <div class="p-8 text-center bg-white rounded-2xl border border-dashed border-slate-300 shadow-sm mb-3">
           <p class="text-sm font-medium text-slate-600">Tidak ada agenda pada tanggal ini.</p>
           <p class="text-xs text-slate-500 mt-1">Gunakan form Google-style atau klik peta bar 24 jam di atas untuk menjadwalkan agenda bebas bentrok.</p>
         </div>
+        ${autoSleepCardHtml}
       `;
       return;
     }
 
-    list.innerHTML = tasks.map(task => {
+    const taskCardsHtml = tasks.map(task => {
       const isDone = task.isDone;
       const isMissed = this.isTaskMissed(task, this.selectedDate);
       const dur1 = this.formatDuration(task.timeStart, task.timeEnd);
@@ -2181,6 +2414,8 @@ Semoga hari Bapak selalu lancar!
         </div>
       `;
     }).join("");
+
+    list.innerHTML = taskCardsHtml + (autoSleepCardHtml ? `<div class="mt-2.5 sm:mt-3">${autoSleepCardHtml}</div>` : "");
   }
 
   // ===================== VIEW TAB RIWAYAT & EVALUASI KENDALA (NEW!) =====================
@@ -2548,8 +2783,13 @@ Semoga hari Bapak selalu lancar!
       }
     });
 
-    // Baseline tidur sehat: jika belum input jadwal tidur, alokasikan 7 jam tidur eksekutif
-    const effectiveSleepMinutes = sleepMinutes > 0 ? sleepMinutes : 420;
+    // Baseline pemulihan & tidur: jika belum input jadwal tidur manual, hitung dinamis 6 jam setelah tugas terakhir (dapat ditimpa agenda pagi)
+    let effectiveSleepMinutes = sleepMinutes;
+    let autoSleepInfo = null;
+    if (sleepMinutes === 0) {
+      autoSleepInfo = this.calculateDynamicSleep(dateStr);
+      effectiveSleepMinutes = autoSleepInfo.durationMinutes;
+    }
     const totalAllocatedMinutes = Math.min(1440, workMinutes + effectiveSleepMinutes);
     const flexibleMinutes = Math.max(0, 1440 - totalAllocatedMinutes);
 
