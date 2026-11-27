@@ -273,6 +273,25 @@
   },
   "dailyTasks": [
     {
+      "id": "t-1795782702119",
+      "date": "2026-11-28",
+      "timeStart": "15:00",
+      "timeEnd": "16:00",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "CPNS prepare",
+      "note": "abis ashar",
+      "label": "cpns",
+      "recurrence": "none",
+      "validityType": "until_completed",
+      "validUntil": "",
+      "status": "todo",
+      "completedDates": [],
+      "deletedDates": [],
+      "updated_at": "2026-11-27T12:31:44.756Z"
+    },
+    {
       "id": "t-1795781221676",
       "date": "2026-11-27",
       "timeStart": "19:45",
@@ -406,8 +425,8 @@
     {
       "id": "t-1795759310132",
       "date": "2026-11-29",
-      "timeStart": "15:00",
-      "timeEnd": "16:30",
+      "timeStart": "09:30",
+      "timeEnd": "10:30",
       "hasSecondSession": false,
       "session2Start": "",
       "session2End": "",
@@ -419,7 +438,8 @@
       "status": "todo",
       "completedDates": [],
       "deletedDates": [],
-      "updated_at": "2026-11-27T09:19:46.393Z"
+      "updated_at": "2026-11-27T09:19:46.393Z",
+      "label": ""
     },
     {
       "id": "t-1795711864119",
@@ -477,6 +497,11 @@
       "id": "lbl-5",
       "name": "Istirahat & Pribadi",
       "color": "purple"
+    },
+    {
+      "id": "lbl-1795782692223",
+      "name": "cpns",
+      "color": "slate"
     }
   ],
   "customDailyOrder": {}
