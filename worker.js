@@ -345,7 +345,12 @@ Salam hormat,
           }
           return t;
         }),
-        settings: settingsMap
+        settings: {
+          notifications: settingsMap.notifications || {},
+          alarm: settingsMap.alarm || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true },
+          fiveYearPlan: settingsMap.fiveYearPlan || []
+        },
+        fiveYearPlan: settingsMap.fiveYearPlan || []
       });
     }
 
@@ -378,11 +383,12 @@ Salam hormat,
         }
       }
 
-      const dailyTasks = body.dailyTasks || [];
-      const notifications = body.notifications || {};
-      const fiveYearPlan = body.fiveYearPlan || [];
+      const dailyTasks = body.dailyTasks;
+      const notifications = body.notifications;
+      const fiveYearPlan = body.fiveYearPlan;
+      const alarmSettings = body.alarmSettings;
 
-      if (dailyTasks.length > 0) {
+      if (dailyTasks && Array.isArray(dailyTasks) && dailyTasks.length > 0) {
         const statements = dailyTasks.map(t => {
           return db.prepare(`
             INSERT OR REPLACE INTO tasks (
@@ -415,17 +421,25 @@ Salam hormat,
         await db.batch(statements);
       }
 
-      await db.prepare(
-        "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('notifications', ?, datetime('now'))"
-      ).bind(JSON.stringify(notifications)).run();
+      if (notifications) {
+        await db.prepare(
+          "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('notifications', ?, datetime('now'))"
+        ).bind(JSON.stringify(notifications)).run();
+      }
 
-      if (fiveYearPlan.length > 0) {
+      if (fiveYearPlan && Array.isArray(fiveYearPlan) && fiveYearPlan.length > 0) {
         await db.prepare(
           "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('fiveYearPlan', ?, datetime('now'))"
         ).bind(JSON.stringify(fiveYearPlan)).run();
       }
 
-      return jsonResponse({ success: true, syncedTasks: dailyTasks.length });
+      if (alarmSettings) {
+        await db.prepare(
+          "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('alarm', ?, datetime('now'))"
+        ).bind(JSON.stringify(alarmSettings)).run();
+      }
+
+      return jsonResponse({ success: true, syncedTasks: dailyTasks ? dailyTasks.length : 0 });
     }
   }
 

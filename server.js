@@ -664,9 +664,9 @@ Salam hormat,
         fs.writeFileSync(cacheFile, JSON.stringify(currentData, null, 2), 'utf8');
 
         // Sync ke D1 secara async di background
-        if (parsed.dailyTasks && parsed.dailyTasks.length > 0) {
-          (async () => {
-            try {
+        (async () => {
+          try {
+            if (parsed.dailyTasks && parsed.dailyTasks.length > 0) {
               for (const t of parsed.dailyTasks) {
                 const escapedTitle = (t.title || 'Agenda').replace(/'/g, "''");
                 const escapedNote = (t.note || '').replace(/'/g, "''");
@@ -676,23 +676,23 @@ Salam hormat,
                 const sql = `INSERT OR REPLACE INTO tasks (id, title, time_start, time_end, target_date, recurrence, validity_type, status, completed_dates, deleted_dates, note, has_second_session, session2_start, session2_end, raw_json, updated_at) VALUES ('${t.id}', '${escapedTitle}', '${t.timeStart || ''}', '${t.timeEnd || ''}', '${t.date || ''}', '${t.recurrence || 'none'}', '${t.validityType || 'until_completed'}', '${t.status || 'todo'}', '${compDates}', '${delDates}', '${escapedNote}', ${t.hasSecondSession ? 1 : 0}, '${t.session2Start || ''}', '${t.session2End || ''}', '${rawJson}', datetime('now'));`;
                 await queryD1(sql);
               }
-              if (parsed.notifications) {
-                const notifVal = JSON.stringify(parsed.notifications).replace(/'/g, "''");
-                await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('notifications', '${notifVal}', datetime('now'));`);
-              }
-              if (parsed.fiveYearPlan) {
-                const fiveYearVal = JSON.stringify(parsed.fiveYearPlan).replace(/'/g, "''");
-                await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('fiveYearPlan', '${fiveYearVal}', datetime('now'));`);
-              }
-              if (parsed.alarmSettings) {
-                const alarmVal = JSON.stringify(parsed.alarmSettings).replace(/'/g, "''");
-                await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('alarm', '${alarmVal}', datetime('now'));`);
-              }
-            } catch (err) {
-              console.warn('[D1 Sync Background Error]:', err.message);
             }
-          })();
-        }
+            if (parsed.notifications) {
+              const notifVal = JSON.stringify(parsed.notifications).replace(/'/g, "''");
+              await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('notifications', '${notifVal}', datetime('now'));`);
+            }
+            if (parsed.fiveYearPlan) {
+              const fiveYearVal = JSON.stringify(parsed.fiveYearPlan).replace(/'/g, "''");
+              await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('fiveYearPlan', '${fiveYearVal}', datetime('now'));`);
+            }
+            if (parsed.alarmSettings) {
+              const alarmVal = JSON.stringify(parsed.alarmSettings).replace(/'/g, "''");
+              await queryD1(`INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES ('alarm', '${alarmVal}', datetime('now'));`);
+            }
+          } catch (err) {
+            console.warn('[D1 Sync Background Error]:', err.message);
+          }
+        })();
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ success: true }));

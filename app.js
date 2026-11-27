@@ -32,7 +32,7 @@ const ICONS = {
 
 const DEFAULT_SYSTEM_DATA = {
   profile: {
-    name: "Ilham Pradani",
+    name: "Ilham Pradani, S.H.",
     role: "Founder & Tech Architect",
     secretaryName: "Aura Executive Desk"
   },
@@ -273,9 +273,10 @@ class ProductivityApp {
             if (!t.deletedDates) t.deletedDates = [];
             return t;
           });
-          if (!parsed.notifications.missedTaskAlert) {
-            parsed.notifications.missedTaskAlert = { enabled: true };
-          }
+          if (!parsed.notifications) parsed.notifications = {};
+          if (!parsed.notifications.morningBriefing) parsed.notifications.morningBriefing = { enabled: true, time: "07:00" };
+          if (!parsed.notifications.eveningRecap) parsed.notifications.eveningRecap = { enabled: true, time: "21:00" };
+          if (!parsed.notifications.missedTaskAlert) parsed.notifications.missedTaskAlert = { enabled: false };
           if (!parsed.alarmSettings) {
             parsed.alarmSettings = {
               ringOnStart: true,
@@ -340,26 +341,28 @@ class ProductivityApp {
       const res = await fetch("/api/sync");
       if (!res.ok) throw new Error("Cloud sync offline");
       const json = await res.json();
-      if (json && json.success && json.tasks && json.tasks.length > 0) {
-        const localMap = new Map((this.data.dailyTasks || []).map(t => [t.id, t]));
-        for (const ct of json.tasks) {
-          if (!localMap.has(ct.id)) {
-            this.data.dailyTasks.push(ct);
-          } else {
-            const lt = localMap.get(ct.id);
-            // Union merge completedDates: Sekali dicoret di device manapun, tetap tercatat selesai!
-            if (ct.completedDates && Array.isArray(ct.completedDates)) {
-              lt.completedDates = Array.from(new Set([...(lt.completedDates || []), ...ct.completedDates]));
-            }
-            if (ct.deletedDates && Array.isArray(ct.deletedDates)) {
-              lt.deletedDates = Array.from(new Set([...(lt.deletedDates || []), ...ct.deletedDates]));
-            }
-            if (ct.alertSentDates && Array.isArray(ct.alertSentDates)) {
-              lt.alertSentDates = Array.from(new Set([...(lt.alertSentDates || []), ...ct.alertSentDates]));
-            }
-            // Update properti jika cloud lebih baru atau local belum punya timestamp
-            if (!lt.updated_at || (ct.updated_at && ct.updated_at >= lt.updated_at)) {
-              Object.assign(lt, ct);
+      if (json && json.success) {
+        if (json.tasks && Array.isArray(json.tasks) && json.tasks.length > 0) {
+          const localMap = new Map((this.data.dailyTasks || []).map(t => [t.id, t]));
+          for (const ct of json.tasks) {
+            if (!localMap.has(ct.id)) {
+              this.data.dailyTasks.push(ct);
+            } else {
+              const lt = localMap.get(ct.id);
+              // Union merge completedDates: Sekali dicoret di device manapun, tetap tercatat selesai!
+              if (ct.completedDates && Array.isArray(ct.completedDates)) {
+                lt.completedDates = Array.from(new Set([...(lt.completedDates || []), ...ct.completedDates]));
+              }
+              if (ct.deletedDates && Array.isArray(ct.deletedDates)) {
+                lt.deletedDates = Array.from(new Set([...(lt.deletedDates || []), ...ct.deletedDates]));
+              }
+              if (ct.alertSentDates && Array.isArray(ct.alertSentDates)) {
+                lt.alertSentDates = Array.from(new Set([...(lt.alertSentDates || []), ...ct.alertSentDates]));
+              }
+              // Update properti jika cloud lebih baru atau local belum punya timestamp
+              if (!lt.updated_at || (ct.updated_at && ct.updated_at >= lt.updated_at)) {
+                Object.assign(lt, ct);
+              }
             }
           }
         }
@@ -368,6 +371,9 @@ class ProductivityApp {
         }
         if (json.settings && json.settings.alarm) {
           this.data.alarmSettings = { ...this.data.alarmSettings, ...json.settings.alarm };
+        }
+        if (json.fiveYearPlan && Array.isArray(json.fiveYearPlan) && json.fiveYearPlan.length > 0) {
+          this.data.fiveYearPlan = json.fiveYearPlan;
         }
         localStorage.setItem(this.storageKey, JSON.stringify(this.data));
         this.render();
@@ -3905,12 +3911,30 @@ Semoga hari Bapak selalu lancar!
     const missedCheckEl = document.getElementById("notif-missed-enabled");
     const logListEl = document.getElementById("notif-log-container");
 
-    if (phoneEl) phoneEl.value = notif.targetPhone || "6288971071138";
-    if (morningTimeEl) morningTimeEl.value = notif.morningBriefing.time || "07:00";
-    if (morningCheckEl) morningCheckEl.checked = !!notif.morningBriefing.enabled;
-    if (eveningTimeEl) eveningTimeEl.value = notif.eveningRecap.time || "21:00";
-    if (eveningCheckEl) eveningCheckEl.checked = !!notif.eveningRecap.enabled;
-    if (missedCheckEl) missedCheckEl.checked = notif.missedTaskAlert ? !!notif.missedTaskAlert.enabled : true;
+    if (phoneEl) {
+      phoneEl.value = notif.targetPhone || "6288971071138";
+      phoneEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
+    if (morningTimeEl) {
+      morningTimeEl.value = (notif.morningBriefing && notif.morningBriefing.time) || "07:00";
+      morningTimeEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
+    if (morningCheckEl) {
+      morningCheckEl.checked = !!(notif.morningBriefing && notif.morningBriefing.enabled);
+      morningCheckEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
+    if (eveningTimeEl) {
+      eveningTimeEl.value = (notif.eveningRecap && notif.eveningRecap.time) || "21:00";
+      eveningTimeEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
+    if (eveningCheckEl) {
+      eveningCheckEl.checked = !!(notif.eveningRecap && notif.eveningRecap.enabled);
+      eveningCheckEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
+    if (missedCheckEl) {
+      missedCheckEl.checked = !!(notif.missedTaskAlert && notif.missedTaskAlert.enabled);
+      missedCheckEl.onchange = () => this.autoSaveNotificationSettings(true);
+    }
 
     if (logListEl) {
       const logs = notif.logs || [];
@@ -3939,10 +3963,22 @@ Semoga hari Bapak selalu lancar!
     const endEl = document.getElementById("alarm-ring-on-end");
     const wakeupEl = document.getElementById("alarm-ring-on-wakeup");
 
-    if (startEl) startEl.checked = alarm.ringOnStart !== false;
-    if (beforeEl) beforeEl.value = String(alarm.ringBeforeMinutes || 0);
-    if (endEl) endEl.checked = alarm.ringOnEnd !== false;
-    if (wakeupEl) wakeupEl.checked = alarm.ringOnWakeup !== false;
+    if (startEl) {
+      startEl.checked = alarm.ringOnStart !== false;
+      startEl.onchange = () => this.autoSaveAlarmSettings(true);
+    }
+    if (beforeEl) {
+      beforeEl.value = String(alarm.ringBeforeMinutes || 0);
+      beforeEl.onchange = () => this.autoSaveAlarmSettings(true);
+    }
+    if (endEl) {
+      endEl.checked = alarm.ringOnEnd !== false;
+      endEl.onchange = () => this.autoSaveAlarmSettings(true);
+    }
+    if (wakeupEl) {
+      wakeupEl.checked = alarm.ringOnWakeup !== false;
+      wakeupEl.onchange = () => this.autoSaveAlarmSettings(true);
+    }
 
     this.refreshDeviceStatus();
   }
@@ -3974,7 +4010,7 @@ Semoga hari Bapak selalu lancar!
     }
   }
 
-  async saveAlarmSettings() {
+  async autoSaveAlarmSettings(silent = true) {
     if (!this.data.alarmSettings) this.data.alarmSettings = {};
     const startEl = document.getElementById("alarm-ring-on-start");
     const beforeEl = document.getElementById("alarm-ring-before-minutes");
@@ -3986,14 +4022,25 @@ Semoga hari Bapak selalu lancar!
     this.data.alarmSettings.ringOnEnd = endEl ? endEl.checked : true;
     this.data.alarmSettings.ringOnWakeup = wakeupEl ? wakeupEl.checked : true;
 
-    this.saveData();
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+    } catch (e) {}
 
-    // Trigger sync ke HP langsung via background broadcast
+    await this.pushToCloud();
+
     try {
       await fetch("/api/alarm/sync-phone", { method: "POST" });
     } catch (e) {}
 
-    alert("Pengaturan Alarm HP Samsung A10s berhasil disimpan dan disinkronkan ke cloud & perangkat!");
+    if (!silent) {
+      this.showToast("Pengaturan Alarm Samsung A10s berhasil disimpan & disinkronkan!", "success");
+    } else {
+      this.showToast("Pengaturan alarm diperbarui & disinkronkan ke HP.", "info");
+    }
+  }
+
+  async saveAlarmSettings() {
+    await this.autoSaveAlarmSettings(false);
   }
 
   async testDeviceAlarm() {
@@ -4001,12 +4048,12 @@ Semoga hari Bapak selalu lancar!
       const res = await fetch("/api/alarm/trigger-test", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        alert("Sinyal tes alarm berhasil dikirim ke Samsung Galaxy A10s! Layar HP sekarang menyala dan nada alarm berdering.");
+        this.showToast("Sinyal tes alarm berhasil dikirim ke Samsung Galaxy A10s!", "success");
       } else {
-        alert("Gagal memicu alarm di HP: " + (data.error || "Perangkat tidak merespons"));
+        this.showToast("Gagal memicu alarm di HP: " + (data.error || "Perangkat tidak merespons"), "error");
       }
     } catch (e) {
-      alert("Error menghubungi backend alarm: " + e.message);
+      this.showToast("Error menghubungi backend alarm: " + e.message, "error");
     }
   }
 
@@ -4015,17 +4062,18 @@ Semoga hari Bapak selalu lancar!
       const res = await fetch("/api/alarm/sync-phone", { method: "POST" });
       const data = await res.json();
       if (data.success) {
-        alert("Sinyal sinkronisasi berhasil dikirim ke Samsung Galaxy A10s! Perangkat sedang menarik agenda terbaru.");
+        this.showToast("Sinyal sinkronisasi berhasil dikirim ke Samsung Galaxy A10s!", "success");
         this.refreshDeviceStatus();
       } else {
-        alert("Gagal sinkronkan ke HP: " + (data.error || "Perangkat offline"));
+        this.showToast("Gagal sinkronkan ke HP: " + (data.error || "Perangkat offline"), "error");
       }
     } catch (e) {
-      alert("Error sinkronisasi ke HP: " + e.message);
+      this.showToast("Error sinkronisasi ke HP: " + e.message, "error");
     }
   }
 
-  saveNotificationSettings() {
+  async autoSaveNotificationSettings(silent = true) {
+    if (!this.data.notifications) this.data.notifications = {};
     const notif = this.data.notifications;
     const phoneEl = document.getElementById("notif-target-phone");
     const morningTimeEl = document.getElementById("notif-morning-time");
@@ -4034,16 +4082,32 @@ Semoga hari Bapak selalu lancar!
     const eveningCheckEl = document.getElementById("notif-evening-enabled");
     const missedCheckEl = document.getElementById("notif-missed-enabled");
 
+    if (!notif.morningBriefing) notif.morningBriefing = {};
+    if (!notif.eveningRecap) notif.eveningRecap = {};
+    if (!notif.missedTaskAlert) notif.missedTaskAlert = {};
+
     if (phoneEl) notif.targetPhone = phoneEl.value.replace(/[^0-9]/g, '');
     if (morningTimeEl) notif.morningBriefing.time = morningTimeEl.value;
     if (morningCheckEl) notif.morningBriefing.enabled = morningCheckEl.checked;
     if (eveningTimeEl) notif.eveningRecap.time = eveningTimeEl.value;
     if (eveningCheckEl) notif.eveningRecap.enabled = eveningCheckEl.checked;
-    if (!notif.missedTaskAlert) notif.missedTaskAlert = {};
     if (missedCheckEl) notif.missedTaskAlert.enabled = missedCheckEl.checked;
 
-    this.saveData();
-    alert("Seluruh aturan notifikasi WhatsApp berhasil disimpan!");
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+    } catch (e) {}
+
+    await this.pushToCloud();
+
+    if (!silent) {
+      this.showToast("Seluruh aturan notifikasi WhatsApp tersimpan & tersinkron ke database!", "success");
+    } else {
+      this.showToast("Pengaturan notifikasi diperbarui & tersinkron.", "info");
+    }
+  }
+
+  async saveNotificationSettings() {
+    await this.autoSaveNotificationSettings(false);
   }
 
   async sendTestNotification() {

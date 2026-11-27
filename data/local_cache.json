@@ -17,23 +17,7 @@
     },
     "missedTaskAlert": {
       "enabled": false
-    },
-    "logs": [
-      {
-        "id": "log-1795768868539",
-        "time": "2026-11-27 15.41.08",
-        "type": "Pengingat: Executive Morning Routine, (Sholat, Olahraga, Prepare)",
-        "status": "Terkirim",
-        "phone": "6288971071138"
-      },
-      {
-        "id": "log-1",
-        "time": "2026-11-27 00:00:00",
-        "type": "Notifikasi Aura Desk",
-        "status": "Siap",
-        "phone": "6288971071138"
-      }
-    ]
+    }
   },
   "fiveYearPlan": [
     {
