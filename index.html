@@ -66,8 +66,9 @@
         <span>Permohonan</span>
         <span id="nav-meetings-count" class="hidden px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[10px] font-bold">0</span>
       </button>
-      <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all cursor-pointer">
-        1 Bulan
+      <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5 cursor-pointer">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span>Roadmap Bulanan</span>
       </button>
       <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all cursor-pointer">
         Roadmap 5 Tahun
@@ -121,7 +122,7 @@
   <div class="md:hidden flex items-center gap-1 bg-white border-b border-slate-200 p-1.5 overflow-x-auto shadow-sm no-scrollbar">
     <button onclick="window.app.switchTab('daily')" data-tab="daily" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white whitespace-nowrap cursor-pointer">Harian</button>
     <button onclick="window.app.switchTab('meetings')" data-tab="meetings" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-amber-700 whitespace-nowrap cursor-pointer">Permohonan</button>
-    <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 whitespace-nowrap cursor-pointer">1 Bulan</button>
+    <button onclick="window.app.switchTab('monthly')" data-tab="monthly" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 whitespace-nowrap cursor-pointer">Roadmap Bulanan</button>
     <button onclick="window.app.switchTab('roadmap')" data-tab="roadmap" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 whitespace-nowrap cursor-pointer">5 Tahun</button>
     <button onclick="window.app.switchTab('history')" data-tab="history" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-indigo-700 whitespace-nowrap cursor-pointer">Riwayat</button>
     <button onclick="window.app.switchTab('notifications')" data-tab="notifications" class="tab-pill px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 whitespace-nowrap cursor-pointer">Aturan WA</button>
@@ -241,14 +242,10 @@
       </div>
     </div>
 
-    <!-- ================= VIEW 2: 1 BULAN ================= -->
+    <!-- ================= VIEW 2: ROADMAP BULANAN & ALOKASI WAKTU 24 JAM ================= -->
     <div id="view-monthly" class="view-section hidden space-y-4">
-      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-        <h2 class="text-sm font-bold text-indigo-700 uppercase tracking-wider font-mono">Milestone Bulanan</h2>
-        <p class="text-xs text-slate-600 mt-1">Daftar target besar, checkpoint strategis, dan evaluasi bulanan.</p>
-      </div>
-      <div id="monthly-list-container" class="space-y-2.5">
-        <!-- Rendered by app.js -->
+      <div id="monthly-roadmap-container" class="space-y-4">
+        <!-- Rendered dynamically by app.js: renderMonthlyView() -->
       </div>
     </div>
 
@@ -999,6 +996,120 @@
       </div>
     </div>
   </div>
+
+  <!-- ================= POPUP MODAL 5: USER GUIDE & DOCUMENTATION ================= -->
+  <div id="modal-user-guide" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 w-full max-w-2xl shadow-xl space-y-4 text-slate-800 relative my-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          </span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 font-mono uppercase">User Guide & Dokumentasi Sistem</h3>
+            <p class="text-[11px] text-slate-500">Panduan Operasional & Arsitektur Produktivitas Eksekutif</p>
+          </div>
+        </div>
+        <button type="button" onclick="window.app.closeUserGuideModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3.5 text-xs text-slate-700 max-h-[65vh] overflow-y-auto pr-1">
+        <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-100 space-y-1">
+          <h4 class="font-bold text-indigo-900 flex items-center gap-1.5 font-mono text-[11px] uppercase">
+            <span>1. Alokasi Waktu 24 Jam & Rasio Waktu Terpakai</span>
+          </h4>
+          <p class="text-slate-600 leading-relaxed text-[11px]">
+            Setiap hari dihitung dalam siklus 24 jam penuh (1.440 menit). Kartu Roadmap Bulanan menampilkan angka rasio seperti <strong>2/24 Jam</strong> atau <strong>14/24 Jam</strong> yang menunjukkan jumlah jam kerja teralokasi dibanding kapasitas 24 jam, dilengkapi rata-rata jam terpakai per bulan.
+          </p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <h4 class="font-bold text-slate-900 flex items-center gap-1.5 font-mono text-[11px] uppercase">
+            <span>2. Mode Sekali Saja vs Rutinitas Berulang</span>
+          </h4>
+          <p class="text-slate-600 leading-relaxed text-[11px]">
+            • <strong>Sekali Saja</strong>: Khusus untuk jadwal pada tanggal tertentu (one-off), bagian masa berlaku otomatis disembunyikan.<br>
+            • <strong>Rutinitas Berulang</strong>: Untuk rutinitas harian/mingguan/tahunan yang memiliki tanggal mulai dan batas masa berlaku.
+          </p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <h4 class="font-bold text-slate-900 flex items-center gap-1.5 font-mono text-[11px] uppercase">
+            <span>3. Notifikasi WhatsApp Real-Time 24/7 di Workstation UTM</span>
+          </h4>
+          <p class="text-slate-600 leading-relaxed text-[11px]">
+            Daemon server background (<code class="font-mono bg-white px-1 py-0.5 rounded border border-slate-200">productivity-web.service</code>) berjalan 24 jam nonstop di workstation UTM. Server mengecek jadwal setiap 30 detik dan langsung mengirimkan WhatsApp tepat 15 menit setelah agenda berakhir secara otonom tanpa perlu membuka web dashboard.
+          </p>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+          <h4 class="font-bold text-slate-900 flex items-center gap-1.5 font-mono text-[11px] uppercase">
+            <span>4. Backup & Pertukaran Data Spreadsheet CSV</span>
+          </h4>
+          <p class="text-slate-600 leading-relaxed text-[11px]">
+            Data agenda dapat diekspor menjadi file CSV standar yang kompatibel dengan Microsoft Excel dan Google Sheets via tombol <strong>Download Filtered CSV</strong>, serta dapat dipulihkan kapan pun via <strong>Upload Data CSV</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-200 flex justify-end">
+        <button type="button" onclick="window.app.closeUserGuideModal()" class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl cursor-pointer">
+          Tutup Panduan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= POPUP MODAL 6: AUDIT SYNC LOGS ================= -->
+  <div id="modal-audit-sync" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 w-full max-w-xl shadow-xl space-y-4 text-slate-800 relative my-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </span>
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 font-mono uppercase">Log Audit & Status Sinkronisasi Server</h3>
+            <p class="text-[11px] text-slate-500">Status Server, Database D1 & Antrean Pesan</p>
+          </div>
+        </div>
+        <button type="button" onclick="window.app.closeAuditSyncModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-2 text-slate-700">
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+            <span class="text-[10px] font-mono text-slate-400 uppercase block">Host Gateway</span>
+            <span class="text-xs font-bold text-emerald-600">Port 3080 • Online</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+            <span class="text-[10px] font-mono text-slate-400 uppercase block">Cloudflare D1</span>
+            <span class="text-xs font-bold text-emerald-600 font-mono">productivity-db</span>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-[11px] font-mono font-bold text-slate-700 block mb-1.5">Riwayat Pengiriman Notifikasi & Audit:</span>
+          <div id="audit-sync-log-list" class="space-y-1.5 max-h-56 overflow-y-auto">
+            <!-- Rendered by app.js -->
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-200 flex justify-end">
+        <button type="button" onclick="window.app.closeAuditSyncModal()" class="px-4 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-xl cursor-pointer">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden File Input for CSV Upload -->
+  <input type="file" id="input-csv-upload" accept=".csv" class="hidden" onchange="window.app.handleCSVUpload(event)">
 
   <!-- ================= MINIMALIST FOOTER ================= -->
   <footer class="w-full border-t border-slate-200 bg-white py-3 text-xs text-slate-500 px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 shadow-inner">

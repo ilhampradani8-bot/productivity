@@ -320,6 +320,11 @@ class ProductivityApp {
     this.meetingRequests = [];
     this.meetingFilter = "all";
 
+    // Monthly Roadmap State
+    const nowTime = new Date();
+    this.monthlyViewYear = nowTime.getFullYear();
+    this.monthlyViewMonth = nowTime.getMonth();
+
     this.init();
   }
 
@@ -2540,61 +2545,540 @@ Semoga hari Bapak selalu lancar!
     }
   }
 
-  // ===================== MONTHLY & ROADMAP VIEWS =====================
-  renderMonthlyView() {
-    const list = document.getElementById("monthly-list-container");
-    if (!list) return;
+  // ===================== ROADMAP BULANAN & ALOKASI WAKTU 24 JAM =====================
+  getDayUsageStats(dateStr) {
+    const tasks = this.getTasksForDate(dateStr).filter(t => !t.isCancelled);
+    let totalMinutes = 0;
+    tasks.forEach(t => {
+      if (t.timeStart && t.timeEnd) {
+        const s = this.timeToMinutes(t.timeStart);
+        const e = this.timeToMinutes(t.timeEnd);
+        if (e > s) totalMinutes += (e - s);
+      }
+      if (t.hasSecondSession && t.session2Start && t.session2End) {
+        const s2 = this.timeToMinutes(t.session2Start);
+        const e2 = this.timeToMinutes(t.session2End);
+        if (e2 > s2) totalMinutes += (e2 - s2);
+      }
+    });
 
-    list.innerHTML = this.data.monthlyPlan.milestones.map(m => `
-      <div class="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
-        <div class="flex items-center gap-3">
-          <input type="checkbox" ${m.done ? 'checked' : ''} onchange="window.app.toggleMonthlyMilestone('${m.id}')" class="custom-checkbox">
-          <div>
-            <span class="text-[11px] font-mono text-indigo-600 font-semibold block">${m.targetDate}</span>
-            <p class="text-sm font-semibold ${m.done ? 'line-through text-slate-400' : 'text-slate-900'}">${this.escapeHtml(m.title)}</p>
-          </div>
-        </div>
-        <button onclick="window.app.pushMilestoneToDaily('${m.id}')" class="text-xs px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 border border-slate-200 transition-colors cursor-pointer">
-          + Jadwal Harian
-        </button>
-      </div>
-    `).join("");
+    const hours = (totalMinutes / 60).toFixed(1);
+    const cleanHours = hours.endsWith(".0") ? parseInt(hours, 10) : hours;
+    const pct = Math.min(100, Math.round((totalMinutes / 1440) * 100));
+
+    return {
+      taskCount: tasks.length,
+      totalMinutes,
+      cleanHours,
+      ratioStr: `${cleanHours}/24 Jam`,
+      pct,
+      tasks
+    };
   }
 
-  toggleMonthlyMilestone(id) {
-    const m = this.data.monthlyPlan.milestones.find(x => x.id === id);
-    if (m) {
-      m.done = !m.done;
-      this.saveData();
-      this.render();
+  changeMonthlyView(delta) {
+    this.monthlyViewMonth += delta;
+    if (this.monthlyViewMonth < 0) {
+      this.monthlyViewMonth = 11;
+      this.monthlyViewYear -= 1;
+    } else if (this.monthlyViewMonth > 11) {
+      this.monthlyViewMonth = 0;
+      this.monthlyViewYear += 1;
+    }
+    this.renderMonthlyView();
+  }
+
+  resetMonthlyViewToCurrent() {
+    const now = new Date();
+    this.monthlyViewYear = now.getFullYear();
+    this.monthlyViewMonth = now.getMonth();
+    this.renderMonthlyView();
+  }
+
+  goToDate(dateStr) {
+    this.selectedDate = dateStr;
+    const dateInput = document.getElementById("date-input");
+    if (dateInput) dateInput.value = dateStr;
+    this.switchTab("daily");
+    this.showToast(`Beralih ke Agenda Harian: ${dateStr}`, "info");
+  }
+
+  async manualSync() {
+    this.showToast("Menjalankan sinkronisasi manual...", "info");
+    await this.pushToCloud();
+    await this.syncWithCloud();
+    this.render();
+    this.showToast("Sinkronisasi manual selesai! Data tersinkron dengan Cloud & Server.", "success");
+  }
+
+  async refreshData() {
+    this.showToast("Memuat ulang data...", "info");
+    await this.syncWithCloud();
+    this.render();
+    this.showToast("Data agenda berhasil dimuat ulang!", "success");
+  }
+
+  checkAllMonthCollisions() {
+    const numDays = new Date(this.monthlyViewYear, this.monthlyViewMonth + 1, 0).getDate();
+    const collisions = [];
+
+    for (let d = 1; d <= numDays; d++) {
+      const dayStr = `${this.monthlyViewYear}-${String(this.monthlyViewMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const intervals = [];
+      const tasks = this.getTasksForDate(dayStr).filter(t => !t.isCancelled && t.timeStart && t.timeEnd);
+      
+      tasks.forEach(t => {
+        const s = this.timeToMinutes(t.timeStart);
+        const e = this.timeToMinutes(t.timeEnd);
+        if (e > s) intervals.push({ start: s, end: e, title: t.title });
+        if (t.hasSecondSession && t.session2Start && t.session2End) {
+          const s2 = this.timeToMinutes(t.session2Start);
+          const e2 = this.timeToMinutes(t.session2End);
+          if (e2 > s2) intervals.push({ start: s2, end: e2, title: `${t.title} (Sesi 2)` });
+        }
+      });
+
+      intervals.sort((a, b) => a.start - b.start);
+      for (let i = 0; i < intervals.length - 1; i++) {
+        if (intervals[i].end > intervals[i + 1].start) {
+          collisions.push({
+            date: dayStr,
+            t1: intervals[i].title,
+            t2: intervals[i + 1].title
+          });
+        }
+      }
+    }
+
+    if (collisions.length === 0) {
+      alert("✅ SEMPURNA: Tidak ada konflik waktu di bulan ini! Seluruh alokasi agenda 24 jam bebas bentrok.");
+    } else {
+      const msg = collisions.map(c => `• Tanggal ${c.date}: "${c.t1}" bertabrakan dengan "${c.t2}"`).join("\n");
+      alert(`⚠️ DITEMUKAN ${collisions.length} KONFLIK WAKTU:\n\n${msg}\n\nSilakan sesuaikan jam di Agenda Harian.`);
     }
   }
 
-  pushMilestoneToDaily(id) {
-    const item = this.data.monthlyPlan.milestones.find(x => x.id === id);
-    if (!item) return;
+  openUserGuideModal() {
+    const m = document.getElementById("modal-user-guide");
+    if (m) {
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+      document.body.classList.add("overflow-hidden");
+    }
+  }
 
-    this.data.dailyTasks.unshift({
-      id: "t-" + Date.now(),
-      date: this.selectedDate,
-      timeStart: "09:00",
-      timeEnd: "10:30",
-      hasSecondSession: false,
-      session2Start: "",
-      session2End: "",
-      title: `[Target Bulanan] ${item.title}`,
-      note: `Ditautkan dari milestone bulanan (${item.targetDate})`,
-      recurrence: "none",
-      validityType: "until_completed",
-      validUntil: "",
-      status: "todo",
-      completedDates: [],
-      deletedDates: []
-    });
+  closeUserGuideModal() {
+    const m = document.getElementById("modal-user-guide");
+    if (m) {
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+      document.body.classList.remove("overflow-hidden");
+    }
+  }
 
-    this.saveData();
-    alert(`Milestone "${item.title}" berhasil ditambahkan ke Agenda Harian!`);
-    this.render();
+  openAuditSyncModal() {
+    const m = document.getElementById("modal-audit-sync");
+    const list = document.getElementById("audit-sync-log-list");
+    if (m) {
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+      document.body.classList.add("overflow-hidden");
+    }
+    if (list) {
+      const logs = (this.data.notifications && this.data.notifications.logs) || [];
+      if (logs.length === 0) {
+        list.innerHTML = `<p class="text-slate-400 italic text-[11px] p-2 bg-slate-50 rounded-lg">Belum ada riwayat audit log tercatat.</p>`;
+      } else {
+        list.innerHTML = logs.map(l => `
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono flex items-center justify-between shadow-xs">
+            <div>
+              <span class="font-bold text-slate-800">[${this.escapeHtml(l.type)}]</span>
+              <span class="text-[10px] text-slate-500 block">${l.time} • ke ${l.phone || '-'}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${l.status === 'Terkirim' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}">${l.status}</span>
+          </div>
+        `).join("");
+      }
+    }
+  }
+
+  closeAuditSyncModal() {
+    const m = document.getElementById("modal-audit-sync");
+    if (m) {
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+      document.body.classList.remove("overflow-hidden");
+    }
+  }
+
+  exportFilteredCSV() {
+    const tasks = this.data.dailyTasks || [];
+    const headers = ["ID", "Tanggal", "Waktu Mulai", "Waktu Selesai", "Sesi 2 Mulai", "Sesi 2 Selesai", "Judul Agenda", "Catatan", "Frekuensi", "Status", "Batas Berlaku"];
+    
+    const escapeCsv = (val) => {
+      if (val === null || val === undefined) return '""';
+      const s = String(val).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+
+    const rows = tasks.map(t => [
+      escapeCsv(t.id),
+      escapeCsv(t.date),
+      escapeCsv(t.timeStart || ""),
+      escapeCsv(t.timeEnd || ""),
+      escapeCsv(t.session2Start || ""),
+      escapeCsv(t.session2End || ""),
+      escapeCsv(t.title || ""),
+      escapeCsv(t.note || ""),
+      escapeCsv(t.recurrence || "none"),
+      escapeCsv(t.status || "todo"),
+      escapeCsv(t.validUntil || "")
+    ].join(","));
+
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Agenda_Eksekutif_${this.getTodayDateString()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.showToast(`Berhasil mengekspor ${tasks.length} agenda ke file CSV!`, "success");
+  }
+
+  triggerCSVUpload() {
+    const input = document.getElementById("input-csv-upload");
+    if (input) input.click();
+  }
+
+  handleCSVUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+        if (lines.length < 2) {
+          alert("File CSV kosong atau tidak memiliki baris data.");
+          return;
+        }
+
+        const parseCSVLine = (line) => {
+          const result = [];
+          let insideQuote = false;
+          let entry = "";
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"' && i + 1 < line.length && line[i + 1] === '"') {
+              entry += '"';
+              i++;
+            } else if (char === '"') {
+              insideQuote = !insideQuote;
+            } else if (char === ',' && !insideQuote) {
+              result.push(entry);
+              entry = "";
+            } else {
+              entry += char;
+            }
+          }
+          result.push(entry);
+          return result;
+        };
+
+        let importedCount = 0;
+        for (let i = 1; i < lines.length; i++) {
+          const cols = parseCSVLine(lines[i]);
+          if (cols.length >= 7) {
+            const id = cols[0] || ("t-" + Date.now() + "-" + i);
+            const date = cols[1] || this.getTodayDateString();
+            const timeStart = cols[2] || "09:00";
+            const timeEnd = cols[3] || "10:00";
+            const session2Start = cols[4] || "";
+            const session2End = cols[5] || "";
+            const title = cols[6] || "Agenda Impor";
+            const note = cols[7] || "";
+            const recurrence = cols[8] || "none";
+            const status = cols[9] || "todo";
+            const validUntil = cols[10] || "";
+
+            const existing = this.data.dailyTasks.find(t => t.id === id);
+            if (existing) {
+              Object.assign(existing, { date, timeStart, timeEnd, session2Start, session2End, title, note, recurrence, status, validUntil });
+            } else {
+              this.data.dailyTasks.push({
+                id,
+                date,
+                timeStart,
+                timeEnd,
+                hasSecondSession: !!(session2Start && session2End),
+                session2Start,
+                session2End,
+                title,
+                note,
+                recurrence,
+                validityType: "until_completed",
+                validUntil,
+                status,
+                completedDates: [],
+                deletedDates: []
+              });
+            }
+            importedCount++;
+          }
+        }
+
+        this.saveData();
+        this.render();
+        this.showToast(`Berhasil mengimpor ${importedCount} agenda dari file CSV!`, "success");
+        event.target.value = "";
+      } catch (err) {
+        alert("Gagal memproses file CSV: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  renderMonthlyView() {
+    const container = document.getElementById("monthly-roadmap-container");
+    if (!container) return;
+
+    const y = this.monthlyViewYear;
+    const m = this.monthlyViewMonth;
+    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const monthName = monthNames[m];
+    const numDays = new Date(y, m + 1, 0).getDate();
+    const todayStr = this.getTodayDateString();
+
+    let totalMonthMinutes = 0;
+    let totalMonthTasks = 0;
+    let busiestDay = { day: "-", hours: 0, dateStr: "" };
+    const dayStatsList = [];
+
+    for (let d = 1; d <= numDays; d++) {
+      const dayStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const stats = this.getDayUsageStats(dayStr);
+      const dayOfWeek = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"][new Date(y, m, d).getDay()];
+      dayStatsList.push({
+        d,
+        dayStr,
+        dayOfWeek,
+        isToday: dayStr === todayStr,
+        ...stats
+      });
+
+      totalMonthMinutes += stats.totalMinutes;
+      totalMonthTasks += stats.taskCount;
+      if (stats.totalMinutes > busiestDay.hours) {
+        busiestDay = {
+          day: `${dayOfWeek}, ${d} ${monthName.slice(0, 3)}`,
+          hours: stats.totalMinutes,
+          cleanHours: stats.cleanHours,
+          dateStr: dayStr
+        };
+      }
+    }
+
+    const totalHoursMonth = (totalMonthMinutes / 60).toFixed(1);
+    const avgHoursPerDay = (totalMonthMinutes / numDays / 60).toFixed(1);
+    const avgHoursClean = avgHoursPerDay.endsWith(".0") ? parseInt(avgHoursPerDay, 10) : avgHoursPerDay;
+    const maxCapacityHours = numDays * 24;
+    const avgPct = Math.round((totalMonthMinutes / (numDays * 1440)) * 100);
+    const allTasksCount = (this.data.dailyTasks || []).length;
+
+    container.innerHTML = `
+      <!-- 1. Header & Month Selector Navigation -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="p-1.5 rounded-lg bg-indigo-50 text-indigo-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              </span>
+              <h2 class="text-base sm:text-lg font-black text-slate-900 font-mono tracking-tight uppercase">
+                Roadmap Bulanan & Alokasi Waktu 24 Jam
+              </h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+              Distribusi beban jam kerja harian (<span class="font-mono font-semibold text-slate-700">2/24 Jam, 14/24 Jam</span>) dan rata-rata per bulan.
+            </p>
+          </div>
+
+          <!-- Month Controls -->
+          <div class="flex items-center gap-1.5 self-start sm:self-auto font-mono text-xs">
+            <button onclick="window.app.changeMonthlyView(-1)" title="Bulan Sebelumnya" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border border-slate-200">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="px-3.5 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 shadow-xs whitespace-nowrap">
+              ${monthName} ${y}
+            </span>
+            <button onclick="window.app.changeMonthlyView(1)" title="Bulan Berikutnya" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border border-slate-200">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <button onclick="window.app.resetMonthlyViewToCurrent()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-medium transition-colors cursor-pointer border border-slate-200 whitespace-nowrap">
+              Bulan Ini
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Summary Metric Badges (Rata-rata & Alokasi Jam) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Rata-Rata / Hari</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-lg sm:text-xl font-black font-mono text-indigo-600">${avgHoursClean}</span>
+              <span class="text-xs font-bold text-slate-500 font-mono">/ 24 Jam</span>
+            </div>
+            <span class="text-[10px] text-slate-500 block mt-0.5">Rata-rata per hari bulan ini (${avgPct}%)</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Total Jam Terpakai</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-lg sm:text-xl font-black font-mono text-slate-800">${totalHoursMonth}</span>
+              <span class="text-xs font-bold text-slate-400 font-mono">/ ${maxCapacityHours} Jam</span>
+            </div>
+            <span class="text-[10px] text-slate-500 block mt-0.5">Kapasitas 1 bulan penuh</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Hari Terpadat</span>
+            <span class="text-xs sm:text-sm font-bold text-slate-800 truncate block mt-1">${busiestDay.hours > 0 ? busiestDay.day : 'Belum Ada'}</span>
+            <span class="text-[10px] text-indigo-600 font-mono block mt-0.5 font-semibold">${busiestDay.hours > 0 ? `${busiestDay.cleanHours}/24 Jam Terisi` : '-'}</span>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+            <span class="text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Total Agenda Aktif</span>
+            <div class="flex items-baseline gap-1">
+              <span class="text-lg sm:text-xl font-black font-mono text-emerald-600">${totalMonthTasks}</span>
+              <span class="text-xs font-bold text-slate-400 font-mono">Sesi</span>
+            </div>
+            <span class="text-[10px] text-emerald-600 font-semibold block mt-0.5">Bebas bentrok waktu</span>
+          </div>
+        </div>
+
+        <!-- 3. Spreadsheet Backup, Sync & Audit Logs Action Toolbar -->
+        <div class="p-3 sm:p-3.5 rounded-xl bg-slate-900 text-white space-y-2.5 shadow-sm">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <span class="text-xs font-bold font-mono tracking-wide">Spreadsheet Backup, Sync & Audit Logs</span>
+            </div>
+            <button onclick="window.app.openUserGuideModal()" class="text-[11px] text-indigo-300 hover:text-white flex items-center gap-1 font-semibold transition-colors cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>User Guide & Documentation</span>
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="window.app.manualSync()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Sync Manual</span>
+            </button>
+
+            <button onclick="window.app.checkAllMonthCollisions()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              <span>Cek Konflik</span>
+            </button>
+
+            <button onclick="window.app.openAuditSyncModal()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
+              <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Log Error Sync</span>
+            </button>
+
+            <button onclick="window.app.refreshData()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
+              <svg class="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+              <span>Refresh Data</span>
+            </button>
+
+            <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
+
+            <button onclick="window.app.exportFilteredCSV()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              <span>Download Filtered CSV (${allTasksCount} items)</span>
+            </button>
+
+            <button onclick="window.app.triggerCSVUpload()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer border border-slate-700">
+              <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <span>Upload Data CSV / Spreadsheet</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Monthly Roadmap Cards Grid (Per Hari: 2/24 Jam, 14/24 Jam) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+        ${dayStatsList.map(item => {
+          let ratioColor = "text-slate-400";
+          let barColor = "bg-slate-300";
+          if (item.cleanHours > 0 && item.cleanHours <= 4) {
+            ratioColor = "text-emerald-600";
+            barColor = "bg-emerald-500";
+          } else if (item.cleanHours > 4 && item.cleanHours <= 8) {
+            ratioColor = "text-indigo-600";
+            barColor = "bg-indigo-600";
+          } else if (item.cleanHours > 8 && item.cleanHours <= 12) {
+            ratioColor = "text-amber-600";
+            barColor = "bg-amber-500";
+          } else if (item.cleanHours > 12) {
+            ratioColor = "text-rose-600";
+            barColor = "bg-rose-500";
+          }
+
+          let previewHtml = "";
+          if (item.tasks.length === 0) {
+            previewHtml = `<span class="text-slate-400 text-[10px] italic">Slot 24 jam siap diisi</span>`;
+          } else {
+            const topTask = item.tasks[0];
+            previewHtml = `
+              <div class="truncate text-slate-700 text-[11px] font-medium">
+                <span class="font-mono text-[10px] text-slate-500 font-semibold">[${topTask.timeStart || '00:00'}]</span> ${this.escapeHtml(topTask.title)}
+              </div>
+              ${item.tasks.length > 1 ? `<span class="text-[10px] text-slate-400 block">+${item.tasks.length - 1} agenda lainnya</span>` : ''}
+            `;
+          }
+
+          return `
+            <div onclick="window.app.goToDate('${item.dayStr}')" class="p-3.5 rounded-2xl bg-white border ${item.isToday ? 'border-indigo-500 ring-2 ring-indigo-200 shadow-sm' : 'border-slate-200'} hover:border-indigo-400 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group min-h-[140px]">
+              <div>
+                <!-- Top Row: Tanggal, Nama Hari, Badge Hari Ini -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-lg font-black font-mono ${item.isToday ? 'text-indigo-600' : 'text-slate-800'}">${item.d}</span>
+                    <span class="text-xs font-semibold text-slate-500">${item.dayOfWeek}</span>
+                  </div>
+                  ${item.isToday ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-600 text-white tracking-wider">HARI INI</span>' : ''}
+                </div>
+
+                <!-- Middle: Rasio Jam (2/24 Jam, 14/24 Jam) -->
+                <div class="my-2.5">
+                  <div class="flex items-baseline justify-between mb-1">
+                    <span class="text-sm font-black font-mono ${ratioColor}">
+                      ${item.cleanHours}<span class="text-xs font-bold text-slate-400">/24 Jam</span>
+                    </span>
+                    <span class="text-[10px] font-mono text-slate-400 font-semibold">${item.pct}%</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full ${barColor} rounded-full transition-all" style="width: ${item.pct}%"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom: Preview Agenda & Link -->
+              <div class="pt-2 border-t border-slate-100 space-y-1">
+                <div class="flex items-center justify-between text-slate-600">
+                  <span class="text-[10px] font-bold uppercase tracking-wider font-mono text-slate-500">
+                    ${item.taskCount > 0 ? `${item.taskCount} Agenda` : 'Kosong'}
+                  </span>
+                  <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                ${previewHtml}
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
   }
 
   renderRoadmapView() {
