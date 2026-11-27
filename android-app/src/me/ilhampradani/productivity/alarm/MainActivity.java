@@ -534,7 +534,19 @@ public class MainActivity extends Activity {
 
                 // Recurrence Tag
                 TextView tvRec = new TextView(this);
-                String recLabel = "daily".equals(recurrence) ? "Tiap Hari" : ("weekdays".equals(recurrence) ? "Senin-Jumat" : "Sekali Saja");
+                String recLabel = "Tiap Hari";
+                if ("weekdays".equals(recurrence)) recLabel = "Senin - Jumat";
+                else if ("weekends".equals(recurrence)) recLabel = "Sabtu & Minggu";
+                else if ("weekly_monday".equals(recurrence)) recLabel = "Tiap Senin";
+                else if ("weekly_tuesday".equals(recurrence)) recLabel = "Tiap Selasa";
+                else if ("weekly_wednesday".equals(recurrence)) recLabel = "Tiap Rabu";
+                else if ("weekly_thursday".equals(recurrence)) recLabel = "Tiap Kamis";
+                else if ("weekly_friday".equals(recurrence)) recLabel = "Tiap Jumat";
+                else if ("weekly_saturday".equals(recurrence)) recLabel = "Tiap Sabtu";
+                else if ("weekly_sunday".equals(recurrence)) recLabel = "Tiap Minggu";
+                else if ("weekly_day".equals(recurrence)) recLabel = "Mingguan";
+                else if ("yearly".equals(recurrence)) recLabel = "Tiap Tahun";
+                else if ("none".equals(recurrence)) recLabel = "Sekali Saja";
                 tvRec.setText(recLabel);
                 tvRec.setTextColor(Color.parseColor("#8E8E93"));
                 tvRec.setTextSize(10);
@@ -800,6 +812,45 @@ public class MainActivity extends Activity {
                             Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
                             int dow = c.get(Calendar.DAY_OF_WEEK);
                             applies = (dow >= Calendar.MONDAY && dow <= Calendar.FRIDAY);
+                        } else if ("weekends".equals(recurrence)) {
+                            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            int dow = c.get(Calendar.DAY_OF_WEEK);
+                            applies = (dow == Calendar.SATURDAY || dow == Calendar.SUNDAY);
+                        } else if ("weekly_sunday".equals(recurrence)) {
+                            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            applies = (c.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY);
+                        } else if ("weekly_monday".equals(recurrence)) {
+                            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            applies = (c.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY);
+                        } else if ("weekly_tuesday".equals(recurrence)) {
+                            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            applies = (c.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY);
+                        } else if ("weekly_wednesday".equals(recurrence)) {
+                            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            applies = (c.get(Calendar.DAY_OF_WEEK) == Calendar.WEDNESDAY);
+                        } else if ("weekly_thursday".equals(recurrence)) {
+                            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            applies = (c.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY);
+                        } else if ("weekly_friday".equals(recurrence)) {
+                            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            applies = (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY);
+                        } else if ("weekly_saturday".equals(recurrence)) {
+                            Calendar c = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                            applies = (c.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY);
+                        } else if ("weekly_day".equals(recurrence)) {
+                            try {
+                                SimpleDateFormat sdfTask = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+                                sdfTask.setTimeZone(TimeZone.getTimeZone("Asia/Jakarta"));
+                                Date taskStartDate = sdfTask.parse(date);
+                                Calendar cTask = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                                cTask.setTime(taskStartDate);
+                                Calendar cToday = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta"));
+                                applies = (cToday.get(Calendar.DAY_OF_WEEK) == cTask.get(Calendar.DAY_OF_WEEK));
+                            } catch (Exception ignored) {}
+                        } else if ("yearly".equals(recurrence)) {
+                            if (date.length() >= 5 && todayDate.length() >= 5) {
+                                applies = todayDate.substring(5).equals(date.substring(5));
+                            }
                         }
 
                         if (!applies) continue;

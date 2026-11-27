@@ -1434,6 +1434,62 @@ Semoga hari Bapak selalu lancar!
         const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
         return dow >= 1 && dow <= 5;
       }
+      if (task.recurrence === "weekends") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow === 0 || dow === 6;
+      }
+      if (task.recurrence === "weekly_sunday") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow === 0;
+      }
+      if (task.recurrence === "weekly_monday") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow === 1;
+      }
+      if (task.recurrence === "weekly_tuesday") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow === 2;
+      }
+      if (task.recurrence === "weekly_wednesday") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow === 3;
+      }
+      if (task.recurrence === "weekly_thursday") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow === 4;
+      }
+      if (task.recurrence === "weekly_friday") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow === 5;
+      }
+      if (task.recurrence === "weekly_saturday") {
+        if (targetDate < task.date) return false;
+        if (task.validUntil && targetDate > task.validUntil) return false;
+        const parts = targetDate.split("-");
+        const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+        return dow === 6;
+      }
       if (task.recurrence === "weekly_day") {
         if (targetDate < task.date) return false;
         if (task.validUntil && targetDate > task.validUntil) return false;
@@ -2623,6 +2679,22 @@ Semoga hari Bapak selalu lancar!
         recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">${ICONS.repeat} <span>Tiap Hari</span></span>`;
       } else if (task.recurrence === "weekdays") {
         recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">${ICONS.repeat} <span>Senin - Jumat</span></span>`;
+      } else if (task.recurrence === "weekends") {
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">${ICONS.repeat} <span>Sabtu & Minggu</span></span>`;
+      } else if (task.recurrence === "weekly_monday") {
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Tiap Senin</span></span>`;
+      } else if (task.recurrence === "weekly_tuesday") {
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Tiap Selasa</span></span>`;
+      } else if (task.recurrence === "weekly_wednesday") {
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Tiap Rabu</span></span>`;
+      } else if (task.recurrence === "weekly_thursday") {
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Tiap Kamis</span></span>`;
+      } else if (task.recurrence === "weekly_friday") {
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Tiap Jumat</span></span>`;
+      } else if (task.recurrence === "weekly_saturday") {
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Tiap Sabtu</span></span>`;
+      } else if (task.recurrence === "weekly_sunday") {
+        recurrenceBadge = `<span class="inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">${ICONS.repeat} <span>Tiap Minggu</span></span>`;
       } else if (task.recurrence === "weekly_day") {
         const parts = (task.date || this.selectedDate).split("-");
         const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));

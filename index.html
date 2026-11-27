@@ -1130,11 +1130,25 @@
             <div>
               <label class="block text-[11px] font-medium text-slate-600 mb-1">Frekuensi Perulangan:</label>
               <select id="task-recurrence" onchange="window.app.handleRecurrenceChange()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-indigo-600 shadow-sm">
-                <option value="daily" selected>Setiap Hari</option>
-                <option value="weekdays">Hari Kerja (Senin - Jumat)</option>
-                <option value="weekly_day" id="task-recurrence-weekly-label">Setiap Minggu di Hari Tersebut</option>
-                <option value="yearly">Setiap Tahun (Tanggal & Bulan Sama)</option>
-                <option value="none">Sekali Saja (Hanya Tanggal Ini)</option>
+                <optgroup label="Pilihan Umum">
+                  <option value="daily" selected>Setiap Hari (Senin - Minggu)</option>
+                  <option value="weekdays">Hari Kerja (Senin - Jumat)</option>
+                  <option value="weekends">Akhir Pekan (Sabtu & Minggu)</option>
+                </optgroup>
+                <optgroup label="Hari Tertentu Setiap Minggu">
+                  <option value="weekly_monday">Setiap Hari Senin</option>
+                  <option value="weekly_tuesday">Setiap Hari Selasa</option>
+                  <option value="weekly_wednesday">Setiap Hari Rabu</option>
+                  <option value="weekly_thursday">Setiap Hari Kamis</option>
+                  <option value="weekly_friday">Setiap Hari Jumat</option>
+                  <option value="weekly_saturday">Setiap Hari Sabtu</option>
+                  <option value="weekly_sunday">Setiap Hari Minggu</option>
+                  <option value="weekly_day" id="task-recurrence-weekly-label">Setiap [Hari Terpilih] (Mingguan)</option>
+                </optgroup>
+                <optgroup label="Lainnya">
+                  <option value="yearly">Setiap Tahun (Tanggal & Bulan Sama)</option>
+                  <option value="none">Sekali Saja (Hanya Tanggal Ini)</option>
+                </optgroup>
               </select>
             </div>
 

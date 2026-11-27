@@ -203,6 +203,62 @@ async function checkServerMissedTasks() {
           const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
           if (dow >= 1 && dow <= 5) applies = true;
         }
+      } else if (task.recurrence === "weekends") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow === 0 || dow === 6) applies = true;
+        }
+      } else if (task.recurrence === "weekly_sunday") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow === 0) applies = true;
+        }
+      } else if (task.recurrence === "weekly_monday") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow === 1) applies = true;
+        }
+      } else if (task.recurrence === "weekly_tuesday") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow === 2) applies = true;
+        }
+      } else if (task.recurrence === "weekly_wednesday") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow === 3) applies = true;
+        }
+      } else if (task.recurrence === "weekly_thursday") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow === 4) applies = true;
+        }
+      } else if (task.recurrence === "weekly_friday") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow === 5) applies = true;
+        }
+      } else if (task.recurrence === "weekly_saturday") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const parts = dateStr.split("-");
+          const dow = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)).getDay();
+          if (dow === 6) applies = true;
+        }
+      } else if (task.recurrence === "weekly_day") {
+        if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
+          const p1 = dateStr.split("-");
+          const p2 = task.date.split("-");
+          const dow1 = new Date(parseInt(p1[0], 10), parseInt(p1[1], 10) - 1, parseInt(p1[2], 10)).getDay();
+          const dow2 = new Date(parseInt(p2[0], 10), parseInt(p2[1], 10) - 1, parseInt(p2[2], 10)).getDay();
+          if (dow1 === dow2) applies = true;
+        }
       } else if (task.recurrence === "yearly") {
         if (dateStr >= task.date && (!task.validUntil || dateStr <= task.validUntil)) {
           applies = (dateStr.slice(5) === task.date.slice(5));

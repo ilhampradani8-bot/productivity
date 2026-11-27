@@ -20,6 +20,13 @@
     },
     "logs": [
       {
+        "id": "log-1795772622275",
+        "time": "2026-11-27 16.43.42",
+        "type": "Rekap Malam",
+        "status": "Terkirim",
+        "phone": "6288971071138"
+      },
+      {
         "id": "log-1795771181141",
         "time": "2026-11-27 16.19.41",
         "type": "Briefing Pagi",
@@ -266,24 +273,6 @@
   },
   "dailyTasks": [
     {
-      "id": "t-1795759310132",
-      "date": "2026-11-29",
-      "timeStart": "15:00",
-      "timeEnd": "16:30",
-      "hasSecondSession": false,
-      "session2Start": "",
-      "session2End": "",
-      "title": "UJIAN UAS UT",
-      "note": "UJIAN UAS EXAM BROWSER, HUKUM BISNIS",
-      "recurrence": "none",
-      "validityType": "until_completed",
-      "validUntil": "",
-      "status": "todo",
-      "completedDates": [],
-      "deletedDates": [],
-      "updated_at": "2026-11-27T09:19:46.393Z"
-    },
-    {
       "id": "t-1",
       "date": "2026-11-26",
       "timeStart": "05:00",
@@ -301,12 +290,12 @@
         "2026-11-26",
         "2026-11-27"
       ],
-      "deletedDates": [
-        "2026-11-26"
-      ],
       "alertSentDates": [
         "2026-11-26",
         "2026-11-27"
+      ],
+      "deletedDates": [
+        "2026-11-26"
       ],
       "updated_at": "2026-11-27T08:54:20.273Z"
     },
@@ -333,50 +322,6 @@
         "2026-11-28"
       ],
       "updated_at": "2026-11-27T09:19:46.393Z"
-    },
-    {
-      "id": "t-5",
-      "date": "2026-11-26",
-      "timeStart": "16:30",
-      "timeEnd": "17:30",
-      "hasSecondSession": false,
-      "session2Start": "",
-      "session2End": "",
-      "title": "Sesi Pembelajaran Mandiri & Review Materi Teknis",
-      "note": "Baca modul materi strategis 60 menit",
-      "recurrence": "daily",
-      "validityType": "1_year",
-      "validUntil": "2027-11-26",
-      "status": "todo",
-      "completedDates": [
-        "2026-11-26"
-      ],
-      "deletedDates": [],
-      "updated_at": "2026-11-27T09:19:46.393Z"
-    },
-    {
-      "id": "t-1795711864119",
-      "title": "[Pertemuan] Prof. Dr. Ir. Budi Santoso - Konsultasi Hukum & Keamanan Siber",
-      "time_start": "10:00",
-      "time_end": "11:30",
-      "target_date": "2026-11-28",
-      "recurrence": "none",
-      "duration_years": null,
-      "validity_type": null,
-      "status": "todo",
-      "completed_dates": null,
-      "deleted_dates": null,
-      "missed_reasons": null,
-      "note": "Moda: virtual. Klien: Prof. Dr. Ir. Budi Santoso (6281298765432). Catatan: Diskusi audit forensik dan tata kelola kepatuhan sistem AI eksekutif.",
-      "has_second_session": null,
-      "session2_start": null,
-      "session2_end": null,
-      "raw_json": null,
-      "updated_at": "2026-11-26 16:51:03",
-      "hasSecondSession": false,
-      "validityType": "until_completed",
-      "completedDates": [],
-      "deletedDates": []
     },
     {
       "id": "t-3",
@@ -417,6 +362,69 @@
       ],
       "deletedDates": [],
       "updated_at": "2026-11-27T09:19:46.393Z"
+    },
+    {
+      "id": "t-5",
+      "date": "2026-11-26",
+      "timeStart": "16:30",
+      "timeEnd": "19:30",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "Sesi Pembelajaran Mandiri & Review Materi Teknis",
+      "note": "Baca modul materi strategis 60 menit",
+      "recurrence": "daily",
+      "validityType": "1_year",
+      "validUntil": "2027-11-26",
+      "status": "todo",
+      "completedDates": [
+        "2026-11-26"
+      ],
+      "deletedDates": [],
+      "updated_at": "2026-11-27T09:19:46.393Z",
+      "label": ""
+    },
+    {
+      "id": "t-1795759310132",
+      "date": "2026-11-29",
+      "timeStart": "15:00",
+      "timeEnd": "16:30",
+      "hasSecondSession": false,
+      "session2Start": "",
+      "session2End": "",
+      "title": "UJIAN UAS UT",
+      "note": "UJIAN UAS EXAM BROWSER, HUKUM BISNIS",
+      "recurrence": "none",
+      "validityType": "until_completed",
+      "validUntil": "",
+      "status": "todo",
+      "completedDates": [],
+      "deletedDates": [],
+      "updated_at": "2026-11-27T09:19:46.393Z"
+    },
+    {
+      "id": "t-1795711864119",
+      "title": "[Pertemuan] Prof. Dr. Ir. Budi Santoso - Konsultasi Hukum & Keamanan Siber",
+      "time_start": "10:00",
+      "time_end": "11:30",
+      "target_date": "2026-11-28",
+      "recurrence": "none",
+      "duration_years": null,
+      "validity_type": null,
+      "status": "todo",
+      "completed_dates": null,
+      "deleted_dates": null,
+      "missed_reasons": null,
+      "note": "Moda: virtual. Klien: Prof. Dr. Ir. Budi Santoso (6281298765432). Catatan: Diskusi audit forensik dan tata kelola kepatuhan sistem AI eksekutif.",
+      "has_second_session": null,
+      "session2_start": null,
+      "session2_end": null,
+      "raw_json": null,
+      "updated_at": "2026-11-26 16:51:03",
+      "hasSecondSession": false,
+      "validityType": "until_completed",
+      "completedDates": [],
+      "deletedDates": []
     }
   ],
   "alarmSettings": {
