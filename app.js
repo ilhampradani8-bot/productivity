@@ -451,6 +451,29 @@ class ProductivityApp {
     }
   }
 
+  presetSleepSchedule() {
+    this.openAddTaskModal();
+    this.setTaskScheduleMode("recurring");
+    const titleEl = document.getElementById("task-title");
+    const startEl = document.getElementById("task-start-time");
+    const endEl = document.getElementById("task-end-time");
+    const recEl = document.getElementById("task-recurrence");
+    const noteEl = document.getElementById("task-note");
+    const toggleS2 = document.getElementById("toggle-session2");
+
+    if (titleEl) titleEl.value = "Waktu Istirahat & Tidur Eksekutif";
+    if (startEl) startEl.value = "23:00";
+    if (endEl) endEl.value = "05:00";
+    if (recEl) recEl.value = "daily";
+    if (noteEl) noteEl.value = "Alokasi pemulihan energi fisik & kognitif eksekutif (Recovery block terencana).";
+    if (toggleS2 && toggleS2.checked) {
+      toggleS2.checked = false;
+      this.toggleSession2UI();
+    }
+    this.checkTimeCollision();
+    this.showToast("Preset Waktu Tidur Eksekutif (23:00 - 05:00 WIB) berhasil dimuat!", "success");
+  }
+
   // ===================== TOAST NOTIFICATION =====================
   showToast(msg, type = "info") {
     let container = document.getElementById("aura-toast-container");
@@ -956,8 +979,15 @@ class ProductivityApp {
   }
 
   // ===================== MISSED TASK DETECTION & POPUP MODAL =====================
+  isSleepTask(task) {
+    if (!task) return false;
+    if (task.category === "istirahat" || task.isSleep === true) return true;
+    const title = (task.title || "").toLowerCase();
+    return /\b(tidur|istirahat|sleep|rest|pemulihan|recharge)\b/i.test(title);
+  }
+
   isTaskMissed(task, dateStr) {
-    if (task.isDone || task.isCancelled) return false;
+    if (task.isDone || task.isCancelled || this.isSleepTask(task)) return false;
     const today = this.getTodayDateString();
 
     if (dateStr < today) {
@@ -1286,18 +1316,23 @@ Semoga hari Bapak selalu lancar!
     const intervals = [];
 
     tasks.forEach(t => {
+      const isSleep = this.isSleepTask(t);
       if (t.timeStart && t.timeEnd) {
         const s = this.timeToMinutes(t.timeStart);
         const e = this.timeToMinutes(t.timeEnd);
         if (e > s) {
-          intervals.push({ start: s, end: e, title: t.title, taskId: t.id, session: 1 });
+          intervals.push({ start: s, end: e, title: t.title, taskId: t.id, session: 1, isSleep });
+        } else if (e < s && isSleep) {
+          // Jadwal tidur lintas tengah malam (contoh: 23:00 - 05:00)
+          intervals.push({ start: s, end: 1440, title: `${t.title} (Malam)`, taskId: t.id, session: 1, isSleep: true });
+          intervals.push({ start: 0, end: e, title: `${t.title} (Subuh)`, taskId: t.id, session: 1, isSleep: true });
         }
       }
       if (t.hasSecondSession && t.session2Start && t.session2End) {
         const s2 = this.timeToMinutes(t.session2Start);
         const e2 = this.timeToMinutes(t.session2End);
         if (e2 > s2) {
-          intervals.push({ start: s2, end: e2, title: `${t.title} (Sesi Malam)`, taskId: t.id, session: 2 });
+          intervals.push({ start: s2, end: e2, title: `${t.title} (Sesi Malam)`, taskId: t.id, session: 2, isSleep: false });
         }
       }
     });
@@ -1326,22 +1361,39 @@ Semoga hari Bapak selalu lancar!
     const s2Start = hasS2 ? this.timeToMinutes(s2StartEl.value) : null;
     const s2End = hasS2 ? this.timeToMinutes(s2EndEl.value) : null;
 
+    const taskTitleVal = (document.getElementById("task-title") ? document.getElementById("task-title").value : "").toLowerCase();
+    const isCurrentSleep = /\b(tidur|istirahat|sleep|rest|pemulihan|recharge)\b/i.test(taskTitleVal);
+
     const targetDateInput = document.getElementById("task-target-date");
     const targetDate = (targetDateInput && targetDateInput.value) || this.selectedDate;
     const occupied = this.getOccupiedIntervals(targetDate, this.editingTaskId);
     let conflict = null;
 
     if (s1End <= s1Start) {
-      conflict = { msg: "Jam selesai Sesi 1 harus lebih besar dari jam mulai!" };
+      if (!isCurrentSleep) {
+        conflict = { msg: "Jam selesai Sesi 1 harus lebih besar dari jam mulai!" };
+      }
     }
 
     if (!conflict) {
-      for (const occ of occupied) {
-        if (s1Start < occ.end && s1End > occ.start) {
-          conflict = { 
-            msg: `Bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
-          };
-          break;
+      if (s1End > s1Start) {
+        for (const occ of occupied) {
+          if (s1Start < occ.end && s1End > occ.start) {
+            conflict = { 
+              msg: `Bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
+            };
+            break;
+          }
+        }
+      } else if (isCurrentSleep) {
+        // Cek bentrok untuk tidur lintas hari (malam 23:00..1440 dan subuh 0..05:00)
+        for (const occ of occupied) {
+          if ((s1Start < occ.end && 1440 > occ.start) || (0 < occ.end && s1End > occ.start)) {
+            conflict = { 
+              msg: `Waktu tidur bertabrakan dengan agenda "${occ.title}" (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})` 
+            };
+            break;
+          }
         }
       }
     }
@@ -1375,7 +1427,8 @@ Semoga hari Bapak selalu lancar!
       if (submitBtn) submitBtn.disabled = true;
     } else {
       if (badgeEl) {
-        badgeEl.innerHTML = `${ICONS.checkCircle} <span>Slot Aman</span>`;
+        const sleepNotice = isCurrentSleep && s1End <= s1Start ? " (Tidur Lintas Malam)" : "";
+        badgeEl.innerHTML = `${ICONS.checkCircle} <span>Slot Aman${sleepNotice}</span>`;
         badgeEl.className = "font-bold text-emerald-700 flex items-center gap-1.5 flex-shrink-0";
       }
       if (warnBox) warnBox.classList.add("hidden");
@@ -1386,8 +1439,10 @@ Semoga hari Bapak selalu lancar!
     occupied.forEach(occ => {
       const left = (occ.start / 1440) * 100;
       const width = Math.max(1, ((occ.end - occ.start) / 1440) * 100);
+      const sleepClass = occ.isSleep ? " sleep" : "";
+      const prefix = occ.isSleep ? "🌙 " : "";
       html += `
-        <div class="timeline-slot-occupied" style="left: ${left.toFixed(2)}%; width: ${width.toFixed(2)}%;" title="${this.escapeHtml(occ.title)} (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})"></div>
+        <div class="timeline-slot-occupied${sleepClass}" style="left: ${left.toFixed(2)}%; width: ${width.toFixed(2)}%;" title="${prefix}${this.escapeHtml(occ.title)} (${this.minutesToTime(occ.start)} - ${this.minutesToTime(occ.end)})"></div>
       `;
     });
 
@@ -1397,6 +1452,17 @@ Semoga hari Bapak selalu lancar!
       const isConf = conflict !== null;
       html += `
         <div class="timeline-slot-current ${isConf ? 'conflict' : 'valid'}" style="left: ${left.toFixed(2)}%; width: ${width.toFixed(2)}%;" title="Sesi 1: ${this.minutesToTime(s1Start)} - ${this.minutesToTime(s1End)}"></div>
+      `;
+    } else if (isCurrentSleep && s1Start > 0 && s1End > 0) {
+      // Overnight sleep preview
+      const left1 = (s1Start / 1440) * 100;
+      const width1 = Math.max(1, ((1440 - s1Start) / 1440) * 100);
+      const left2 = 0;
+      const width2 = Math.max(1, (s1End / 1440) * 100);
+      const isConf = conflict !== null;
+      html += `
+        <div class="timeline-slot-current ${isConf ? 'conflict' : 'valid'}" style="left: ${left1.toFixed(2)}%; width: ${width1.toFixed(2)}%;" title="Waktu Tidur (Malam): ${this.minutesToTime(s1Start)} - 24:00"></div>
+        <div class="timeline-slot-current ${isConf ? 'conflict' : 'valid'}" style="left: ${left2.toFixed(2)}%; width: ${width2.toFixed(2)}%;" title="Waktu Tidur (Subuh): 00:00 - ${this.minutesToTime(s1End)}"></div>
       `;
     }
 
@@ -2459,29 +2525,58 @@ Semoga hari Bapak selalu lancar!
   // ===================== ROADMAP BULANAN & ALOKASI WAKTU 24 JAM =====================
   getDayUsageStats(dateStr) {
     const tasks = this.getTasksForDate(dateStr).filter(t => !t.isCancelled);
-    let totalMinutes = 0;
+    let workMinutes = 0;
+    let sleepMinutes = 0;
+
     tasks.forEach(t => {
+      const isSleep = this.isSleepTask(t);
       if (t.timeStart && t.timeEnd) {
         const s = this.timeToMinutes(t.timeStart);
         const e = this.timeToMinutes(t.timeEnd);
-        if (e > s) totalMinutes += (e - s);
+        const dur = (e >= s) ? (e - s) : (1440 - s + e);
+        if (isSleep) {
+          sleepMinutes += dur;
+        } else {
+          workMinutes += dur;
+        }
       }
       if (t.hasSecondSession && t.session2Start && t.session2End) {
         const s2 = this.timeToMinutes(t.session2Start);
         const e2 = this.timeToMinutes(t.session2End);
-        if (e2 > s2) totalMinutes += (e2 - s2);
+        const dur2 = (e2 >= s2) ? (e2 - s2) : (1440 - s2 + e2);
+        workMinutes += dur2;
       }
     });
 
-    const hours = (totalMinutes / 60).toFixed(1);
-    const cleanHours = hours.endsWith(".0") ? parseInt(hours, 10) : hours;
-    const pct = Math.min(100, Math.round((totalMinutes / 1440) * 100));
+    // Baseline tidur sehat: jika belum input jadwal tidur, alokasikan 7 jam tidur eksekutif
+    const effectiveSleepMinutes = sleepMinutes > 0 ? sleepMinutes : 420;
+    const totalAllocatedMinutes = Math.min(1440, workMinutes + effectiveSleepMinutes);
+    const flexibleMinutes = Math.max(0, 1440 - totalAllocatedMinutes);
+
+    const workHoursVal = (workMinutes / 60).toFixed(1);
+    const sleepHoursVal = (effectiveSleepMinutes / 60).toFixed(1);
+    const flexibleHoursVal = (flexibleMinutes / 60).toFixed(1);
+
+    const cleanWorkHours = workHoursVal.endsWith(".0") ? parseInt(workHoursVal, 10) : workHoursVal;
+    const cleanSleepHours = sleepHoursVal.endsWith(".0") ? parseInt(sleepHoursVal, 10) : sleepHoursVal;
+    const cleanFlexibleHours = flexibleHoursVal.endsWith(".0") ? parseInt(flexibleHoursVal, 10) : flexibleHoursVal;
+
+    const totalMinutes = workMinutes;
+    const cleanHours = cleanWorkHours;
+    const pct = Math.min(100, Math.round((workMinutes / 1440) * 100));
 
     return {
       taskCount: tasks.length,
       totalMinutes,
       cleanHours,
-      ratioStr: `${cleanHours}/24 Jam`,
+      workMinutes,
+      workHours: cleanWorkHours,
+      sleepMinutes: effectiveSleepMinutes,
+      sleepHours: cleanSleepHours,
+      flexibleMinutes,
+      flexibleHours: cleanFlexibleHours,
+      hasExplicitSleep: sleepMinutes > 0,
+      ratioStr: `${cleanWorkHours}/24 Jam`,
       pct,
       tasks
     };
@@ -2926,12 +3021,13 @@ Semoga hari Bapak selalu lancar!
 
           let previewHtml = "";
           if (item.tasks.length === 0) {
-            previewHtml = `<span class="text-slate-400 text-[10px] italic">Slot 24 jam siap diisi</span>`;
+            previewHtml = `<span class="text-slate-400 text-[10px] italic">Waktu fleksibel & pemulihan siap dikelola</span>`;
           } else {
             const topTask = item.tasks[0];
+            const isTopSleep = this.isSleepTask(topTask);
             previewHtml = `
               <div class="truncate text-slate-700 text-[11px] font-medium">
-                <span class="font-mono text-[10px] text-slate-500 font-semibold">[${topTask.timeStart || '00:00'}]</span> ${this.escapeHtml(topTask.title)}
+                <span class="font-mono text-[10px] text-slate-500 font-semibold">[${topTask.timeStart || '00:00'}]</span> ${isTopSleep ? '🌙 ' : ''}${this.escapeHtml(topTask.title)}
               </div>
               ${item.tasks.length > 1 ? `<span class="text-[10px] text-slate-400 block">+${item.tasks.length - 1} agenda lainnya</span>` : ''}
             `;
@@ -2949,15 +3045,17 @@ Semoga hari Bapak selalu lancar!
                   ${item.isToday ? '<span class="px-1 py-0.2 rounded text-[8px] font-bold bg-indigo-600 text-white tracking-wider">HARI INI</span>' : ''}
                 </div>
 
-                <!-- Middle: Rasio Jam (2/24 Jam, 14/24 Jam) -->
-                <div class="my-1 sm:my-2.5">
+                <!-- Middle: Rasio Jam (2/24 Jam, 14/24 Jam) & Waktu Pemulihan -->
+                <div class="my-1 sm:my-2">
                   <div class="flex items-baseline justify-between mb-0.5 sm:mb-1">
                     <span class="text-xs sm:text-sm font-black font-mono ${ratioColor}">
                       ${item.cleanHours}<span class="text-[9px] sm:text-xs font-bold text-slate-400">/24 Jam</span>
                     </span>
-                    <span class="text-[9px] sm:text-[10px] font-mono text-slate-400 font-semibold">${item.pct}%</span>
+                    <span class="text-[9px] sm:text-[10px] font-mono text-purple-600 font-semibold flex items-center gap-0.5" title="Waktu Pemulihan & Tidur: ${item.sleepHours} Jam">
+                      🌙 ${item.sleepHours}h
+                    </span>
                   </div>
-                  <div class="w-full h-1 sm:h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div class="w-full h-1 sm:h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
                     <div class="h-full ${barColor} rounded-full transition-all" style="width: ${item.pct}%"></div>
                   </div>
                 </div>
@@ -3011,19 +3109,73 @@ Semoga hari Bapak selalu lancar!
         });
       });
 
+      // Target steps metrics
+      const totalSteps = allSteps.length;
+      const doneSteps = allSteps.filter(s => s.done).length;
+      const inProgSteps = allSteps.filter(s => !s.done && !s.failed && s.status !== "cancelled").length;
+      const failedSteps = allSteps.filter(s => s.failed || s.status === "cancelled" || s.status === "failed").length;
+
+      // Check daily tasks in that year
+      const yNum = parseInt(year.year, 10) || 2026;
+      const yStr = String(yNum);
+      const yearDailyTasks = (this.data.dailyTasks || []).filter(t => t.date && t.date.startsWith(yStr));
+      const doneDailyTasks = yearDailyTasks.filter(t => t.status === "done" || (t.completedDates && t.completedDates.some(d => d.startsWith(yStr)))).length;
+      const failedDailyTasks = yearDailyTasks.filter(t => t.status === "cancelled" || t.missedReason).length;
+
+      const displayTotal = totalSteps > 0 ? totalSteps : yearDailyTasks.length;
+      const displayDone = totalSteps > 0 ? doneSteps : doneDailyTasks;
+      const displayFailed = totalSteps > 0 ? failedSteps : failedDailyTasks;
+      const displayInProg = totalSteps > 0 ? inProgSteps : Math.max(0, yearDailyTasks.length - doneDailyTasks - failedDailyTasks);
+
+      const pctDone = displayTotal > 0 ? Math.round((displayDone / displayTotal) * 100) : 0;
+      const failedRate = displayTotal > 0 ? Math.round((displayFailed / displayTotal) * 100) : 0;
+      const inProgRate = displayTotal > 0 ? Math.max(0, 100 - pctDone - failedRate) : 0;
+
+      // Rata-rata per bulan
+      const avgPerMonth = (displayDone / 12).toFixed(1);
+      // Rata-rata per hari (pace beban kerja/target per hari dalam 365 hari)
+      const avgPerDay = (displayTotal / 365).toFixed(2);
+
+      // 4 Quarters breakdown (Q1: Jan-Mar, Q2: Apr-Jun, Q3: Jul-Sep, Q4: Okt-Des)
+      const getQuarterStats = (qIndex) => {
+        const qMonths = [
+          ['01', '02', '03'],
+          ['04', '05', '06'],
+          ['07', '08', '09'],
+          ['10', '11', '12']
+        ][qIndex - 1];
+        const qTasks = yearDailyTasks.filter(t => t.date && qMonths.includes(t.date.slice(5, 7)));
+        const qSteps = allSteps.filter(s => {
+          const qName = (s.quarterName || "").toUpperCase();
+          return qName.includes(`Q${qIndex}`) || qName.includes(` ${qIndex}`);
+        });
+        const qTotal = qSteps.length > 0 ? qSteps.length : qTasks.length;
+        const qDone = qSteps.length > 0 ? qSteps.filter(s => s.done).length : qTasks.filter(t => t.status === "done").length;
+        const qPct = qTotal > 0 ? Math.round((qDone / qTotal) * 100) : 0;
+        return { total: qTotal, done: qDone, pct: qPct };
+      };
+
+      const q1 = getQuarterStats(1);
+      const q2 = getQuarterStats(2);
+      const q3 = getQuarterStats(3);
+      const q4 = getQuarterStats(4);
+
       return `
         <div class="bg-white border border-slate-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm space-y-3">
           <!-- Top Row: Tahun & Judul & Aksi -->
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
             <div class="flex items-center gap-2.5 flex-1 min-w-0">
-              <span class="text-lg sm:text-2xl font-black text-indigo-600 font-mono tracking-tight flex-shrink-0">${year.year}</span>
+              <span class="text-xl sm:text-2xl font-black text-indigo-600 font-mono tracking-tight flex-shrink-0">${year.year}</span>
               <div class="flex-1 min-w-0">
                 ${year.title ? `
                   <h3 class="text-xs sm:text-sm font-bold text-slate-900 break-words">${this.escapeHtml(year.title)}</h3>
                 ` : `
-                  <span class="text-xs text-slate-400 italic">Belum ada judul target (klik Edit untuk mengisi)</span>
+                  <span class="text-xs text-slate-400 italic">Target Tahunan Mandiri (klik Edit untuk mengisi fokus/tema)</span>
                 `}
               </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${pctDone >= 80 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'} whitespace-nowrap">
+                ${pctDone}% Tercapai
+              </span>
             </div>
 
             <!-- Action Buttons for this Year -->
@@ -3042,40 +3194,149 @@ Semoga hari Bapak selalu lancar!
             </div>
           </div>
 
-          <!-- Target Steps List -->
-          <div class="space-y-1.5 pt-1">
-            ${allSteps.length === 0 ? `
-              <div onclick="window.app.openAdd5YStepModal('${year.id}')" class="p-3 text-center rounded-xl border border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/20 text-slate-400 hover:text-indigo-600 text-xs cursor-pointer transition-all">
-                + Klik di sini untuk menambahkan target kerja tahun ${year.year}
+          <!-- 2. The 4 Requested Metrics Grid (Total Selesai, Rata2/Bulan, Rata2/Hari, Rata2 Gagal) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+            <div class="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Total Selesai</span>
+              <div class="flex items-baseline gap-1">
+                <span class="text-base sm:text-xl font-black font-mono text-emerald-600">${displayDone}</span>
+                <span class="text-[10px] sm:text-xs font-bold text-slate-400 font-mono">/ ${displayTotal}</span>
               </div>
-            ` : allSteps.map(step => `
-              <div class="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200 text-xs transition-colors group">
-                <div class="flex items-center gap-2 flex-1 min-w-0">
-                  <input type="checkbox" ${step.done ? 'checked' : ''} onchange="window.app.toggle5YStep('${year.id}', '${step.quarterId}', '${step.id}')" class="custom-checkbox flex-shrink-0">
-                  <div class="flex-1 min-w-0">
-                    <span class="${step.done ? 'line-through text-slate-400' : 'text-slate-900 font-medium'} truncate block">${this.escapeHtml(step.title)}</span>
-                    ${step.note ? `<span class="text-[10px] text-slate-400 truncate block">${this.escapeHtml(step.note)}</span>` : ''}
+              <span class="text-[9px] sm:text-[10px] text-emerald-600 font-semibold block mt-0.5">${pctDone}% Terlaksana</span>
+            </div>
+
+            <div class="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Rata-Rata / Bulan</span>
+              <div class="flex items-baseline gap-1">
+                <span class="text-base sm:text-xl font-black font-mono text-indigo-600">${avgPerMonth}</span>
+                <span class="text-[10px] sm:text-xs font-bold text-slate-400 font-mono">Target/Bln</span>
+              </div>
+              <span class="text-[9px] sm:text-[10px] text-slate-500 block mt-0.5">Pace 12 bulan</span>
+            </div>
+
+            <div class="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Rata-Rata / Hari</span>
+              <div class="flex items-baseline gap-1">
+                <span class="text-base sm:text-xl font-black font-mono text-slate-800">${avgPerDay}</span>
+                <span class="text-[10px] sm:text-xs font-bold text-slate-400 font-mono">Pace/Hari</span>
+              </div>
+              <span class="text-[9px] sm:text-[10px] text-slate-500 block mt-0.5">Basis 365 hari</span>
+            </div>
+
+            <div class="p-2.5 sm:p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400 uppercase block mb-0.5">Rata-Rata Gagal / Kendala</span>
+              <div class="flex items-baseline gap-1">
+                <span class="text-base sm:text-xl font-black font-mono ${displayFailed > 0 ? 'text-rose-600' : 'text-slate-800'}">${displayFailed}</span>
+                <span class="text-[10px] sm:text-xs font-bold text-slate-400 font-mono">(${failedRate}%)</span>
+              </div>
+              <span class="text-[9px] sm:text-[10px] ${displayFailed > 0 ? 'text-rose-600 font-semibold' : 'text-emerald-600 font-semibold'} block mt-0.5">
+                ${displayFailed > 0 ? 'Terkendala/batal' : 'Bebas kendala'}
+              </span>
+            </div>
+          </div>
+
+          <!-- 3. Grafik Visual Kompak (Tri-Color Bar & 4 Quarters Breakdown) -->
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/90 space-y-2.5">
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-slate-700 font-bold">Grafik Status Eksekusi Tahunan:</span>
+                <span class="font-bold text-indigo-700 font-mono">${pctDone}%</span>
+              </div>
+              <div class="w-full h-2.5 rounded-full bg-slate-200 overflow-hidden flex shadow-inner">
+                <div style="width: ${pctDone}%" class="bg-emerald-500 h-full transition-all" title="Selesai: ${displayDone}"></div>
+                <div style="width: ${inProgRate}%" class="bg-indigo-500 h-full transition-all" title="Dalam Proses: ${displayInProg}"></div>
+                <div style="width: ${failedRate}%" class="bg-rose-500 h-full transition-all" title="Kendala/Batal: ${displayFailed}"></div>
+              </div>
+              <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 pt-0.5 flex-wrap gap-2">
+                <span class="inline-flex items-center gap-1 text-emerald-700 font-medium">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Selesai (${displayDone})
+                </span>
+                <span class="inline-flex items-center gap-1 text-indigo-700 font-medium">
+                  <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Proses (${displayInProg})
+                </span>
+                <span class="inline-flex items-center gap-1 text-rose-700 font-medium">
+                  <span class="w-2 h-2 rounded-full bg-rose-500"></span> Kendala (${displayFailed})
+                </span>
+              </div>
+            </div>
+
+            <!-- 4 Quarters Mini Performance Bars -->
+            <div class="grid grid-cols-4 gap-1.5 sm:gap-2 pt-1 border-t border-slate-200">
+              ${[
+                { name: "Q1 (Jan-Mar)", ...q1 },
+                { name: "Q2 (Apr-Jun)", ...q2 },
+                { name: "Q3 (Jul-Sep)", ...q3 },
+                { name: "Q4 (Okt-Des)", ...q4 }
+              ].map(q => `
+                <div class="p-1.5 sm:p-2 rounded-lg bg-white border border-slate-200 text-center flex flex-col justify-between">
+                  <span class="text-[9px] sm:text-[10px] font-mono font-bold text-slate-600 block truncate">${q.name}</span>
+                  <div class="w-full bg-slate-100 rounded-full h-1.5 sm:h-2 my-1 overflow-hidden">
+                    <div class="bg-indigo-600 h-full rounded-full transition-all" style="width: ${q.pct}%"></div>
+                  </div>
+                  <span class="text-[10px] sm:text-[11px] font-mono font-bold text-slate-800">${q.pct}%</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <!-- 4. Collapsible Rincian Target (Hidden by default to prevent long list) -->
+          <div class="pt-1 border-t border-slate-100">
+            <button type="button" onclick="window.app.toggleYearDetails('${year.id}')" class="w-full flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors cursor-pointer border border-slate-200">
+              <div class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>Kelola & Rincian Target (${allSteps.length} Target)</span>
+              </div>
+              <span id="year-toggle-arrow-${year.id}" class="text-[10px] font-mono text-indigo-600 font-bold">Buka Rincian ▼</span>
+            </button>
+
+            <div id="year-details-${year.id}" class="hidden space-y-1.5 pt-2">
+              ${allSteps.length === 0 ? `
+                <div onclick="window.app.openAdd5YStepModal('${year.id}')" class="p-3 text-center rounded-xl border border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/20 text-slate-400 hover:text-indigo-600 text-xs cursor-pointer transition-all">
+                  + Klik di sini untuk menambahkan target kerja tahun ${year.year}
+                </div>
+              ` : allSteps.map(step => `
+                <div class="flex items-center justify-between gap-2 p-2 sm:p-2.5 rounded-xl bg-slate-50 hover:bg-slate-100/70 border border-slate-200 text-xs transition-colors group">
+                  <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <input type="checkbox" ${step.done ? 'checked' : ''} onchange="window.app.toggle5YStep('${year.id}', '${step.quarterId}', '${step.id}')" class="custom-checkbox flex-shrink-0">
+                    <div class="flex-1 min-w-0">
+                      <span class="${step.done ? 'line-through text-slate-400' : 'text-slate-900 font-medium'} truncate block">${this.escapeHtml(step.title)}</span>
+                      ${step.note ? `<span class="text-[10px] text-slate-400 truncate block">${this.escapeHtml(step.note)}</span>` : ''}
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-1 flex-shrink-0">
+                    <button onclick="window.app.push5YStepToDaily('${year.year}', '${step.quarterName || ''}', '${step.id}')" title="Jadikan Agenda Harian Hari Ini" class="px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 transition-colors cursor-pointer text-[10px] sm:text-[11px] font-medium flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                      <span>Hari Ini</span>
+                    </button>
+                    <button onclick="window.app.openEdit5YStepModal('${year.id}', '${step.quarterId}', '${step.id}')" title="Edit Target" class="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-white cursor-pointer">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                    <button onclick="window.app.delete5YStep('${year.id}', '${step.quarterId}', '${step.id}')" title="Hapus Target" class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-white cursor-pointer">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
                   </div>
                 </div>
-
-                <div class="flex items-center gap-1 flex-shrink-0">
-                  <button onclick="window.app.push5YStepToDaily('${year.year}', '${step.quarterName || ''}', '${step.id}')" title="Jadikan Agenda Harian Hari Ini" class="px-2 py-0.5 rounded-md bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-200 transition-colors cursor-pointer text-[10px] sm:text-[11px] font-medium flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    <span>Hari Ini</span>
-                  </button>
-                  <button onclick="window.app.openEdit5YStepModal('${year.id}', '${step.quarterId}', '${step.id}')" title="Edit Target" class="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-white cursor-pointer">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                  </button>
-                  <button onclick="window.app.delete5YStep('${year.id}', '${step.quarterId}', '${step.id}')" title="Hapus Target" class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-white cursor-pointer">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                  </button>
-                </div>
-              </div>
-            `).join("")}
+              `).join("")}
+            </div>
           </div>
         </div>
       `;
     }).join("");
+  }
+
+  toggleYearDetails(yearId) {
+    const el = document.getElementById(`year-details-${yearId}`);
+    const arrow = document.getElementById(`year-toggle-arrow-${yearId}`);
+    if (!el) return;
+    const isHidden = el.classList.contains("hidden");
+    if (isHidden) {
+      el.classList.remove("hidden");
+      if (arrow) arrow.textContent = "Tutup Rincian ▲";
+    } else {
+      el.classList.add("hidden");
+      if (arrow) arrow.textContent = "Buka Rincian ▼";
+    }
   }
 
   openAdd5YYearModal() {

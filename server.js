@@ -158,6 +158,13 @@ function getJakartaTimeInfo() {
 }
 
 // Background Worker: Memeriksa agenda terlewat secara real-time 24/7 di server
+function isSleepTask(task) {
+  if (!task) return false;
+  if (task.category === "istirahat" || task.isSleep === true) return true;
+  const title = (task.title || "").toLowerCase();
+  return /\b(tidur|istirahat|sleep|rest|pemulihan|recharge)\b/i.test(title);
+}
+
 async function checkServerMissedTasks() {
   try {
     const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
@@ -210,7 +217,8 @@ async function checkServerMissedTasks() {
         isCancelled = task.cancelledDates && task.cancelledDates.includes(dateStr);
       }
 
-      if (isDone || isCancelled) continue;
+      // Waktu istirahat & tidur eksekutif adalah waktu pemulihan, BUKAN agenda terlewat / gagal
+      if (isDone || isCancelled || isSleepTask(task)) continue;
 
       // Cek apakah sudah lewat batas waktu (timeEnd + 15 menit)
       const taskEndMins = timeToMins(task.timeEnd || task.timeStart || "23:59");

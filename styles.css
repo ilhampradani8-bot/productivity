@@ -229,6 +229,11 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.timeline-slot-occupied.sleep {
+  background: linear-gradient(135deg, #312e81, #581c87) !important;
+  border: 1px solid #7c3aed !important;
+}
+
 .timeline-slot-current {
   position: absolute;
   top: 0;

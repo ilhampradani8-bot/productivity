@@ -155,10 +155,17 @@
               <span class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-indigo-600"></span>
               <h2 class="text-xs sm:text-sm font-bold text-slate-900 font-mono tracking-tight">AGENDA HARIAN EKSEKUTIF</h2>
             </div>
-            <button onclick="window.app.openAddTaskModal()" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] sm:text-xs flex items-center gap-1 sm:gap-1.5 shadow-sm transition-all cursor-pointer">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              <span>+ Tambah Agenda</span>
-            </button>
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <button onclick="window.app.presetSleepSchedule()" class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[11px] sm:text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all shadow-xs" title="Pasang alokasi waktu istirahat & tidur eksekutif rutin 23:00 - 05:00 WIB">
+                <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                <span class="hidden sm:inline">Set Waktu Tidur</span>
+                <span class="sm:hidden">Tidur</span>
+              </button>
+              <button onclick="window.app.openAddTaskModal()" class="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] sm:text-xs flex items-center gap-1 sm:gap-1.5 shadow-sm transition-all cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>+ Tambah Agenda</span>
+              </button>
+            </div>
           </div>
 
           <!-- Date Navigation & Search Bar -->
@@ -725,6 +732,15 @@
 
       <form id="google-add-form" class="space-y-4">
         
+        <!-- Preset Cepat Waktu Tidur & Rutinitas -->
+        <div class="flex items-center justify-between gap-2 flex-wrap pb-1">
+          <span class="text-[10px] text-slate-400 font-mono">Preset Cepat:</span>
+          <button type="button" onclick="window.app.presetSleepSchedule()" class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
+            <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+            <span>🌙 Pasang Waktu Tidur Rutin (23:00 - 05:00 WIB)</span>
+          </button>
+        </div>
+
         <!-- 1. Judul Agenda WITH AUTOCOMPLETE RECOMMENDATIONS -->
         <div class="relative">
           <input type="text" id="task-title" required autocomplete="off" placeholder="Tambahkan judul agenda... (Ketik untuk rekomendasi)" 
