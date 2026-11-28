@@ -24,6 +24,7 @@ import android.provider.Settings;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -107,20 +108,41 @@ public class MainActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(35, 45, 35, 55);
 
-        // 1. Top Bar: Apple iTunes / iOS Clock Header
+        // 1. Top Bar: Apple iTunes / iOS Clock Header with Executive Logo
+        LinearLayout headerRow = new LinearLayout(this);
+        headerRow.setOrientation(LinearLayout.HORIZONTAL);
+        headerRow.setGravity(Gravity.CENTER_VERTICAL);
+        headerRow.setPadding(0, 0, 0, 18);
+
+        ImageView ivLogo = new ImageView(this);
+        int logoResId = getResources().getIdentifier("app_logo", "drawable", getPackageName());
+        if (logoResId != 0) {
+            ivLogo.setImageResource(logoResId);
+        }
+        LinearLayout.LayoutParams logoLp = new LinearLayout.LayoutParams(96, 96);
+        logoLp.setMargins(0, 0, 20, 0);
+        ivLogo.setLayoutParams(logoLp);
+        headerRow.addView(ivLogo);
+
+        LinearLayout headerTextCol = new LinearLayout(this);
+        headerTextCol.setOrientation(LinearLayout.VERTICAL);
+
         TextView tvHeader = new TextView(this);
         tvHeader.setText("Executive Alarms");
         tvHeader.setTextColor(Color.WHITE);
-        tvHeader.setTextSize(26);
+        tvHeader.setTextSize(24);
         tvHeader.setTypeface(Typeface.DEFAULT_BOLD);
-        root.addView(tvHeader);
+        headerTextCol.addView(tvHeader);
 
         TextView tvSub = new TextView(this);
         tvSub.setText("Aura Executive Desk • Ilham Pradani, S.H.");
         tvSub.setTextColor(Color.parseColor("#8E8E93")); // iOS secondaryLabel
-        tvSub.setTextSize(13);
-        tvSub.setPadding(0, 4, 0, 20);
-        root.addView(tvSub);
+        tvSub.setTextSize(12);
+        tvSub.setPadding(0, 2, 0, 0);
+        headerTextCol.addView(tvSub);
+
+        headerRow.addView(headerTextCol);
+        root.addView(headerRow);
 
         // 2. Real-time Status Pill (Apple Frosted Pill)
         tvStatusPill = new TextView(this);

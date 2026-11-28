@@ -665,8 +665,8 @@
     "timestamp": 1795824278677
   },
   "sync_signal": {
-    "sync_at": "2026-11-27T12:56:32.847Z",
-    "timestamp": 1795784192847
+    "sync_at": "2026-11-28T00:17:33.768Z",
+    "timestamp": 1795825053768
   },
   "alarm_test_signal": {
     "triggered_at": "2026-11-27T12:56:33.034Z",
