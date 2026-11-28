@@ -904,7 +904,6 @@ public class MainActivity extends Activity {
                                 }
                             }
                         }
-                        if (isCompletedToday) continue;
 
                         boolean applies = false;
                         if ("none".equals(recurrence)) {
@@ -962,6 +961,9 @@ public class MainActivity extends Activity {
                         if (timeStart.isEmpty() || !timeStart.contains(":")) continue;
 
                         todayTasks.put(t);
+
+                        // Jika sudah dicoret/selesai hari ini, tetap tampilkan di UI tetapi jangan pasang alarm berdering
+                        if (isCompletedToday) continue;
 
                         String timeEnd = t.optString("timeEnd", "");
                         String taskId = t.optString("id", "task_" + i);
