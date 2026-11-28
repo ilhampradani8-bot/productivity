@@ -206,7 +206,13 @@ public class AlarmAlertActivity extends Activity {
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject t = arr.getJSONObject(i);
                 if (finalTaskId.equals(t.optString("id"))) {
-                    t.put("status", "done");
+                    String rec = t.optString("recurrence", "none");
+                    boolean isRec = (rec != null && !rec.isEmpty() && !"none".equals(rec));
+                    if (!isRec) {
+                        t.put("status", "done");
+                    } else {
+                        t.put("status", "todo");
+                    }
                     JSONArray comp = t.optJSONArray("completedDates");
                     if (comp == null) comp = new JSONArray();
                     boolean exists = false;

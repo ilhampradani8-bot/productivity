@@ -397,6 +397,9 @@ class ProductivityApp {
               if (!lt.updated_at || (ct.updated_at && ct.updated_at >= lt.updated_at)) {
                 Object.assign(lt, ct);
               }
+              if (lt.recurrence && lt.recurrence !== "none") {
+                lt.status = "todo";
+              }
             }
           }
         }
@@ -3995,8 +3998,9 @@ Semoga hari Bapak selalu lancar!
         t.completedDates.splice(idx, 1);
       } else {
         t.completedDates.push(targetDate);
-        t.status = "done";
       }
+      // Untuk agenda berulang, status dasar tetap todo agar hari-hari berikutnya tidak otomatis tercoret
+      t.status = "todo";
     }
 
     if (!t.alertSentDates) t.alertSentDates = [];

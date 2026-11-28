@@ -452,9 +452,12 @@ public class MainActivity extends Activity {
 
                 // Check completion status for today
                 boolean isCompleted = false;
-                String status = t.optString("status", "");
-                if ("done".equals(status)) {
-                    isCompleted = true;
+                boolean isRecurring = (recurrence != null && !recurrence.isEmpty() && !"none".equals(recurrence));
+                if (!isRecurring) {
+                    String status = t.optString("status", "");
+                    if ("done".equals(status)) {
+                        isCompleted = true;
+                    }
                 }
                 JSONArray compDates = t.optJSONArray("completedDates");
                 if (compDates != null) {
@@ -622,7 +625,13 @@ public class MainActivity extends Activity {
             for (int i = 0; i < arr.length(); i++) {
                 JSONObject t = arr.getJSONObject(i);
                 if (taskId.equals(t.optString("id"))) {
-                    t.put("status", markDone ? "done" : "todo");
+                    String rec = t.optString("recurrence", "none");
+                    boolean isRec = (rec != null && !rec.isEmpty() && !"none".equals(rec));
+                    if (!isRec) {
+                        t.put("status", markDone ? "done" : "todo");
+                    } else {
+                        t.put("status", "todo");
+                    }
                     JSONArray comp = t.optJSONArray("completedDates");
                     if (comp == null) comp = new JSONArray();
 
@@ -858,6 +867,23 @@ public class MainActivity extends Activity {
 
                         if ("cancelled".equals(status)) continue;
 
+                        boolean isCompletedToday = false;
+                        boolean isRecurring = (recurrence != null && !recurrence.isEmpty() && !"none".equals(recurrence));
+                        if (!isRecurring) {
+                            if ("done".equals(status)) isCompletedToday = true;
+                        } else {
+                            JSONArray compDates = t.optJSONArray("completedDates");
+                            if (compDates != null) {
+                                for (int c = 0; c < compDates.length(); c++) {
+                                    if (todayDate.equals(compDates.optString(c))) {
+                                        isCompletedToday = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        if (isCompletedToday) continue;
+
                         boolean applies = false;
                         if ("none".equals(recurrence)) {
                             applies = todayDate.equals(date);
@@ -1066,7 +1092,13 @@ public class MainActivity extends Activity {
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject obj = arr.getJSONObject(i);
                     if (taskId.equals(obj.optString("id"))) {
-                        obj.put("status", "done");
+                        String rec = obj.optString("recurrence", "none");
+                        boolean isRec = (rec != null && !rec.isEmpty() && !"none".equals(rec));
+                        if (!isRec) {
+                            obj.put("status", "done");
+                        } else {
+                            obj.put("status", "todo");
+                        }
                         JSONArray comp = obj.optJSONArray("completedDates");
                         if (comp == null) comp = new JSONArray();
                         boolean found = false;

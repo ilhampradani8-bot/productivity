@@ -392,6 +392,9 @@ Salam hormat,
     }
 
     if (method === "GET") {
+      const nowWib = new Date(Date.now() + 7 * 3600000);
+      const todayDateStr = nowWib.toISOString().split("T")[0];
+
       const { results: tasks } = await db.prepare("SELECT * FROM tasks ORDER BY time_start ASC").all();
       const { results: settings } = await db.prepare("SELECT * FROM settings").all();
       const settingsMap = {};
@@ -399,14 +402,26 @@ Salam hormat,
         try { settingsMap[s.key] = JSON.parse(s.value); } catch { settingsMap[s.key] = s.value; }
       });
 
+      const parsedTasks = (tasks || []).map(t => {
+        let item = t;
+        if (t.raw_json) {
+          try { item = JSON.parse(t.raw_json); } catch {}
+        }
+        const rec = item.recurrence || t.recurrence || "none";
+        if (rec && rec !== "none") {
+          let compDates = item.completedDates;
+          if (!compDates && t.completed_dates) {
+            try { compDates = JSON.parse(t.completed_dates); } catch {}
+          }
+          if (!Array.isArray(compDates)) compDates = [];
+          item.status = compDates.includes(todayDateStr) ? "done" : "todo";
+        }
+        return item;
+      });
+
       return jsonResponse({
         success: true,
-        tasks: (tasks || []).map(t => {
-          if (t.raw_json) {
-            try { return JSON.parse(t.raw_json); } catch {}
-          }
-          return t;
-        }),
+        tasks: parsedTasks,
         settings: {
           notifications: settingsMap.notifications || {},
           alarm: settingsMap.alarm || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true },
@@ -435,15 +450,17 @@ Salam hormat,
           
           let raw = {};
           try { raw = JSON.parse(taskRow.raw_json || "{}"); } catch {}
-          raw.status = "done";
+          const isRecurring = (taskRow.recurrence && taskRow.recurrence !== 'none') || (raw.recurrence && raw.recurrence !== 'none');
+          const newStatus = isRecurring ? 'todo' : 'done';
+          raw.status = newStatus;
           raw.completedDates = compDates;
           raw.updated_at = now.toISOString();
 
           await db.prepare(`
-            UPDATE tasks SET status = 'done', completed_dates = ?, raw_json = ?, updated_at = datetime('now') WHERE id = ?
-          `).bind(JSON.stringify(compDates), JSON.stringify(raw), taskId).run();
+            UPDATE tasks SET status = ?, completed_dates = ?, raw_json = ?, updated_at = datetime('now') WHERE id = ?
+          `).bind(newStatus, JSON.stringify(compDates), JSON.stringify(raw), taskId).run();
 
-          return jsonResponse({ success: true, taskId, status: "done", date: dateStr });
+          return jsonResponse({ success: true, taskId, status: newStatus, date: dateStr });
         }
       }
 

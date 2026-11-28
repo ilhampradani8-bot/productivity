@@ -208,6 +208,26 @@ function isTaskApplicableForDate(task, dateStr) {
   return false;
 }
 
+function sanitizeTasksForDate(tasks, targetDate) {
+  if (!Array.isArray(tasks)) return [];
+  return tasks.map(t => {
+    const copy = { ...t };
+    const rec = copy.recurrence;
+    const isRecurring = (rec && rec !== 'none');
+    if (isRecurring) {
+      let compDates = copy.completedDates;
+      if (!compDates && copy.completed_dates) {
+        try {
+          compDates = typeof copy.completed_dates === 'string' ? JSON.parse(copy.completed_dates) : copy.completed_dates;
+        } catch (e) { compDates = []; }
+      }
+      if (!Array.isArray(compDates)) compDates = [];
+      copy.status = compDates.includes(targetDate) ? 'done' : 'todo';
+    }
+    return copy;
+  });
+}
+
 async function checkServerMissedTasks() {
   try {
     const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
@@ -962,7 +982,6 @@ Salam hormat,
           const task = currentData.dailyTasks.find(t => t.id === taskId);
           if (task) {
             task.updated_at = new Date().toISOString();
-            task.status = "done";
             if (!task.completedDates) task.completedDates = [];
             if (!task.completedDates.includes(targetDate)) {
               task.completedDates.push(targetDate);
@@ -971,6 +990,8 @@ Salam hormat,
             if (!task.alertSentDates.includes(targetDate)) {
               task.alertSentDates.push(targetDate);
             }
+            const isRecurring = task.recurrence && task.recurrence !== 'none';
+            task.status = isRecurring ? 'todo' : 'done';
           }
 
           fs.writeFileSync(cacheFile, JSON.stringify(currentData, null, 2), 'utf8');
@@ -979,9 +1000,11 @@ Salam hormat,
           (async () => {
             try {
               if (task) {
+                const isRecurring = task.recurrence && task.recurrence !== 'none';
+                const statusToDb = isRecurring ? 'todo' : 'done';
                 const compDates = JSON.stringify(task.completedDates || []).replace(/'/g, "''");
                 const rawJson = JSON.stringify(task).replace(/'/g, "''");
-                await queryD1(`UPDATE tasks SET status = 'done', completed_dates = '${compDates}', raw_json = '${rawJson}', updated_at = datetime('now') WHERE id = '${task.id}';`);
+                await queryD1(`UPDATE tasks SET status = '${statusToDb}', completed_dates = '${compDates}', raw_json = '${rawJson}', updated_at = datetime('now') WHERE id = '${task.id}';`);
               }
             } catch (err) {
               console.warn('[D1 markDone Error]:', err.message);
@@ -1080,13 +1103,15 @@ Salam hormat,
     }
 
     const cacheFile = path.join(__dirname, 'data', 'local_cache.json');
+    const { dateStr } = getJakartaTimeInfo();
     if (fs.existsSync(cacheFile)) {
       try {
         const localData = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        const sanitizedTasks = sanitizeTasksForDate(localData.dailyTasks || [], dateStr);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({
           success: true,
-          tasks: localData.dailyTasks || [],
+          tasks: sanitizedTasks,
           settings: {
             notifications: localData.notifications || {},
             alarm: localData.alarmSettings || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true },
@@ -1106,12 +1131,14 @@ Salam hormat,
       settings.forEach(s => {
         try { settingsMap[s.key] = JSON.parse(s.value); } catch { settingsMap[s.key] = s.value; }
       });
+      const rawTasks = tasks.map(t => {
+        try { return t.raw_json ? JSON.parse(t.raw_json) : t; } catch { return t; }
+      });
+      const sanitizedTasks = sanitizeTasksForDate(rawTasks, dateStr);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({
         success: true,
-        tasks: tasks.map(t => {
-          try { return t.raw_json ? JSON.parse(t.raw_json) : t; } catch { return t; }
-        }),
+        tasks: sanitizedTasks,
         settings: {
           notifications: settingsMap.notifications || {},
           alarm: settingsMap.alarm || { ringOnStart: true, ringBeforeMinutes: 0, ringOnEnd: true, ringOnWakeup: true },

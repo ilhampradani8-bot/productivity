@@ -102,8 +102,12 @@ public class NotificationHelper {
 
             // Periksa apakah sudah diselesaikan hari ini
             boolean isCompletedToday = false;
-            if ("done".equals(status)) {
-                isCompletedToday = true;
+            String recurrence = t.optString("recurrence", "none");
+            boolean isRecurring = (recurrence != null && !recurrence.isEmpty() && !"none".equals(recurrence));
+            if (!isRecurring) {
+                if ("done".equals(status)) {
+                    isCompletedToday = true;
+                }
             }
             JSONArray compDates = t.optJSONArray("completedDates");
             if (compDates != null) {
