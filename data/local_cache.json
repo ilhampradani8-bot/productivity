@@ -618,7 +618,7 @@
     }
   ],
   "alarmSettings": {
-    "ringOnStart": false,
+    "ringOnStart": true,
     "ringBeforeMinutes": 0,
     "ringOnEnd": false,
     "ringOnWakeup": true
@@ -664,9 +664,9 @@
   "device_heartbeat": {
     "online": true,
     "device": "Samsung Galaxy A10s (SM-A107F)",
-    "battery": "93%",
-    "last_sync": "2026-11-28T00:31:11.843Z",
-    "timestamp": 1795825871843
+    "battery": "100%",
+    "last_sync": "2026-11-28T00:38:05.971Z",
+    "timestamp": 1795826285971
   },
   "sync_signal": {
     "sync_at": "2026-11-28T00:17:33.768Z",

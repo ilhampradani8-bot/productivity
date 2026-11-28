@@ -23,22 +23,45 @@ public class AlarmReceiver extends BroadcastReceiver {
     public static final String CHANNEL_AGENDA_VIBRATE = "aura_channel_agenda_vibrate";
 
     /**
-     * Memeriksa apakah alarm ini adalah Alarm Bangun Tidur.
-     * Hanya Alarm Bangun Tidur yang diizinkan membunyikan audio sirene keras.
-     * Semua agenda lainnya hanya berupa notifikasi dan getaran tanpa suara berisik.
+     * Memeriksa apakah alarm ini adalah Alarm Bangun Tidur / Subuh.
+     * Hanya Alarm Bangun Tidur yang membunyikan audio sirene keras dan membuka popup layar penuh.
+     * Semua agenda lainnya hanya berupa getaran dan notifikasi tanpa suara berisik.
      */
     public static boolean isWakeupAlarm(String taskId, String title) {
+        return isWakeupAlarm(taskId, title, null);
+    }
+
+    public static boolean isWakeupAlarm(String taskId, String title, String time) {
         if (taskId != null) {
             String lowerId = taskId.toLowerCase();
-            if (lowerId.contains("sleep_wakeup") || lowerId.contains("wakeup") || lowerId.contains("bangun")) {
+            if (lowerId.contains("sleep_wakeup") || lowerId.contains("wakeup") || lowerId.contains("bangun") || "t-1".equals(taskId) || taskId.startsWith("t-1_")) {
                 return true;
             }
         }
         if (title != null) {
             String lowerTitle = title.toLowerCase();
-            if (lowerTitle.contains("bangun") || lowerTitle.contains("wake up") || lowerTitle.contains("wakeup") || lowerTitle.contains("subuh")) {
+            if (lowerTitle.contains("bangun") || lowerTitle.contains("wake up") || lowerTitle.contains("wakeup")
+                    || lowerTitle.contains("subuh") || lowerTitle.contains("sholat") || lowerTitle.contains("morning")
+                    || lowerTitle.contains("routine") || lowerTitle.contains("tidur") || lowerTitle.contains("istirahat")
+                    || lowerTitle.contains("fajar") || lowerTitle.contains("sahur")) {
                 return true;
             }
+        }
+        if (time != null && time.contains(":")) {
+            try {
+                String cleanTime = time.replaceAll("[^0-9:]", " ").trim();
+                String firstPart = cleanTime.split("\\s+")[0];
+                if (firstPart.contains(":")) {
+                    String[] p = firstPart.split(":");
+                    int h = Integer.parseInt(p[0]);
+                    int m = Integer.parseInt(p[1]);
+                    int totalM = h * 60 + m;
+                    // Antara jam 04:00 (240 menit) sampai 06:15 (375 menit) adalah rentang waktu bangun tidur & subuh
+                    if (totalM >= 240 && totalM <= 375) {
+                        return true;
+                    }
+                }
+            } catch (Exception ignored) {}
         }
         return false;
     }
@@ -106,7 +129,7 @@ public class AlarmReceiver extends BroadcastReceiver {
         String time = intent.getStringExtra(AlarmSoundService.EXTRA_TIME);
         String taskId = intent.getStringExtra(AlarmSoundService.EXTRA_TASK_ID);
 
-        boolean isWakeup = isWakeupAlarm(taskId, title);
+        boolean isWakeup = isWakeupAlarm(taskId, title, time);
 
         if (isWakeup) {
             // ========================================================
@@ -144,11 +167,11 @@ public class AlarmReceiver extends BroadcastReceiver {
         if (title == null || title.isEmpty()) title = "Agenda Eksekutif";
         if (time == null || time.isEmpty()) time = "Sekarang";
 
-        // 1. Getaran Haptic Sopan (2 getaran terasa di saku, tanpa loop berisik)
+        // 1. Getaran Haptic Jelas & Terasa (3 pulsa getar mantap tanpa suara berisik)
         try {
             Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
             if (v != null && v.hasVibrator()) {
-                long[] pattern = {0, 450, 200, 450};
+                long[] pattern = {0, 600, 250, 600, 250, 600};
                 if (Build.VERSION.SDK_INT >= 26) {
                     v.vibrate(VibrationEffect.createWaveform(pattern, -1));
                 } else {

@@ -1001,13 +1001,18 @@ public class MainActivity extends Activity {
                         }
 
                         // Exact Alarm at Start
-                        if (ringOnStart && triggerTimeStart > System.currentTimeMillis()) {
-                            Intent intent = new Intent(context, AlarmReceiver.class);
-                            intent.putExtra(AlarmSoundService.EXTRA_TITLE, "🔔 Agenda Dimulai: " + taskTitle);
-                            intent.putExtra(AlarmSoundService.EXTRA_TIME, timeStart + " - " + timeEnd);
-                            intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, taskId + "_start");
+                        boolean isWakeup = AlarmReceiver.isWakeupAlarm(taskId, taskTitle, timeStart);
+                        boolean shouldTriggerStart = (isWakeup && ringOnWakeup) || (!isWakeup && ringOnStart);
 
-                            int reqCode = (taskId + "_start").hashCode() & 0x7fffffff;
+                        if (shouldTriggerStart && triggerTimeStart > System.currentTimeMillis()) {
+                            Intent intent = new Intent(context, AlarmReceiver.class);
+                            String alertTitle = isWakeup ? ("Alarm Bangun Tidur: " + taskTitle) : ("Agenda Dimulai: " + taskTitle);
+                            intent.putExtra(AlarmSoundService.EXTRA_TITLE, alertTitle);
+                            intent.putExtra(AlarmSoundService.EXTRA_TIME, timeStart + " - " + timeEnd);
+                            intent.putExtra(AlarmSoundService.EXTRA_TASK_ID, taskId + (isWakeup ? "_wakeup" : "_start"));
+                            intent.putExtra(AlarmSoundService.EXTRA_IS_WAKEUP, isWakeup);
+
+                            int reqCode = (taskId + (isWakeup ? "_wakeup" : "_start")).hashCode() & 0x7fffffff;
                             PendingIntent pi = PendingIntent.getBroadcast(
                                     context, reqCode, intent,
                                     PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0)

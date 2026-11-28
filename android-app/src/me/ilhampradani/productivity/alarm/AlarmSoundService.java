@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -77,6 +78,16 @@ public class AlarmSoundService extends Service {
                 }
                 if (alarmUri == null) {
                     alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+                }
+
+                // Pastikan volume STREAM_ALARM cukup terdengar untuk membangunkan tidur
+                AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+                if (audioManager != null) {
+                    int maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
+                    int currentVol = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+                    if (currentVol < (int)(maxVol * 0.75)) {
+                        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, (int)(maxVol * 0.85), 0);
+                    }
                 }
 
                 mediaPlayer = new MediaPlayer();
